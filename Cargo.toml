@@ -1,5 +1,5 @@
 [workspace]
 
 members = [
-    "kinematics",
+    "orbita2d_kinematics",
 ]
