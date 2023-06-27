@@ -6,7 +6,7 @@ impl Orbita2dKinematicsModel {
         let res = self.mat * input_torque;
         [res[0], res[1]]
     }
-    
+
     pub fn compute_input_torque(&mut self, output_torque: &[f64; 2]) -> [f64; 2] {
         let output_torque = Vector2f64::from_row_slice(output_torque);
         let res = self.inv_mat * output_torque;

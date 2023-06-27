@@ -1,0 +1,13 @@
+[package]
+name = "orbita2d_serial_controller"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cache_cache = "0.1.0"
+rustypot = "0.4.0"
+serialport = "4.2.1"
+orbita2d_kinematics = { path = "../orbita2d_kinematics" }
+clap = "4.3.8"
