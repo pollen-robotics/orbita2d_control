@@ -27,14 +27,14 @@ impl Orbita2dKinematicsModel {
         }
     }
 
-    pub fn forward_kinematics(&self, angles: &[f64; 2]) -> [f64; 2] {
-        let a = Vector2f64::from_row_slice(angles);
+    pub fn forward_kinematics(&self, angles: [f64; 2]) -> [f64; 2] {
+        let a = Vector2f64::from_row_slice(&angles);
         let ret = self.inv_mat * a;
         [ret[0], ret[1]]
     }
 
-    pub fn inverse_kinematics(&self, target: &[f64; 2]) -> [f64; 2] {
-        let t = Vector2f64::from_row_slice(target);
+    pub fn inverse_kinematics(&self, target: [f64; 2]) -> [f64; 2] {
+        let t = Vector2f64::from_row_slice(&target);
         let ret = self.mat * t;
         [ret[0], ret[1]]
     }

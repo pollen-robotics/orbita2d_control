@@ -131,7 +131,7 @@ impl Orbita2dController {
 
         let ret = self
             .kinematics
-            .forward_kinematics(&[f64::from(pos_a), f64::from(pos_b)]);
+            .forward_kinematics([f64::from(pos_a), f64::from(pos_b)]);
 
         Ok((ret[0] as f32, ret[1] as f32))
     }
@@ -187,7 +187,7 @@ impl Orbita2dController {
 
         let ret = self
             .kinematics
-            .forward_kinematics(&[f64::from(pos_a), f64::from(pos_b)]);
+            .forward_kinematics([f64::from(pos_a), f64::from(pos_b)]);
 
         Ok((ret[0] as f32, ret[1] as f32))
     }
@@ -203,7 +203,7 @@ impl Orbita2dController {
 
         let ik = self
             .kinematics
-            .inverse_kinematics(&[target_orientation.0 as f64, target_orientation.1 as f64]);
+            .inverse_kinematics([target_orientation.0 as f64, target_orientation.1 as f64]);
 
         let pos_a = ik[0] as f32 + self.motors_offset.0;
         let pos_b = ik[1] as f32 + self.motors_offset.1;
