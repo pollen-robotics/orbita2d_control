@@ -39,3 +39,63 @@ impl Orbita2dKinematicsModel {
         [ret[0], ret[1]]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::f64::consts::PI;
+
+    use rand::Rng;
+
+    use crate::{Orbita2dKinematicsModel, Vector2f64};
+
+    #[test]
+    fn forward_kinematics() {
+        let kin = Orbita2dKinematicsModel::new(1.0, 1.0);
+
+        let res = kin.forward_kinematics([0.0, 0.0]);
+        assert_eq!(res, [0.0, 0.0]);
+
+        let res = kin.forward_kinematics([1.0, 0.0]);
+        assert_eq!(res, [0.5, 0.5]);
+
+        let res = kin.forward_kinematics([0.0, 1.0]);
+        assert_eq!(res, [0.5, -0.5]);
+    }
+
+    #[test]
+    fn inverse_kinematics() {
+        let kin = Orbita2dKinematicsModel::new(1.0, 1.0);
+
+        let res = kin.inverse_kinematics([0.0, 0.0]);
+        assert_eq!(res, [0.0, 0.0]);
+
+        let res = kin.inverse_kinematics([0.5, 0.5]);
+        assert_eq!(res, [1.0, 0.0]);
+
+        let res = kin.inverse_kinematics([0.5, -0.5]);
+        assert_eq!(res, [0.0, 1.0]);
+    }
+
+    #[test]
+    fn inverse_forward_reciprocity() {
+        let mut rng = rand::thread_rng();
+
+        let ratio_a: f64 = rng.gen();
+        let ratio_b: f64 = rng.gen();
+
+        let kin = Orbita2dKinematicsModel::new(ratio_a, ratio_b);
+
+        let angles = [
+            rng.gen::<f64>() * 2.0 * PI - PI,
+            rng.gen::<f64>() * 2.0 * PI - PI,
+        ];
+
+        let target = kin.forward_kinematics(angles);
+        let reconstructed_angles = kin.inverse_kinematics(target);
+
+        let error = (Vector2f64::from_row_slice(&angles)
+            - Vector2f64::from_row_slice(&reconstructed_angles))
+        .norm();
+        assert!(error < 1e-6);
+    }
+}
