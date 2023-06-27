@@ -1,5 +1,5 @@
 [package]
-name = "kinematics"
+name = "orbita2d_kinematics"
 version = "0.1.0"
 edition = "2021"
 
