@@ -2,5 +2,6 @@
 
 members = [
     "orbita2d_kinematics",
+    "orbita2d_controller",
     "orbita2d_serial_controller",
 ]

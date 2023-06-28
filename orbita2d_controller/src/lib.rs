@@ -1,0 +1,3 @@
+trait Orbita2dController {
+    
+}
