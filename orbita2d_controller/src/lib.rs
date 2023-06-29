@@ -115,7 +115,7 @@ impl Orbita2dController {
             pos[1] - self.motors_offset[1],
         ];
 
-        Ok(self.kinematics.forward_kinematics(pos))
+        Ok(self.kinematics.compute_forward_kinematics(pos))
     }
     /// Read the current velocity (in radians/s)
     pub fn get_current_velocity(&mut self) -> Result<[f64; 2]> {
@@ -135,7 +135,7 @@ impl Orbita2dController {
             pos[1] - self.motors_offset[1],
         ];
 
-        Ok(self.kinematics.forward_kinematics(pos))
+        Ok(self.kinematics.compute_forward_kinematics(pos))
     }
     /// Set the desired orientation (in radians)
     pub fn set_target_orientation(&mut self, target_orientation: [f64; 2]) -> Result<()> {
@@ -147,7 +147,9 @@ impl Orbita2dController {
             None => target_orientation,
         };
 
-        let ik = self.kinematics.inverse_kinematics(target_orientation);
+        let ik = self
+            .kinematics
+            .compute_inverse_kinematics(target_orientation);
 
         let pos = [ik[0] + self.motors_offset[0], ik[1] + self.motors_offset[1]];
 
