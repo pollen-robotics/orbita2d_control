@@ -69,6 +69,41 @@ mod tests {
     use crate::{Orbita2dKinematicsModel, Vector2f64};
 
     #[test]
+    fn roll_only() {
+        let mut rng = rand::thread_rng();
+
+        let kin = Orbita2dKinematicsModel::new(1.0, 1.0);
+
+        let alpha: f64 = rng.gen();
+
+        let res = kin.compute_forward_kinematics([alpha, -alpha]);
+        assert!(res[0] == 0.0);
+
+        let res = kin.compute_forward_kinematics([-alpha, alpha]);
+        assert!(res[0] == 0.0);
+
+        let pitch: f64 = rng.gen();
+        let res = kin.compute_inverse_kinematics([0.0, pitch]);
+        assert_eq!(res[0], -res[1]);
+    }
+
+    #[test]
+    fn pitch_only() {
+        let mut rng = rand::thread_rng();
+
+        let kin = Orbita2dKinematicsModel::new(1.0, 1.0);
+
+        let alpha: f64 = rng.gen();
+
+        let res = kin.compute_forward_kinematics([alpha, alpha]);
+        assert!(res[1] == 0.0);
+
+        let roll: f64 = rng.gen();
+        let res = kin.compute_inverse_kinematics([roll, 0.0]);
+        assert_eq!(res[0], res[1]);
+    }
+
+    #[test]
     fn forward_kinematics() {
         let kin = Orbita2dKinematicsModel::new(1.0, 1.0);
 
