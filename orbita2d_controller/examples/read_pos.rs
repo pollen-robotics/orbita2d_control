@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("id_a: {}", id_a);
     println!("id_b: {}", id_b);
 
-    let mut orbita2d = Orbita2dController::with_serial(
+    let mut orbita2d = Orbita2dController::with_flipsky_serial(
         (serialportname_a.as_str(), serialportname_b.as_str()),
         (id_a, id_b),
         [0.0, 0.0],

@@ -1,16 +1,55 @@
+//! Orbita2d controller
+//!
+//! This crate provides a controller for the Orbita2d actuator.
+//!
+//! # Overview
+//!
+//! ## Control
+//! - [x] Torque ON/OFF
+//! - [x] Read the current 2D orientation (position/velocity/torque)
+//! - [x] Set the desired 2D orientation in radians
+//! - [x] Extra controller parameters (velocity limit, torque limit, PID gains)
+//!
+//! ## Communication
+//! - [x] Flipsky Serial communication
+//! - [ ] EtherCAT communication
+//!
+//! ## Usage
+//! ```no_run
+//! use orbita2d_controller::Orbita2dController;
+//!
+//! let mut orbita2d = Orbita2dController::with_flipsky_serial(
+//!     ("/dev/ttyUSB0", "/dev/ttyUSB1"),
+//!     (30, 31),
+//!     [0.0, 0.0],
+//!     [1.0, 1.0],
+//!     None,
+//! ).expect("Failed to initialize Orbita2d controller");
+//!
+//! let orientation = orbita2d.get_current_orientation().expect("Communication Error");
+//! println!("Current 2d orientation: {:?}", orientation);
+//!
+//! ```
+
 use orbita2d_kinematics::Orbita2dKinematicsModel;
 
+/// Result generic wrapper using `std::error::Error` trait
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-mod serial;
+mod flipsky_serial;
 
 #[derive(Debug)]
+/// PID gains wrapper
 pub struct PID {
+    /// Propotional gain
     pub p: f64,
+    /// Integral gain
     pub i: f64,
+    /// Derivative gain
     pub d: f64,
 }
 
+/// Orbita2d controller main interface
 pub struct Orbita2dController {
     inner: Box<dyn Orbita2dMotorController>,
     kinematics: Orbita2dKinematicsModel,
@@ -20,9 +59,12 @@ pub struct Orbita2dController {
 }
 
 #[derive(Debug)]
+/// Angle limit wrapper
 pub struct AngleLimit {
-    min: f64,
-    max: f64,
+    /// lower limit in radians
+    pub min: f64,
+    /// upper limit in radians
+    pub max: f64,
 }
 
 impl Orbita2dController {
@@ -40,10 +82,14 @@ impl Orbita2dController {
         }
     }
 
-    /// Torque ON/OFF
+    /// Check if the torque is ON or OFF.
     pub fn is_torque_on(&mut self) -> Result<bool> {
         self.inner.is_torque_on()
     }
+    /// Enable the torque.
+    /// 
+    /// # Arguments
+    /// * `reset_target` - If true, the target orientation is reset to the current orientation.
     pub fn enable_torque(&mut self, reset_target: bool) -> Result<()> {
         if reset_target {
             let current_pos = self.get_current_orientation()?;
@@ -52,6 +98,7 @@ impl Orbita2dController {
         self.set_torque(true)?;
         Ok(())
     }
+    /// Disable the torque.
     pub fn disable_torque(&mut self) -> Result<()> {
         self.set_torque(false)
     }
@@ -59,8 +106,7 @@ impl Orbita2dController {
         self.inner.set_torque(on)
     }
 
-    /// Read the current orientation (position/velocity/torque)
-    /// In resp. rad, rad/s, Nm
+    /// Read the current orientation (in radians)
     pub fn get_current_orientation(&mut self) -> Result<[f64; 2]> {
         let pos = self.inner.get_current_position()?;
 
@@ -71,14 +117,16 @@ impl Orbita2dController {
 
         Ok(self.kinematics.forward_kinematics(pos))
     }
+    /// Read the current velocity (in radians/s)
     pub fn get_current_velocity(&mut self) -> Result<[f64; 2]> {
         todo!()
     }
+    /// Read the current torque (in Nm)
     pub fn get_current_torque(&mut self) -> Result<[f64; 2]> {
         todo!()
     }
 
-    /// Get/Set the desired orientation in radians
+    /// Get the desired orientation (in radians)
     pub fn get_target_orientation(&mut self) -> Result<[f64; 2]> {
         let pos = self.inner.get_target_position()?;
 
@@ -89,6 +137,7 @@ impl Orbita2dController {
 
         Ok(self.kinematics.forward_kinematics(pos))
     }
+    /// Set the desired orientation (in radians)
     pub fn set_target_orientation(&mut self, target_orientation: [f64; 2]) -> Result<()> {
         let target_orientation = match &self.orientation_limits {
             Some(limits) => [
@@ -105,30 +154,64 @@ impl Orbita2dController {
         self.inner.set_target_position(pos)
     }
 
-    /// Controller parameters
+    /// Get the velocity limit (in radians/s)
+    pub fn get_velocity_limit(&mut self) -> Result<[f64; 2]> {
+        self.inner.get_velocity_limit()
+    }
+    /// Set the velocity limit (in radians/s)
     pub fn set_velocity_limit(&mut self, velocity_limit: [f64; 2]) -> Result<()> {
         self.inner.set_velocity_limit(velocity_limit)
     }
+    /// Get the torque limit (in Nm)
+    pub fn get_torque_limit(&mut self) -> Result<[f64; 2]> {
+        self.inner.get_torque_limit()
+    }
+    /// Set the torque limit (in Nm)
     pub fn set_torque_limit(&mut self, torque_limit: [f64; 2]) -> Result<()> {
         self.inner.set_torque_limit(torque_limit)
     }
+    /// Get the PID gains
+    pub fn get_pid_gains(&mut self) -> Result<PID> {
+        self.inner.get_pid_gains()
+    }
+    /// Set the PID gains
     pub fn set_pid_gains(&mut self, pid_gains: PID) -> Result<()> {
         self.inner.set_pid_gains(pid_gains)
     }
 }
 
+/// Low-level motors controller abstraction for an Orbita2d controller
 pub trait Orbita2dMotorController {
+    /// Check if the torque is ON or OFF
+    /// 
+    /// _Caution: You should guarantee that both motors are always in the same state!_
     fn is_torque_on(&mut self) -> Result<bool>;
+    /// Enable/Disable the torque
+    /// 
+    /// _Caution: You should guarantee that both motors are always in the same state!_
     fn set_torque(&mut self, on: bool) -> Result<()>;
-
+    /// Read the current position (in radians) of each motor
     fn get_current_position(&mut self) -> Result<[f64; 2]>;
-    fn get_current_velocity(&mut self) -> Result<[f64; 2]>;
-    fn get_current_torque(&mut self) -> Result<[f64; 2]>;
 
+    /// Read the current velocity (in radians/s) of each motor
+    fn get_current_velocity(&mut self) -> Result<[f64; 2]>;
+    /// Read the current torque (in Nm) of each motor
+    fn get_current_torque(&mut self) -> Result<[f64; 2]>;
+    /// Read the target position (in radians) of each motor
     fn get_target_position(&mut self) -> Result<[f64; 2]>;
+    /// Set the target position (in radians) for each motor
     fn set_target_position(&mut self, target_position: [f64; 2]) -> Result<()>;
 
+    /// Get the velocity limit (in radians/s) of each motor
+    fn get_velocity_limit(&mut self) -> Result<[f64; 2]>;
+    /// Set the velocity limit (in radians/s) for each motor
     fn set_velocity_limit(&mut self, velocity_limit: [f64; 2]) -> Result<()>;
+    /// Get the torque limit (in Nm) of each motor
+    fn get_torque_limit(&mut self) -> Result<[f64; 2]>;
+    /// Set the torque limit (in Nm) for each motor
     fn set_torque_limit(&mut self, torque_limit: [f64; 2]) -> Result<()>;
+    /// Get the `PID` gains of each motor
+    fn get_pid_gains(&mut self) -> Result<PID>;
+    /// Set the `PID` gains for each motor
     fn set_pid_gains(&mut self, pid_gains: PID) -> Result<()>;
 }
