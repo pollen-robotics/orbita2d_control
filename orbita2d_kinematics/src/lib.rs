@@ -11,7 +11,8 @@ use na::{Matrix2, Vector2};
 type Matrix2x2f64 = Matrix2<f64>;
 type Vector2f64 = Vector2<f64>;
 
-pub mod torque;
+mod torque;
+mod velocity;
 
 /// Kinematics model for Orbita2d
 pub struct Orbita2dKinematicsModel {
