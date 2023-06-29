@@ -87,7 +87,7 @@ impl Orbita2dController {
         self.inner.is_torque_on()
     }
     /// Enable the torque.
-    /// 
+    ///
     /// # Arguments
     /// * `reset_target` - If true, the target orientation is reset to the current orientation.
     pub fn enable_torque(&mut self, reset_target: bool) -> Result<()> {
@@ -183,11 +183,11 @@ impl Orbita2dController {
 /// Low-level motors controller abstraction for an Orbita2d controller
 pub trait Orbita2dMotorController {
     /// Check if the torque is ON or OFF
-    /// 
+    ///
     /// _Caution: You should guarantee that both motors are always in the same state!_
     fn is_torque_on(&mut self) -> Result<bool>;
     /// Enable/Disable the torque
-    /// 
+    ///
     /// _Caution: You should guarantee that both motors are always in the same state!_
     fn set_torque(&mut self, on: bool) -> Result<()>;
     /// Read the current position (in radians) of each motor

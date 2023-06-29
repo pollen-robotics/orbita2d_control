@@ -21,12 +21,12 @@ pub struct Orbita2dFlipskySerialController {
 
 impl Orbita2dController {
     /// Create a new Orbita2dController using flipsky serial communication.
-    /// 
+    ///
     /// It's made to work with version of Orbita2D where the firmware/electronic board:
     /// * is based on Flipsky FSVESC ESC
     /// * is based on SimpleFOC
     /// * uses serial communication via Dynamixel protocol v1
-    /// 
+    ///
     /// # Arguments
     /// * `serial_port_names` - A tuple with the name of each flipsky serial port.
     /// * `ids` - A tuple with the id of eachy motor.
