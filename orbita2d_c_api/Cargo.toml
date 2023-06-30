@@ -1,0 +1,15 @@
+[package]
+name = "orbita2d_c_api"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+orbita2d_kinematics = { version = "0.1.0", path = "../orbita2d_kinematics" }
+
+[build-dependencies]
+cbindgen = "0.24.5"
+
+[lib]
+crate-type = ["dylib"]
