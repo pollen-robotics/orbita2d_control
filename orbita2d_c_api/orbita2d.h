@@ -1,10 +1,7 @@
-#include <cstdarg>
-#include <cstdint>
-#include <cstdlib>
-#include <ostream>
-#include <new>
-
-extern "C" {
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 int32_t forward_position(double ratio_a,
                          double ratio_b,
@@ -47,5 +44,3 @@ int32_t inverse_torque(double ratio_a,
                        double pitch_torque,
                        double *torque_a,
                        double *torque_b);
-
-} // extern "C"
