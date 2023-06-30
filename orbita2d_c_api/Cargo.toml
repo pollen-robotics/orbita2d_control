@@ -12,4 +12,5 @@ orbita2d_kinematics = { version = "0.1.0", path = "../orbita2d_kinematics" }
 cbindgen = "0.24.5"
 
 [lib]
+name = "orbita2d"
 crate-type = ["cdylib"]
