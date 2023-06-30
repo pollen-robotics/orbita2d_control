@@ -6,7 +6,7 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-use orbita2d_serial_controller::Orbita2dController;
+use orbita2d_controller::Orbita2dController;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -47,16 +47,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("id_a: {}", id_a);
     println!("id_b: {}", id_b);
 
-    let mut orbita2d = Orbita2dController::new(
+    let mut orbita2d = Orbita2dController::with_flipsky_serial(
         (serialportname_a.as_str(), serialportname_b.as_str()),
         (id_a, id_b),
-        (0.0, 0.0),
-        (1.9 * 25.01, 1.9 * 25.0), //shoulder
+        [0.0, 0.0],
+        [1.9 * 25.01, 1.9 * 25.0], //shoulder
         None,
     )?;
 
     // (1.8 * 25.01, 1.8 * 25.0), //elbow
-    orbita2d.enable_torque()?;
+    orbita2d.enable_torque(true)?;
 
     let freq = 0.25;
     // let amp = 15.0_f64.to_radians();
@@ -74,7 +74,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         // let posik = orbita2d.set_target_orientation((target as f32, target2 as f32))?;
         // println!("pos: {:?} ik {:?}", pos, posik);
         // orbita2d.set_motors_goal_position((target as f32, target as f32))?;
-        orbita2d.set_motors_goal_position((0.0, target3 as f32))?;
+        orbita2d.set_target_orientation([0.0, target3])?;
         println!("pos: {:?}", pos);
         thread::sleep(Duration::from_millis(10));
     }

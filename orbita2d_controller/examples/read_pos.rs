@@ -1,7 +1,7 @@
 use clap::Parser;
 use std::{error::Error, thread, time::Duration};
 
-use orbita2d_serial_controller::Orbita2dController;
+use orbita2d_controller::Orbita2dController;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -42,24 +42,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("id_a: {}", id_a);
     println!("id_b: {}", id_b);
 
-    let mut orbita2d = Orbita2dController::new(
+    let mut orbita2d = Orbita2dController::with_flipsky_serial(
         (serialportname_a.as_str(), serialportname_b.as_str()),
         (id_a, id_b),
-        (0.0, 0.0),
-        (1.0, 1.0),
+        [0.0, 0.0],
+        [1.0, 1.0],
         None,
     )?;
 
     orbita2d.disable_torque()?;
 
-    orbita2d.set_voltage_limit(10.0)?;
-
     loop {
         let pos = orbita2d.get_current_orientation()?;
-        let motpos = orbita2d.get_motors_current_position()?;
-        let sensorspos = orbita2d.get_sensors_present_position()?;
 
-        println!("pos: {:?} mot {:?} sensors {:?}", pos, motpos, sensorspos);
+        println!("pos: {:?}", pos);
         thread::sleep(Duration::from_millis(100));
     }
 }
