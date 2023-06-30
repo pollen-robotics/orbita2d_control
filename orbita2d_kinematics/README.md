@@ -21,8 +21,8 @@ Position:
   \theta_{roll}
 \end{bmatrix} = 
 \begin{bmatrix}
-  \frac{1}{2*R_A} & \frac{1}{2*R_B} \\
-  \frac{1}{2*R_A} & -\frac{1}{2*R_B}
+  \frac{1}{2R_A} & \frac{1}{2R_B} \\
+  \frac{1}{2R_A} & -\frac{1}{2R_B}
 \end{bmatrix}
 \begin{bmatrix}
   \theta_A \\
@@ -39,8 +39,8 @@ Velocity:
   \omega_{roll}
 \end{bmatrix} = 
 \begin{bmatrix}
-  \frac{1}{2*R_A} & \frac{1}{2*R_B} \\
-  \frac{1}{2*R_A} & -\frac{1}{2*R_B}
+  \frac{1}{2R_A} & \frac{1}{2R_B} \\
+  \frac{1}{2R_A} & -\frac{1}{2R_B}
 \end{bmatrix}
 \begin{bmatrix}
   \omega_A \\
@@ -57,8 +57,8 @@ Torque:
   \tau_{roll}
 \end{bmatrix} = 
 \begin{bmatrix}
-  2*R_A & 2*R_B \\
-  2*R_A & -2*R_B
+  2R_A & 2R_B \\
+  2R_A & -2R_B
 \end{bmatrix}
 \begin{bmatrix}
   \tau_A \\
