@@ -29,5 +29,5 @@ This repository contains the following sub-packages:
 ## Related repositories
 
 * Mechanical design: [orbita2d_mechanical]()
-* Electronics design: [orbita2d_electronics]()
-* Firmware: [orbita2d_firmware]()
+* Electronics design: [orbita2d_electronics](https://github.com/pollen-robotics/orbita2d_elec)
+* Firmware: [orbita2d_firmware](https://github.com/pollen-robotics/firmware_Orbita2Dofs)
