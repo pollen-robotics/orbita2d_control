@@ -6,6 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+lazy_static = "1.4.0"
+libc = "0.2.147"
+orbita2d_controller = { version = "0.1.0", path = "../orbita2d_controller" }
 orbita2d_kinematics = { version = "0.1.0", path = "../orbita2d_kinematics" }
 
 [build-dependencies]
