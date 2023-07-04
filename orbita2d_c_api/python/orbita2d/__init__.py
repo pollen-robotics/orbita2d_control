@@ -115,7 +115,7 @@ class Orbita2dController:
             limits[0][1],
             limits[1][0],
             limits[1][1],
-            uid
+            uid,
         )
 
         return cls(uid[0])
