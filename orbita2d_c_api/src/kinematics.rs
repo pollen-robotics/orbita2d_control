@@ -1,7 +1,7 @@
 use orbita2d_kinematics::Orbita2dKinematicsModel;
 
 #[no_mangle]
-pub extern "C" fn forward_position(
+pub extern "C" fn orbita2d_forward_position(
     ratio_a: f64,
     ratio_b: f64,
     angle_a: f64,
@@ -19,7 +19,7 @@ pub extern "C" fn forward_position(
 }
 
 #[no_mangle]
-pub extern "C" fn forward_velocity(
+pub extern "C" fn orbita2d_forward_velocity(
     ratio_a: f64,
     ratio_b: f64,
     velocity_a: f64,
@@ -37,7 +37,7 @@ pub extern "C" fn forward_velocity(
 }
 
 #[no_mangle]
-pub extern "C" fn forward_torque(
+pub extern "C" fn orbita2d_forward_torque(
     ratio_a: f64,
     ratio_b: f64,
     torque_a: f64,
@@ -55,7 +55,7 @@ pub extern "C" fn forward_torque(
 }
 
 #[no_mangle]
-pub extern "C" fn inverse_position(
+pub extern "C" fn orbita2d_inverse_position(
     ratio_a: f64,
     ratio_b: f64,
     roll: f64,
@@ -73,7 +73,7 @@ pub extern "C" fn inverse_position(
 }
 
 #[no_mangle]
-pub extern "C" fn inverse_velocity(
+pub extern "C" fn orbita2d_inverse_velocity(
     ratio_a: f64,
     ratio_b: f64,
     roll_velocity: f64,
@@ -91,7 +91,7 @@ pub extern "C" fn inverse_velocity(
 }
 
 #[no_mangle]
-pub extern "C" fn inverse_torque(
+pub extern "C" fn orbita2d_inverse_torque(
     ratio_a: f64,
     ratio_b: f64,
     roll_torque: f64,
