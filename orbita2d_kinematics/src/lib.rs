@@ -14,8 +14,12 @@ type Vector2f64 = Vector2<f64>;
 mod torque;
 mod velocity;
 
+#[derive(Debug)]
 /// Kinematics model for Orbita2d
 pub struct Orbita2dKinematicsModel {
+    pub ratio_a: f64,
+    pub ratio_b: f64,
+
     mat: Matrix2x2f64,
     inv_mat: Matrix2x2f64,
 }
@@ -30,7 +34,12 @@ impl Orbita2dKinematicsModel {
         let mat = Matrix2x2f64::new(ratio_a, ratio_a, ratio_b, -ratio_b);
         let inv_mat = mat.try_inverse().unwrap();
 
-        Self { mat, inv_mat }
+        Self {
+            ratio_a,
+            ratio_b,
+            mat,
+            inv_mat,
+        }
     }
     /// Compute the forward kinematics
     ///
