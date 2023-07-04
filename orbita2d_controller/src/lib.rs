@@ -31,14 +31,17 @@
 //!
 //! ```
 
+use std::fmt::Debug;
+
 use orbita2d_kinematics::Orbita2dKinematicsModel;
 
 /// Result generic wrapper using `std::error::Error` trait
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
+mod fake_motor;
 mod flipsky_serial;
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 /// PID gains wrapper
 pub struct PID {
     /// Propotional gain
@@ -56,6 +59,17 @@ pub struct Orbita2dController {
 
     motors_offset: [f64; 2],
     orientation_limits: Option<[AngleLimit; 2]>,
+}
+
+impl Debug for Orbita2dController {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Orbita2dController")
+            .field("inner", &self.inner.name())
+            .field("kinematics", &self.kinematics)
+            .field("motors_offset", &self.motors_offset)
+            .field("orientation_limits", &self.orientation_limits)
+            .finish()
+    }
 }
 
 #[derive(Debug)]
@@ -184,6 +198,9 @@ impl Orbita2dController {
 
 /// Low-level motors controller abstraction for an Orbita2d controller
 pub trait Orbita2dMotorController {
+    /// Get the name of the motors controller (used only for Debug)
+    fn name(&self) -> &'static str;
+
     /// Check if the torque is ON or OFF
     ///
     /// _Caution: You should guarantee that both motors are always in the same state!_
@@ -216,4 +233,27 @@ pub trait Orbita2dMotorController {
     fn get_pid_gains(&mut self) -> Result<PID>;
     /// Set the `PID` gains for each motor
     fn set_pid_gains(&mut self, pid_gains: PID) -> Result<()>;
+}
+
+#[cfg(test)]
+mod tests {
+    use std::f64::consts::PI;
+
+    use crate::Orbita2dController;
+
+    use rand::Rng;
+
+    #[test]
+    fn set_target_orientation() {
+        let mut rng = rand::thread_rng();
+        let orientation = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
+
+        let mut fake_orbita = Orbita2dController::with_fake_motors();
+        fake_orbita.set_target_orientation(orientation).unwrap();
+
+        let current_target = fake_orbita.get_target_orientation().unwrap();
+
+        assert!((current_target[0] - orientation[0]).abs() < 1e-6);
+        assert!((current_target[1] - orientation[1]).abs() < 1e-6);
+    }
 }

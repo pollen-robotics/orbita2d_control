@@ -65,6 +65,10 @@ impl Orbita2dController {
 }
 
 impl Orbita2dMotorController for Orbita2dFlipskySerialController {
+    fn name(&self) -> &'static str {
+        "FlipskySerialController"
+    }
+
     fn is_torque_on(&mut self) -> Result<bool> {
         self.torque_on.entry(self.ids).or_try_insert_with(|_| {
             orbita2dof_foc::read_torque_enable(&self.io, self.serial_ports.0.as_mut(), self.ids.0)
