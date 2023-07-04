@@ -48,7 +48,6 @@ impl Orbita2dController {
     /// More precisely, the motors current position directly teleports to the target when the torque is on.
     ///
     /// Other registers such as velocity, torque, limits, pid gains are not supported in this version.
-
     pub fn with_fake_motors() -> Self {
         Self::new(Box::<FakeMotors>::default(), [1.0, 1.0], [0.0, 0.0], None)
     }
