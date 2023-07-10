@@ -101,17 +101,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Play and record trajectory
-    let mut output_trajectory: Array2<f64> = Array2::zeros(input_trajectory.dim());
+    let mut output_trajectory = Vec::new();
+    // output_trajectory.
 
     for _ in 0..args.repeat {
-        for (i, row) in input_trajectory.rows().into_iter().enumerate() {
+        for row in input_trajectory.rows() {
             let target: [f64; 2] = [row[0], row[1]];
 
             orbita.set_target_orientation(target)?;
 
             let current = orbita.get_current_orientation()?;
-            output_trajectory[[i, 0]] = current[0];
-            output_trajectory[[i, 1]] = current[1];
+            output_trajectory.push([current[0], current[1]]);
 
             thread::sleep(Duration::from_millis(args.dt as u64));
         }
@@ -121,6 +121,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     orbita.disable_torque()?;
 
     if let Some(output) = args.output {
+        let output_trajectory = Array2::from_shape_vec(
+            (output_trajectory.len(), 2),
+            output_trajectory.into_iter().flatten().collect(),
+        )?;
+
         ndarray_npy::write_npy(output, &output_trajectory)?;
     }
 
