@@ -38,6 +38,8 @@ use orbita2d_kinematics::Orbita2dKinematicsModel;
 /// Result generic wrapper using `std::error::Error` trait
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
+mod coherency;
+use coherency::CoherentResult;
 mod fake_motor;
 mod flipsky_serial;
 
@@ -98,7 +100,7 @@ impl Orbita2dController {
 
     /// Check if the torque is ON or OFF.
     pub fn is_torque_on(&mut self) -> Result<bool> {
-        self.inner.is_torque_on()
+        self.inner.is_torque_on().coherent()
     }
     /// Enable the torque.
     ///
@@ -117,7 +119,7 @@ impl Orbita2dController {
         self.set_torque(false)
     }
     fn set_torque(&mut self, on: bool) -> Result<()> {
-        self.inner.set_torque(on)
+        self.inner.set_torque([on, on])
     }
 
     /// Read the current orientation (in radians)
@@ -188,11 +190,11 @@ impl Orbita2dController {
     }
     /// Get the PID gains
     pub fn get_pid_gains(&mut self) -> Result<PID> {
-        self.inner.get_pid_gains()
+        self.inner.get_pid_gains().coherent()
     }
     /// Set the PID gains
     pub fn set_pid_gains(&mut self, pid_gains: PID) -> Result<()> {
-        self.inner.set_pid_gains(pid_gains)
+        self.inner.set_pid_gains([pid_gains, pid_gains])
     }
 }
 
@@ -202,13 +204,11 @@ pub trait Orbita2dMotorController {
     fn name(&self) -> &'static str;
 
     /// Check if the torque is ON or OFF
-    ///
-    /// _Caution: You should guarantee that both motors are always in the same state!_
-    fn is_torque_on(&mut self) -> Result<bool>;
+    fn is_torque_on(&mut self) -> Result<[bool; 2]>;
     /// Enable/Disable the torque
     ///
     /// _Caution: You should guarantee that both motors are always in the same state!_
-    fn set_torque(&mut self, on: bool) -> Result<()>;
+    fn set_torque(&mut self, on: [bool; 2]) -> Result<()>;
     /// Read the current position (in radians) of each motor
     fn get_current_position(&mut self) -> Result<[f64; 2]>;
 
@@ -230,9 +230,9 @@ pub trait Orbita2dMotorController {
     /// Set the torque limit (in Nm) for each motor
     fn set_torque_limit(&mut self, torque_limit: [f64; 2]) -> Result<()>;
     /// Get the `PID` gains of each motor
-    fn get_pid_gains(&mut self) -> Result<PID>;
+    fn get_pid_gains(&mut self) -> Result<[PID; 2]>;
     /// Set the `PID` gains for each motor
-    fn set_pid_gains(&mut self, pid_gains: PID) -> Result<()>;
+    fn set_pid_gains(&mut self, pid_gains: [PID; 2]) -> Result<()>;
 }
 
 #[cfg(test)]
