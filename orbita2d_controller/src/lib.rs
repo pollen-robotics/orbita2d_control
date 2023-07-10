@@ -239,8 +239,8 @@ pub trait Orbita2dMotorController {
 mod tests {
     use std::f64::consts::PI;
 
+    use super::*;
     use crate::Orbita2dController;
-
     use rand::Rng;
 
     #[test]
@@ -249,10 +249,155 @@ mod tests {
         let orientation = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
 
         let mut fake_orbita = Orbita2dController::with_fake_motors();
+
         fake_orbita.set_target_orientation(orientation).unwrap();
 
         let current_target = fake_orbita.get_target_orientation().unwrap();
 
+        assert!((current_target[0] - orientation[0]).abs() < 1e-6);
+        assert!((current_target[1] - orientation[1]).abs() < 1e-6);
+    }
+
+    #[test]
+    fn set_target_orientation_with_motors_offset() {
+        let mut rng = rand::thread_rng();
+        let orientation = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
+
+        let mut fake_orbita = Orbita2dController::with_fake_motors();
+        fake_orbita.motors_offset = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
+
+        fake_orbita.set_target_orientation(orientation).unwrap();
+
+        let current_target = fake_orbita.get_target_orientation().unwrap();
+
+        assert!((current_target[0] - orientation[0]).abs() < 1e-6);
+        assert!((current_target[1] - orientation[1]).abs() < 1e-6);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_bad_orientation_limits() {
+        let mut rng = rand::thread_rng();
+        let orientation = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
+
+        let mut fake_orbita = Orbita2dController::with_fake_motors();
+        fake_orbita.motors_offset = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
+
+        fake_orbita.orientation_limits = Some([
+            AngleLimit {
+                min: 0.1,
+                max: -0.1,
+            },
+            AngleLimit {
+                min: 0.1,
+                max: -0.1,
+            },
+        ]);
+        // limits are min>max and should panic
+        fake_orbita.set_target_orientation(orientation).unwrap();
+    }
+
+    #[test]
+    fn set_target_orientation_with_orientation_limits() {
+        let mut rng = rand::thread_rng();
+        let orientation = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
+
+        let mut fake_orbita = Orbita2dController::with_fake_motors();
+        fake_orbita.motors_offset = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
+
+        fake_orbita.orientation_limits = Some([
+            AngleLimit {
+                min: orientation[0] - 0.1,
+                max: orientation[0] + 0.1,
+            },
+            AngleLimit {
+                min: orientation[1] - 0.1,
+                max: orientation[1] + 0.1,
+            },
+        ]);
+        // orientation is within limits
+        fake_orbita.set_target_orientation(orientation).unwrap();
+
+        let current_target = fake_orbita.get_target_orientation().unwrap();
+
+        assert!((current_target[0] - orientation[0]).abs() < 1e-6);
+        assert!((current_target[1] - orientation[1]).abs() < 1e-6);
+
+        fake_orbita.orientation_limits = Some([
+            AngleLimit {
+                min: orientation[0],
+                max: orientation[0],
+            },
+            AngleLimit {
+                min: orientation[1],
+                max: orientation[1],
+            },
+        ]);
+        // orientation is exactly at the limits
+        fake_orbita.set_target_orientation(orientation).unwrap();
+
+        let current_target = fake_orbita.get_target_orientation().unwrap();
+
+        assert!((current_target[0] - orientation[0]).abs() < 1e-6);
+        assert!((current_target[1] - orientation[1]).abs() < 1e-6);
+
+        fake_orbita.orientation_limits = Some([
+            AngleLimit {
+                min: orientation[0] + 0.1,
+                max: orientation[0] + 0.2,
+            },
+            AngleLimit {
+                min: orientation[1] - 0.2,
+                max: orientation[1] - 0.1,
+            },
+        ]);
+        // orientation is exactly outside the limits
+        fake_orbita.set_target_orientation(orientation).unwrap();
+
+        let current_target = fake_orbita.get_target_orientation().unwrap();
+        //it shoube clamped to the limits
+        assert!((current_target[0] - orientation[0] - 0.1).abs() < 1e-6);
+        assert!((current_target[1] - orientation[1] + 0.1).abs() < 1e-6);
+    }
+
+    #[test]
+    fn set_torque() {
+        let mut fake_orbita = Orbita2dController::with_fake_motors();
+        //test each transition
+        fake_orbita.set_torque(true).unwrap();
+        assert!(fake_orbita.is_torque_on().unwrap());
+        fake_orbita.set_torque(false).unwrap();
+        assert!(!fake_orbita.is_torque_on().unwrap());
+        fake_orbita.set_torque(true).unwrap();
+        assert!(fake_orbita.is_torque_on().unwrap());
+        fake_orbita.disable_torque().unwrap();
+        assert!(!fake_orbita.is_torque_on().unwrap());
+        fake_orbita.enable_torque(false).unwrap();
+        assert!(fake_orbita.is_torque_on().unwrap());
+    }
+
+    #[test]
+    fn test_torque_with_target_reset() {
+        let mut fake_orbita = Orbita2dController::with_fake_motors();
+        fake_orbita.set_torque(true).unwrap();
+        let mut rng = rand::thread_rng();
+        let orientation = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
+        fake_orbita.set_target_orientation(orientation).unwrap();
+        let _ = fake_orbita.enable_torque(true);
+        let current_target = fake_orbita.get_target_orientation().unwrap();
+        assert!((current_target[0] - orientation[0]).abs() < 1e-6);
+        assert!((current_target[1] - orientation[1]).abs() < 1e-6);
+
+        let orientation = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
+        let ik = fake_orbita
+            .kinematics
+            .compute_inverse_kinematics(orientation);
+
+        //change the motor position
+        let _ = fake_orbita.inner.set_target_position(ik);
+
+        let _ = fake_orbita.enable_torque(true);
+        let current_target = fake_orbita.get_target_orientation().unwrap();
         assert!((current_target[0] - orientation[0]).abs() < 1e-6);
         assert!((current_target[1] - orientation[1]).abs() < 1e-6);
     }
