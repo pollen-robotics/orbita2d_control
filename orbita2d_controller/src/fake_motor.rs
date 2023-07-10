@@ -70,8 +70,8 @@ impl Orbita2dMotorController for FakeMotors {
     }
 
     fn set_torque(&mut self, on: [bool; 2]) -> crate::Result<()> {
-        for i in 0..2 {
-            if on[i] != self.torque_on[i] {
+        for (i, &on) in on.iter().enumerate() {
+            if on != self.torque_on[i] {
                 self.current_position[i] = self.target_position[i];
             }
         }
@@ -98,9 +98,9 @@ impl Orbita2dMotorController for FakeMotors {
     fn set_target_position(&mut self, target_position: [f64; 2]) -> crate::Result<()> {
         self.target_position = target_position;
 
-        for i in 0..2 {
+        for (i, &target_position) in target_position.iter().enumerate() {
             if self.torque_on[i] {
-                self.current_position[i] = target_position[i];
+                self.current_position[i] = target_position;
             }
         }
         Ok(())
