@@ -41,7 +41,7 @@ pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 mod fake_motor;
 mod flipsky_serial;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 /// PID gains wrapper
 pub struct PID {
     /// Propotional gain
@@ -133,11 +133,11 @@ impl Orbita2dController {
     }
     /// Read the current velocity (in radians/s)
     pub fn get_current_velocity(&mut self) -> Result<[f64; 2]> {
-        todo!()
+        self.inner.get_current_velocity()
     }
     /// Read the current torque (in Nm)
     pub fn get_current_torque(&mut self) -> Result<[f64; 2]> {
-        todo!()
+        self.inner.get_current_torque()
     }
 
     /// Get the desired orientation (in radians)
