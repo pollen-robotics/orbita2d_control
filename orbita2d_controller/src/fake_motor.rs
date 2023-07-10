@@ -74,6 +74,8 @@ impl Orbita2dMotorController for FakeMotors {
             if on != self.torque_on[i] {
                 self.current_position[i] = self.target_position[i];
             }
+
+            self.torque_on[i] = on;
         }
 
         Ok(())
