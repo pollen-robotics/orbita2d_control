@@ -363,7 +363,7 @@ mod tests {
     #[test]
     fn set_torque() {
         let mut fake_orbita = Orbita2dController::with_fake_motors();
-        //test each transition
+        // Test each transition
         fake_orbita.set_torque(true).unwrap();
         assert!(fake_orbita.is_torque_on().unwrap());
         fake_orbita.set_torque(false).unwrap();
