@@ -121,12 +121,12 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialController {
     }
 
     fn set_torque(&mut self, on: [bool; 2]) -> Result<()> {
-        for i in 0..2 {
+        for (i, &on) in on.iter().enumerate() {
             orbita2dof_foc::write_torque_enable(
                 &self.io,
                 self.serial_ports[i].as_mut(),
                 self.ids[i],
-                on[i] as u8,
+                on as u8,
             )?;
         }
         Ok(())
@@ -201,12 +201,12 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialController {
     }
 
     fn set_target_position(&mut self, target_position: [f64; 2]) -> Result<()> {
-        for i in 0..2 {
+        for (i, &target_position) in target_position.iter().enumerate() {
             orbita2dof_foc::write_motor_a_goal_position(
                 &self.io,
                 self.serial_ports[i].as_mut(),
                 self.ids[i],
-                target_position[i] as f32,
+                target_position as f32,
             )?;
         }
         Ok(())
@@ -230,12 +230,12 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialController {
     }
 
     fn set_velocity_limit(&mut self, velocity_limit: [f64; 2]) -> Result<()> {
-        for i in 0..2 {
+        for (i, &velocity_limit) in velocity_limit.iter().enumerate() {
             orbita2dof_foc::write_angle_velocity_limit(
                 &self.io,
                 self.serial_ports[i].as_mut(),
                 self.ids[i],
-                velocity_limit[i] as f32,
+                velocity_limit as f32,
             )?;
         }
         Ok(())
@@ -259,12 +259,12 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialController {
     }
 
     fn set_torque_limit(&mut self, torque_limit: [f64; 2]) -> Result<()> {
-        for i in 0..2 {
+        for (i, &torque_limit) in torque_limit.iter().enumerate() {
             orbita2dof_foc::write_intensity_limit(
                 &self.io,
                 self.serial_ports[i].as_mut(),
                 self.ids[i],
-                torque_limit[i] as f32,
+                torque_limit as f32,
             )?;
         }
         Ok(())
@@ -288,15 +288,15 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialController {
     }
 
     fn set_pid_gains(&mut self, pid_gains: [PID; 2]) -> Result<()> {
-        for i in 0..2 {
+        for (i, &pid_gains) in pid_gains.iter().enumerate() {
             orbita2dof_foc::write_angle_pid(
                 &self.io,
                 self.serial_ports[i].as_mut(),
                 self.ids[i],
                 orbita2dof_foc::Pid {
-                    p: pid_gains[i].p as f32,
-                    i: pid_gains[i].i as f32,
-                    d: pid_gains[i].d as f32,
+                    p: pid_gains.p as f32,
+                    i: pid_gains.i as f32,
+                    d: pid_gains.d as f32,
                 },
             )?;
         }
@@ -310,7 +310,7 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialCachedController {
     }
 
     fn is_torque_on(&mut self) -> Result<[bool; 2]> {
-        let ids = self.inner.ids.clone();
+        let ids = self.inner.ids;
 
         self.torque_on
             .entries(&ids)
@@ -345,18 +345,11 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialCachedController {
     }
 
     fn get_target_position(&mut self) -> Result<[f64; 2]> {
-        let ids = self.inner.ids.clone();
+        let ids = self.inner.ids;
 
         self.target_position
             .entries(&ids)
-            .or_try_insert_with(|_| {
-                Ok(self
-                    .inner
-                    .get_target_position()?
-                    .iter()
-                    .map(|&pos| pos as f64)
-                    .collect())
-            })
+            .or_try_insert_with(|_| Ok(self.inner.get_target_position()?.to_vec()))
             .map(|vec| vec.try_into().unwrap())
     }
 
@@ -375,18 +368,11 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialCachedController {
     }
 
     fn get_velocity_limit(&mut self) -> Result<[f64; 2]> {
-        let ids = self.inner.ids.clone();
+        let ids = self.inner.ids;
 
         self.velocity_limit
             .entries(&ids)
-            .or_try_insert_with(|_| {
-                Ok(self
-                    .inner
-                    .get_velocity_limit()?
-                    .iter()
-                    .map(|&vel| vel as f64)
-                    .collect())
-            })
+            .or_try_insert_with(|_| Ok(self.inner.get_velocity_limit()?.to_vec()))
             .map(|vec| vec.try_into().unwrap())
     }
     fn set_velocity_limit(&mut self, velocity_limit: [f64; 2]) -> Result<()> {
@@ -405,18 +391,11 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialCachedController {
 
     /// Get the current "intensity limit" of the motors. Intensity_limit is the output of the velocity loop (input to the current loop)
     fn get_torque_limit(&mut self) -> Result<[f64; 2]> {
-        let ids = self.inner.ids.clone();
+        let ids = self.inner.ids;
 
         self.torque_limit
             .entries(&ids)
-            .or_try_insert_with(|_| {
-                Ok(self
-                    .inner
-                    .get_torque_limit()?
-                    .iter()
-                    .map(|&torque| torque as f64)
-                    .collect())
-            })
+            .or_try_insert_with(|_| Ok(self.inner.get_torque_limit()?.to_vec()))
             .map(|vec| vec.try_into().unwrap())
     }
 
@@ -437,7 +416,7 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialCachedController {
 
     /// Get the current angle PID
     fn get_pid_gains(&mut self) -> Result<[PID; 2]> {
-        let ids = self.inner.ids.clone();
+        let ids = self.inner.ids;
 
         self.pid_gains
             .entries(&ids)
@@ -447,9 +426,9 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialCachedController {
                     .get_pid_gains()?
                     .iter()
                     .map(|&pid| PID {
-                        p: pid.p as f64,
-                        i: pid.i as f64,
-                        d: pid.d as f64,
+                        p: pid.p,
+                        i: pid.i,
+                        d: pid.d,
                     })
                     .collect())
             })
