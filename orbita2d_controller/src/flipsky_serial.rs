@@ -108,7 +108,7 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialController {
                     torque[i] as u8,
                 )?;
 
-                self.torque_on.insert(self.ids[0], torque[0]);
+                self.torque_on.insert(self.ids[i], torque[i]);
             }
         }
 

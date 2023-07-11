@@ -55,7 +55,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let mut orbita2d = Orbita2dController::with_fake_motors();
 
     //ensure thatthe torque is disabled
-    orbita2d.disable_torque()?;
+    let res = orbita2d.disable_torque();
+    println!("starting torque: {:?}", res);
+
     thread::sleep(Duration::from_millis(1000));
 
     let init_orientation = orbita2d.get_current_orientation()?;
@@ -72,8 +74,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     );
 
     println!(
-        "init_orientation: {:?} curr_orientation: {:?} target_orientation {:?} curr_target {:?}",
-        init_orientation, curr_orientation, target, curr_target
+        "init_orientation: {:?} \ncurr_orientation: {:?} \ntarget_orientation {:?} \ncurr_target {:?} \ntorque {:?}",
+        init_orientation, curr_orientation, target, curr_target, orbita2d.is_torque_on()
     );
     assert!((curr_orientation[0] - init_orientation[0]).abs() < ERROR_TOLERANCE);
     assert!((curr_orientation[1] - init_orientation[1]).abs() < ERROR_TOLERANCE);
@@ -93,8 +95,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     );
 
     println!(
-        "init_orientation: {:?} curr_orientation: {:?} target_orientation {:?} curr_target {:?}",
-        init_orientation, curr_orientation, target, curr_target
+        "init_orientation: {:?} \ncurr_orientation: {:?} \ntarget_orientation {:?} \ncurr_target {:?} \ntorque {:?}",
+        init_orientation, curr_orientation, target, curr_target, orbita2d.is_torque_on()
     );
 
     assert!((curr_orientation[0] - init_orientation[0]).abs() < ERROR_TOLERANCE);
@@ -115,8 +117,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     );
 
     println!(
-        "init_orientation: {:?} curr_orientation: {:?} target_orientation {:?} curr_target {:?}",
-        init_orientation, curr_orientation, target, curr_target
+        "init_orientation: {:?} \ncurr_orientation: {:?} \ntarget_orientation {:?} \ncurr_target {:?} \ntorque {:?}",
+        init_orientation, curr_orientation, target, curr_target, orbita2d.is_torque_on()
     );
 
     assert!((curr_orientation[0] - init_orientation[0] + 0.1).abs() < ERROR_TOLERANCE);
