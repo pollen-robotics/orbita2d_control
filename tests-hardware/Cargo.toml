@@ -16,3 +16,4 @@ rand = "0.8.5"
 [[test]]
 name="test_torque"
 harness = false
+test = false

@@ -26,6 +26,13 @@ This repository contains the following sub-packages:
 ### C-API library
 
 
+### Testing
+
+* Unit test and doc-test: `cargo test`
+* Integration test:
+  * Hardware tests: `cargo test --test test_torque -- --serialport-a=/dev/left_shoulder_A --serialport-b=/dev/left_shoulder_B --id-a=83 --id-b=84`
+
+
 ## Related repositories
 
 * Mechanical design: [orbita2d_mechanical]()
