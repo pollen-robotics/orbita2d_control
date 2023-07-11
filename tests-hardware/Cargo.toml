@@ -17,3 +17,9 @@ rand = "0.8.5"
 name="test_torque"
 harness = false
 test = false
+
+
+[[test]]
+name="test_velocity"
+harness = false
+test = false
