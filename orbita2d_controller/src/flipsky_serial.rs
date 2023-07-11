@@ -35,47 +35,6 @@ impl Orbita2dController {
     /// * is based on SimpleFOC
     /// * uses serial communication via Dynamixel protocol v1
     ///
-    /// # Arguments
-    /// * `serial_port_names` - A tuple with the name of each flipsky serial port.
-    /// * `ids` - A tuple with the id of eachy motor.
-    /// * `motors_ratio` - An array of the ratio for each motor.
-    /// * `motors_offset` - An array of the offset for each motor.
-    /// * `orientation_limits` - An option array of the `AngleLimit` for each motor.
-    pub fn with_flipsky_serial(
-        serial_port_names: (&str, &str),
-        ids: (u8, u8),
-        motors_offset: [f64; 2],
-        motors_ratio: [f64; 2],
-        orientation_limits: Option<[AngleLimit; 2]>,
-    ) -> Result<Self> {
-        let serial_controller = Orbita2dFlipskySerialController {
-            serial_ports: [
-                serialport::new(serial_port_names.0, 1_000_000)
-                    .timeout(Duration::from_millis(10))
-                    .open()?,
-                serialport::new(serial_port_names.1, 1_000_000)
-                    .timeout(Duration::from_millis(10))
-                    .open()?,
-            ],
-            io: DynamixelSerialIO::v1(),
-            ids: [ids.0, ids.1],
-        };
-
-        Ok(Self::new(
-            Box::new(serial_controller),
-            motors_ratio,
-            motors_offset,
-            orientation_limits,
-        ))
-    }
-
-    /// Create a new Orbita2dController using flipsky serial cached communication.
-    ///
-    /// It's made to work with version of Orbita2D where the firmware/electronic board:
-    /// * is based on Flipsky FSVESC ESC
-    /// * is based on SimpleFOC
-    /// * uses serial communication via Dynamixel protocol v1
-    ///
     /// Cache behavior is as follow:
     /// * current_position: none
     /// * current_velocity: none
@@ -93,39 +52,49 @@ impl Orbita2dController {
     /// * `motors_ratio` - An array of the ratio for each motor.
     /// * `motors_offset` - An array of the offset for each motor.
     /// * `orientation_limits` - An option array of the `AngleLimit` for each motor.
-    pub fn with_cached_flipsky_serial(
+    /// * `use_cache` - A boolean to enable/disable cache.
+    pub fn with_flipsky_serial(
         serial_port_names: (&str, &str),
         ids: (u8, u8),
         motors_offset: [f64; 2],
         motors_ratio: [f64; 2],
         orientation_limits: Option<[AngleLimit; 2]>,
+        use_cache: bool,
     ) -> Result<Self> {
-        let serial_controller = Orbita2dFlipskySerialCachedController {
-            inner: Orbita2dFlipskySerialController {
-                serial_ports: [
-                    serialport::new(serial_port_names.0, 1_000_000)
-                        .timeout(Duration::from_millis(10))
-                        .open()?,
-                    serialport::new(serial_port_names.1, 1_000_000)
-                        .timeout(Duration::from_millis(10))
-                        .open()?,
-                ],
-                io: DynamixelSerialIO::v1(),
-                ids: [ids.0, ids.1],
-            },
-            target_position: Cache::keep_last(),
-            torque_on: Cache::keep_last(),
-            torque_limit: Cache::keep_last(),
-            velocity_limit: Cache::keep_last(),
-            pid_gains: Cache::keep_last(),
+        let serial_controller = Orbita2dFlipskySerialController {
+            serial_ports: [
+                serialport::new(serial_port_names.0, 1_000_000)
+                    .timeout(Duration::from_millis(10))
+                    .open()?,
+                serialport::new(serial_port_names.1, 1_000_000)
+                    .timeout(Duration::from_millis(10))
+                    .open()?,
+            ],
+            io: DynamixelSerialIO::v1(),
+            ids: [ids.0, ids.1],
         };
 
-        Ok(Self::new(
-            Box::new(serial_controller),
-            motors_ratio,
-            motors_offset,
-            orientation_limits,
-        ))
+        Ok(match use_cache {
+            true => Self::new(
+                Box::new(Orbita2dFlipskySerialCachedController {
+                    inner: serial_controller,
+                    target_position: Cache::keep_last(),
+                    torque_on: Cache::keep_last(),
+                    torque_limit: Cache::keep_last(),
+                    velocity_limit: Cache::keep_last(),
+                    pid_gains: Cache::keep_last(),
+                }),
+                motors_ratio,
+                motors_offset,
+                orientation_limits,
+            ),
+            false => Self::new(
+                Box::new(serial_controller),
+                motors_ratio,
+                motors_offset,
+                orientation_limits,
+            ),
+        })
     }
 }
 

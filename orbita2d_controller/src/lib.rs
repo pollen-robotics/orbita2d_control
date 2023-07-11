@@ -24,6 +24,7 @@
 //!     [0.0, 0.0],
 //!     [1.0, 1.0],
 //!     None,
+//!     false,
 //! ).expect("Failed to initialize Orbita2d controller");
 //!
 //! let orientation = orbita2d.get_current_orientation().expect("Communication Error");
