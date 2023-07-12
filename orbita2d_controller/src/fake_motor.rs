@@ -1,5 +1,7 @@
 use std::f64::{INFINITY, NAN};
 
+use serde::{Deserialize, Serialize};
+
 use crate::{Orbita2dController, Orbita2dMotorController, PID};
 
 /// Fake motors implementation, only used for testing
@@ -16,6 +18,9 @@ struct FakeMotors {
     torque_limit: [f64; 2],
     pid_gains: [PID; 2],
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct FakeConfig;
 
 impl Default for FakeMotors {
     fn default() -> Self {
