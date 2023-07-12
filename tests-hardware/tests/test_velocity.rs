@@ -57,6 +57,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     //ensure that the torque is disabled
     orbita2d.disable_torque()?;
     thread::sleep(Duration::from_millis(1000));
+
     //Enable the torque with the target reset (curr_targett = curr_orientation). Orbita2D should not move!
     orbita2d.enable_torque(true)?;
     thread::sleep(Duration::from_millis(1000));
@@ -105,7 +106,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         "curr_orientation: {:?} target: {:?}",
         curr_orientation, target
     );
-
+    //ensure that the torque is disabled
+    orbita2d.disable_torque()?;
     orbita2d.set_velocity_limit(init_vel_limit)?; //back to starting value
     let curr_vel_limit = orbita2d.get_velocity_limit()?;
     println!(

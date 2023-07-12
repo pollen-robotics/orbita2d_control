@@ -23,3 +23,8 @@ test = false
 name="test_velocity"
 harness = false
 test = false
+
+[[test]]
+name="test_torque_limit"
+harness = false
+test = false

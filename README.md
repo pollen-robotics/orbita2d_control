@@ -29,9 +29,10 @@ This repository contains the following sub-packages:
 ### Testing
 
 * Unit test and doc-test: `cargo test`
-* Integration test:
-  * Hardware tests: `cargo test --test test_torque -- --serialport-a=/dev/left_shoulder_A --serialport-b=/dev/left_shoulder_B --id-a=83 --id-b=84`
-
+* Hardware tests:
+  - torque on/off: `cargo test --test test_torque -- --serialport-a=/dev/left_shoulder_A --serialport-b=/dev/left_shoulder_B --id-a=83 --id-b=84`
+  - velocity limit: `cargo test --test test_velocity -- --serialport-a=/dev/left_shoulder_A --serialport-b=/dev/left_shoulder_B --id-a=83 --id-b=84`
+  - torque limit: `cargo test --test test_torque_limit -- --serialport-a=/dev/left_shoulder_A --serialport-b=/dev/left_shoulder_B --id-a=83 --id-b=84`
 
 ## Related repositories
 
