@@ -481,6 +481,7 @@ mod tests {
         - 1.0
         - 1.0
         orientation_limits: null
+        use_cache: true
         ";
 
         let config: Result<Orbita2dConfig, _> = serde_yaml::from_str(s);
@@ -494,6 +495,7 @@ mod tests {
             assert_eq!(config.motors_offset, [0.0, 0.0]);
             assert_eq!(config.motors_ratio, [1.0, 1.0]);
             assert!(config.orientation_limits.is_none());
+            assert!(config.use_cache);
         } else {
             assert!(false, "Wrong config type");
         }
