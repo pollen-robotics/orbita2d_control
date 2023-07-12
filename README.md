@@ -30,9 +30,9 @@ This repository contains the following sub-packages:
 
 * Unit test and doc-test: `cargo test`
 * Hardware tests:
-  - torque on/off: `cargo test --test test_torque -- --serialport-a=/dev/left_shoulder_A --serialport-b=/dev/left_shoulder_B --id-a=83 --id-b=84`
-  - velocity limit: `cargo test --test test_velocity -- --serialport-a=/dev/left_shoulder_A --serialport-b=/dev/left_shoulder_B --id-a=83 --id-b=84`
-  - torque limit: `cargo test --test test_torque_limit -- --serialport-a=/dev/left_shoulder_A --serialport-b=/dev/left_shoulder_B --id-a=83 --id-b=84`
+  - torque on/off: `cargo test --test test_torque -- --config ./config/left_shoulder_flipsky.yaml`
+  - velocity limit: `cargo test --test test_velocity -- --config ./config/left_shoulder_flipsky.yaml`
+  - torque limit: `cargo test --test test_torque_limit -- --config ./config/left_shoulder_flipsky.yaml`
 
 ## Related repositories
 
