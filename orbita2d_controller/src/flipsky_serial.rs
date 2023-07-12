@@ -35,6 +35,7 @@ pub struct FlipskyConfig {
     pub motors_offset: [f64; 2],
     pub motors_ratio: [f64; 2],
     pub orientation_limits: Option<[AngleLimit; 2]>,
+    pub use_cache: bool,
 }
 
 impl Orbita2dController {
