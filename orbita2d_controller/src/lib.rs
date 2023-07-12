@@ -118,8 +118,8 @@ impl Orbita2dController {
             Orbita2dConfig::Flipsky(config) => Self::with_flipsky_serial(
                 (&config.serial_port[0], &config.serial_port[1]),
                 (config.ids[0], config.ids[1]),
-                config.motors_ratio,
                 config.motors_offset,
+                config.motors_ratio,
                 config.orientation_limits,
                 config.use_cache,
             ),
