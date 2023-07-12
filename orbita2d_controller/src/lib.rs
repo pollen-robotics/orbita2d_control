@@ -111,6 +111,7 @@ impl Orbita2dController {
     /// Create a Orbita2d controller with motors implementation as defined in the config file.
     pub fn with_config(configfile: &str) -> Result<Self> {
         let f = std::fs::File::open(configfile)?;
+
         let config: Orbita2dConfig = serde_yaml::from_reader(f)?;
 
         match config {
