@@ -34,6 +34,8 @@
 
 use std::fmt::Debug;
 
+pub use fake_motor::FakeConfig;
+pub use flipsky_serial::FlipskyConfig;
 use orbita2d_kinematics::Orbita2dKinematicsModel;
 
 /// Result generic wrapper using `std::error::Error` trait
@@ -41,6 +43,7 @@ pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 mod coherency;
 use coherency::CoherentResult;
+use serde::{Deserialize, Serialize};
 mod fake_motor;
 mod flipsky_serial;
 
@@ -64,6 +67,12 @@ pub struct Orbita2dController {
     orientation_limits: Option<[AngleLimit; 2]>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub enum Orbita2dConfig {
+    FakeMotors(FakeConfig),
+    Flipsky(FlipskyConfig),
+}
+
 impl Debug for Orbita2dController {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Orbita2dController")
@@ -75,7 +84,7 @@ impl Debug for Orbita2dController {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 /// Angle limit wrapper
 pub struct AngleLimit {
     /// lower limit in radians
@@ -96,6 +105,24 @@ impl Orbita2dController {
             kinematics: Orbita2dKinematicsModel::new(motors_ratio[0], motors_ratio[1]),
             motors_offset,
             orientation_limits,
+        }
+    }
+
+    /// Create a Orbita2d controller with motors implementation as defined in the config file.
+    pub fn with_config(configfile: &str) -> Result<Self> {
+        let f = std::fs::File::open(configfile)?;
+        let config: Orbita2dConfig = serde_yaml::from_reader(f)?;
+
+        match config {
+            Orbita2dConfig::FakeMotors(_) => Ok(Self::with_fake_motors()),
+            Orbita2dConfig::Flipsky(config) => Self::with_flipsky_serial(
+                (&config.serial_port[0], &config.serial_port[1]),
+                (config.ids[0], config.ids[1]),
+                config.motors_ratio,
+                config.motors_offset,
+                config.orientation_limits,
+                config.use_cache,
+            ),
         }
     }
 
