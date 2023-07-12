@@ -10,6 +10,10 @@ use orbita2d_controller::Orbita2dController;
 
 #[derive(Parser, Debug)]
 struct Args {
+    /// Flipsky config file
+    #[arg(short, long)]
+    config: String,
+
     /// Filename of the input trajectory file
     #[arg(short, long)]
     input: String,
@@ -77,7 +81,7 @@ fn goto(
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
-    let mut orbita = Orbita2dController::with_fake_motors();
+    let mut orbita = Orbita2dController::with_config(&args.config)?;
 
     // Setup orbita2d
     // Set velocity limit (if any)

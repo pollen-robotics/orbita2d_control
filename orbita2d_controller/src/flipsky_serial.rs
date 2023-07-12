@@ -7,6 +7,7 @@ use rustypot::{
     device::orbita2dof_foc::{self, Pid},
     DynamixelSerialIO,
 };
+use serde::{Deserialize, Serialize};
 use serialport::SerialPort;
 
 /// Orbita serial controller
@@ -20,6 +21,15 @@ pub struct Orbita2dFlipskySerialController {
     torque_limit: Cache<u8, f64>,
     velocity_limit: Cache<u8, f64>,
     pid_gains: Cache<u8, PID>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct FlipskyConfig {
+    pub serial_port: [String; 2],
+    pub ids: [u8; 2],
+    pub motors_offset: [f64; 2],
+    pub motors_ratio: [f64; 2],
+    pub orientation_limits: Option<[AngleLimit; 2]>,
 }
 
 impl Orbita2dController {
@@ -332,5 +342,44 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialController {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::Orbita2dConfig;
+
+    #[test]
+    fn parse_config() {
+        let s = "!Flipsky
+        serial_port:
+        - /dev/ttyACM0
+        - /dev/ttyACM1
+        ids:
+        - 0
+        - 1
+        motors_offset:
+        - 0.0
+        - 0.0
+        motors_ratio:
+        - 1.0
+        - 1.0
+        orientation_limits: null
+        ";
+
+        let config: Result<Orbita2dConfig, _> = serde_yaml::from_str(s);
+        assert!(config.is_ok());
+
+        let config = config.unwrap();
+
+        if let Orbita2dConfig::Flipsky(config) = config {
+            assert_eq!(config.serial_port, ["/dev/ttyACM0", "/dev/ttyACM1"]);
+            assert_eq!(config.ids, [0, 1]);
+            assert_eq!(config.motors_offset, [0.0, 0.0]);
+            assert_eq!(config.motors_ratio, [1.0, 1.0]);
+            assert!(config.orientation_limits.is_none());
+        } else {
+            assert!(false, "Wrong config type");
+        }
     }
 }
