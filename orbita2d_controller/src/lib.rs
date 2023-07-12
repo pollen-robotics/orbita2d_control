@@ -200,29 +200,35 @@ impl Orbita2dController {
         self.inner.set_target_position(pos)
     }
 
-    /// Get the velocity limit (in radians/s)
-    pub fn get_velocity_limit(&mut self) -> Result<[f64; 2]> {
+    /// Get the velocity limit of each raw motor (in radians/s)
+    /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
+    pub fn get_raw_motors_velocity_limit(&mut self) -> Result<[f64; 2]> {
         self.inner.get_velocity_limit()
     }
-    /// Set the velocity limit (in radians/s)
-    pub fn set_velocity_limit(&mut self, velocity_limit: [f64; 2]) -> Result<()> {
+    /// Set the velocity limit of each raw motor (in radians/s)
+    /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
+    pub fn set_raw_motors_velocity_limit(&mut self, velocity_limit: [f64; 2]) -> Result<()> {
         self.inner.set_velocity_limit(velocity_limit)
     }
-    /// Get the torque limit (in Nm)
-    pub fn get_torque_limit(&mut self) -> Result<[f64; 2]> {
+    /// Get the torque limit of each raw motor (in Nm)
+    /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
+    pub fn get_raw_motors_torque_limit(&mut self) -> Result<[f64; 2]> {
         self.inner.get_torque_limit()
     }
-    /// Set the torque limit (in Nm)
-    pub fn set_torque_limit(&mut self, torque_limit: [f64; 2]) -> Result<()> {
+    /// Set the torque limit of each raw motor (in Nm)
+    /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
+    pub fn set_raw_motors_torque_limit(&mut self, torque_limit: [f64; 2]) -> Result<()> {
         self.inner.set_torque_limit(torque_limit)
     }
-    /// Get the PID gains
-    pub fn get_pid_gains(&mut self) -> Result<PID> {
-        self.inner.get_pid_gains().coherent()
+    /// Get the PID gains of each raw motor
+    /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
+    pub fn get_raw_motors_pid_gains(&mut self) -> Result<[PID; 2]> {
+        self.inner.get_pid_gains()
     }
-    /// Set the PID gains
-    pub fn set_pid_gains(&mut self, pid_gains: PID) -> Result<()> {
-        self.inner.set_pid_gains([pid_gains, pid_gains])
+    /// Set the PID gains of each raw motor
+    /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
+    pub fn set_pid_gains(&mut self, pid_gains: [PID; 2]) -> Result<()> {
+        self.inner.set_pid_gains(pid_gains)
     }
 }
 
