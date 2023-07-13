@@ -1,7 +1,7 @@
-use std::time::Duration;
-
 use crate::{AngleLimit, Orbita2dController, Orbita2dMotorController, Result, PID};
 use cache_cache::Cache;
+use log::info;
+use std::time::Duration;
 
 use rustypot::{
     device::orbita2dof_foc::{self},
@@ -84,6 +84,8 @@ impl Orbita2dController {
             io: DynamixelSerialIO::v1(),
             ids: [ids.0, ids.1],
         };
+        info!("FlipskySerialController:\n\t - serial_port_names: {:?}\n\t - ids: {:?}\n\t - use_cache: {:?}",
+			serial_port_names, ids, use_cache);
 
         Ok(match use_cache {
             true => Self::new(
