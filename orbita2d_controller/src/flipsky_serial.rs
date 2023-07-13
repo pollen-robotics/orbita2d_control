@@ -500,4 +500,23 @@ mod tests {
             assert!(false, "Wrong config type");
         }
     }
+    #[test]
+    fn parse_config_file() {
+        let f = std::fs::File::open("./config/left_shoulder_flipsky.yaml").unwrap();
+        let config: Orbita2dConfig = serde_yaml::from_reader(f).unwrap();
+
+        if let Orbita2dConfig::Flipsky(config) = config {
+            assert_eq!(
+                config.serial_port,
+                ["/dev/left_shoulder_A", "/dev/left_shoulder_B"]
+            );
+            assert_eq!(config.ids, [83, 84]);
+            assert_eq!(config.motors_offset, [0.0, 0.0]);
+            assert_eq!(config.motors_ratio, [45.018, 45.018]);
+            assert!(config.orientation_limits.is_none());
+            assert!(!config.use_cache);
+        } else {
+            assert!(false, "Wrong config type");
+        }
+    }
 }
