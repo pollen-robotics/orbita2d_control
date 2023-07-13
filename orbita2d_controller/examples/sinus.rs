@@ -60,23 +60,27 @@ fn main() -> Result<(), Box<dyn Error>> {
     orbita2d.enable_torque(true)?;
 
     let freq = 0.25;
-    // let amp = 15.0_f64.to_radians();
-    // let amp2 = 5.0_f64.to_radians();
+    let amp = 30.0_f64.to_radians();
+    let amp2 = 15.0_f64.to_radians();
 
     let t0 = SystemTime::now();
-
-    loop {
+    let mut t = t0.elapsed().unwrap().as_secs_f64();
+    while t < 10.0 {
         let pos = orbita2d.get_current_orientation()?;
 
-        let t = t0.elapsed().unwrap().as_secs_f64();
-        // let target = amp * (2.0 * PI * freq * t).sin();
-        // let target2 = amp2 * (2.0 * PI * freq * t).cos() - 90.0_f64.to_radians();
-        let target3 = 360.0_f64.to_radians() * (2.0 * PI * freq * t).sin();
+        t = t0.elapsed().unwrap().as_secs_f64();
+        let target = amp * (2.0 * PI * freq * t).sin();
+        let target2 = amp2 * (2.0 * PI * freq * t).cos() - 90.0_f64.to_radians();
+        // let target3 = 30.0_f64.to_radians() * (2.0 * PI * freq * t).sin();
         // let posik = orbita2d.set_target_orientation((target as f32, target2 as f32))?;
         // println!("pos: {:?} ik {:?}", pos, posik);
-        // orbita2d.set_motors_goal_position((target as f32, target as f32))?;
-        orbita2d.set_target_orientation([0.0, target3])?;
+        // orbita2d.set_motors_goal_position((target as f32, target2 as f32))?;
+        orbita2d.set_target_orientation([target, target2])?;
+
         println!("pos: {:?}", pos);
         thread::sleep(Duration::from_millis(10));
     }
+    println!("STOP");
+    orbita2d.enable_torque(false)?;
+    Ok(())
 }

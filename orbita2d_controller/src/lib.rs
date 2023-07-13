@@ -111,6 +111,7 @@ impl Orbita2dController {
     /// Create a Orbita2d controller with motors implementation as defined in the config file.
     pub fn with_config(configfile: &str) -> Result<Self> {
         let f = std::fs::File::open(configfile)?;
+
         let config: Orbita2dConfig = serde_yaml::from_reader(f)?;
 
         match config {
@@ -118,8 +119,8 @@ impl Orbita2dController {
             Orbita2dConfig::Flipsky(config) => Self::with_flipsky_serial(
                 (&config.serial_port[0], &config.serial_port[1]),
                 (config.ids[0], config.ids[1]),
-                config.motors_ratio,
                 config.motors_offset,
+                config.motors_ratio,
                 config.orientation_limits,
                 config.use_cache,
             ),
@@ -163,11 +164,13 @@ impl Orbita2dController {
     }
     /// Read the current velocity (in radians/s)
     pub fn get_current_velocity(&mut self) -> Result<[f64; 2]> {
-        self.inner.get_current_velocity()
+        let vel = self.inner.get_current_velocity()?;
+        Ok(self.kinematics.compute_output_velocity(vel))
     }
     /// Read the current torque (in Nm)
     pub fn get_current_torque(&mut self) -> Result<[f64; 2]> {
-        self.inner.get_current_torque()
+        let torque = self.inner.get_current_torque()?;
+        Ok(self.kinematics.compute_output_torque(torque))
     }
 
     /// Get the desired orientation (in radians)
