@@ -111,6 +111,7 @@ impl Orbita2dController {
     /// Create a Orbita2d controller with motors implementation as defined in the config file.
     pub fn with_config(configfile: &str) -> Result<Self> {
         let f = std::fs::File::open(configfile)?;
+
         let config: Orbita2dConfig = serde_yaml::from_reader(f)?;
 
         match config {
@@ -163,11 +164,13 @@ impl Orbita2dController {
     }
     /// Read the current velocity (in radians/s)
     pub fn get_current_velocity(&mut self) -> Result<[f64; 2]> {
-        self.inner.get_current_velocity()
+        let vel = self.inner.get_current_velocity()?;
+        Ok(self.kinematics.compute_output_velocity(vel))
     }
     /// Read the current torque (in Nm)
     pub fn get_current_torque(&mut self) -> Result<[f64; 2]> {
-        self.inner.get_current_torque()
+        let torque = self.inner.get_current_torque()?;
+        Ok(self.kinematics.compute_output_torque(torque))
     }
 
     /// Get the desired orientation (in radians)
@@ -200,19 +203,19 @@ impl Orbita2dController {
         self.inner.set_target_position(pos)
     }
 
-    /// Get the velocity limit (in radians/s)
+    /// Get the velocity limit (in radians/s) directly of the motors
     pub fn get_velocity_limit(&mut self) -> Result<[f64; 2]> {
         self.inner.get_velocity_limit()
     }
-    /// Set the velocity limit (in radians/s)
+    /// Set the velocity limit (in radians/s) direclty for the motors
     pub fn set_velocity_limit(&mut self, velocity_limit: [f64; 2]) -> Result<()> {
         self.inner.set_velocity_limit(velocity_limit)
     }
-    /// Get the torque limit (in Nm)
+    /// Get the torque limit (in Nm) directly of the motors
     pub fn get_torque_limit(&mut self) -> Result<[f64; 2]> {
         self.inner.get_torque_limit()
     }
-    /// Set the torque limit (in Nm)
+    /// Set the torque limit (in Nm) direclty for the motors
     pub fn set_torque_limit(&mut self, torque_limit: [f64; 2]) -> Result<()> {
         self.inner.set_torque_limit(torque_limit)
     }
