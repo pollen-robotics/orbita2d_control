@@ -1,6 +1,7 @@
 use std::{
+    fs::File,
     thread,
-    time::{Duration, Instant}, fs::File,
+    time::{Duration, Instant},
 };
 
 use clap::Parser;
