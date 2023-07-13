@@ -14,11 +14,11 @@ struct Args {
     #[arg(short, long)]
     config: String,
 
-    /// Filename of the input trajectory file
+    /// Filename of the input trajectory file (npy)
     #[arg(short, long)]
     input: String,
 
-    /// Filename of the output trajectory file
+    /// Filename of the output trajectory file (npz)
     #[arg(short, long)]
     output: Option<String>,
 
@@ -36,12 +36,12 @@ struct Args {
     /// Velocity limit (same for both motors)
     /// (in radians per second)
     #[arg(long)]
-    velocity_limit: Option<f64>,
+    raw_velocity_limit: Option<f64>,
 
     /// Torque limit (same for both motors)
     /// (in Newton meters)
     #[arg(long)]
-    torque_limit: Option<f64>,
+    raw_torque_limit: Option<f64>,
 
     /// Fade in time
     /// (in seconds)
@@ -85,11 +85,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Setup orbita2d
     // Set velocity limit (if any)
-    if let Some(velocity_limit) = args.velocity_limit {
+    if let Some(velocity_limit) = args.raw_velocity_limit {
         orbita.set_raw_motors_velocity_limit([velocity_limit, velocity_limit])?;
     }
     // Set torque limit (if any)
-    if let Some(torque_limit) = args.torque_limit {
+    if let Some(torque_limit) = args.raw_torque_limit {
         orbita.set_raw_motors_torque_limit([torque_limit, torque_limit])?;
     }
     // Enable torque
