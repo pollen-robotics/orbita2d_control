@@ -11,20 +11,3 @@ rustypot = "0.4.1"
 serialport = "4.2.1"
 clap = "4.3.8"
 rand = "0.8.5"
-
-
-[[test]]
-name="test_torque"
-harness = false
-test = false
-
-
-[[test]]
-name="test_velocity"
-harness = false
-test = false
-
-[[test]]
-name="test_torque_limit"
-harness = false
-test = false

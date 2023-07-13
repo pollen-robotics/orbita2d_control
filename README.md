@@ -30,9 +30,9 @@ This repository contains the following sub-packages:
 
 * Unit test and doc-test: `cargo test`
 * Hardware tests:
-  - torque on/off: `cargo test --test test_torque -- --config $(PWD)/orbita2d_controller/config/left_shoulder_flipsky.yaml`
-  - velocity limit: `cargo test --test test_velocity -- --config $(PWD)/orbita2d_controller/config/left_shoulder_flipsky.yaml`
-  - torque limit: `cargo test --test test_torque_limit -- --config $(PWD)/orbita2d_controller/config/left_shoulder_flipsky.yaml`
+  - torque on/off: `cargo run --bin test_torque -- --config $(PWD)/orbita2d_controller/config/left_shoulder_flipsky.yaml`
+  - velocity limit: `cargo run --bin test_velocity -- --config $(PWD)/orbita2d_controller/config/left_shoulder_flipsky.yaml`
+  - torque limit: `cargo run --bin test_torque_limit -- --config $(PWD)/orbita2d_controller/config/left_shoulder_flipsky.yaml`
 
 ## Related repositories
 

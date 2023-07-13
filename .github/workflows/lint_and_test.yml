@@ -18,6 +18,8 @@ jobs:
         sudo apt-get update
         sudo apt install -y libudev-dev
 
+    - name: Check
+      run: cargo check --all --tests
     - name: Build
       run: cargo build --verbose
     - name: Run tests

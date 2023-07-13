@@ -30,9 +30,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     thread::sleep(Duration::from_millis(1000));
     //Test for the torque limit at 0.0
     let torque_limit = [0.0, 0.0];
-    let init_torque_limit = orbita2d.get_torque_limit()?;
-    orbita2d.set_torque_limit(torque_limit)?;
-    let curr_torque_limit = orbita2d.get_torque_limit()?;
+    let init_torque_limit = orbita2d.get_raw_motors_torque_limit()?;
+    orbita2d.set_raw_motors_torque_limit(torque_limit)?;
+    let curr_torque_limit = orbita2d.get_raw_motors_torque_limit()?;
     println!(
         "setting torque_limit to {:?} init velocity limit: {:?}",
         torque_limit, curr_torque_limit
@@ -87,8 +87,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     thread::sleep(Duration::from_millis(1000));
     //Set a low torque limit, high enough to move
     let torque_limit = [0.5, 0.5];
-    orbita2d.set_torque_limit(torque_limit)?;
-    let curr_torque_limit = orbita2d.get_torque_limit()?;
+    orbita2d.set_raw_motors_torque_limit(torque_limit)?;
+    let curr_torque_limit = orbita2d.get_raw_motors_torque_limit()?;
     println!(
         "setting torque_limit to {:?} init velocity limit: {:?}",
         torque_limit, curr_torque_limit
@@ -138,9 +138,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     //ensure that the torque is disabled
     orbita2d.disable_torque()?;
-    orbita2d.set_torque_limit(init_torque_limit)?; //back to starting value
+    orbita2d.set_raw_motors_torque_limit(init_torque_limit)?; //back to starting value
 
-    let curr_torque_limit = orbita2d.get_torque_limit()?;
+    let curr_torque_limit = orbita2d.get_raw_motors_torque_limit()?;
     println!(
         "setting torque_limit to {:?} read torque limit: {:?}",
         init_torque_limit, curr_torque_limit

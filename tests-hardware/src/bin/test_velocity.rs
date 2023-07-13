@@ -29,9 +29,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     thread::sleep(Duration::from_millis(1000));
     //Set a low velocity limit
     let vel_limit = [10.0, 10.0];
-    let init_vel_limit = orbita2d.get_velocity_limit()?;
-    orbita2d.set_velocity_limit(vel_limit)?;
-    let curr_vel_limit = orbita2d.get_velocity_limit()?;
+    let init_vel_limit = orbita2d.get_raw_motors_velocity_limit()?;
+    orbita2d.set_raw_motors_velocity_limit(vel_limit)?;
+    let curr_vel_limit = orbita2d.get_raw_motors_velocity_limit()?;
     println!(
         "setting velocity_limit to {:?} init velocity limit: {:?}",
         vel_limit, curr_vel_limit
@@ -74,8 +74,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     );
     //ensure that the torque is disabled
     orbita2d.disable_torque()?;
-    orbita2d.set_velocity_limit(init_vel_limit)?; //back to starting value
-    let curr_vel_limit = orbita2d.get_velocity_limit()?;
+    orbita2d.set_raw_motors_velocity_limit(init_vel_limit)?; //back to starting value
+    let curr_vel_limit = orbita2d.get_raw_motors_velocity_limit()?;
     println!(
         "setting velocity_limit to {:?} read velocity limit: {:?}",
         init_vel_limit, curr_vel_limit
