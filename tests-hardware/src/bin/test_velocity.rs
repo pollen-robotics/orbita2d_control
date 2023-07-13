@@ -2,6 +2,7 @@ use clap::Parser;
 use orbita2d_controller::Orbita2dController;
 use std::time::SystemTime;
 use std::{error::Error, thread, time::Duration};
+extern crate log;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -15,6 +16,8 @@ const ERROR_TOLERANCE: f64 = 1e-3;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
+    env_logger::init();
+
     println!("config file: {}", args.config);
     let mut orbita2d = Orbita2dController::with_config(&args.config)?;
 
