@@ -86,11 +86,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Setup orbita2d
     // Set velocity limit (if any)
     if let Some(velocity_limit) = args.velocity_limit {
-        orbita.set_velocity_limit([velocity_limit, velocity_limit])?;
+        orbita.set_raw_motors_velocity_limit([velocity_limit, velocity_limit])?;
     }
     // Set torque limit (if any)
     if let Some(torque_limit) = args.torque_limit {
-        orbita.set_torque_limit([torque_limit, torque_limit])?;
+        orbita.set_raw_motors_torque_limit([torque_limit, torque_limit])?;
     }
     // Enable torque
     orbita.enable_torque(true)?;
