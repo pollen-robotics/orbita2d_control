@@ -1,11 +1,11 @@
 use std::{
     thread,
-    time::{Duration, Instant},
+    time::{Duration, Instant}, fs::File,
 };
 
 use clap::Parser;
 use ndarray::Array2;
-use ndarray_npy::read_npy;
+use ndarray_npy::{read_npy, NpzWriter};
 use orbita2d_controller::Orbita2dController;
 
 #[derive(Parser, Debug)]
@@ -105,7 +105,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Play and record trajectory
-    let mut output_trajectory = Vec::new();
+    let mut output_position_trajectory = Vec::new();
+    let mut output_velocity_trajectory = Vec::new();
+    let mut output_torque_trajectory = Vec::new();
     // output_trajectory.
 
     for _ in 0..args.repeat {
@@ -114,8 +116,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             orbita.set_target_orientation(target)?;
 
-            let current = orbita.get_current_orientation()?;
-            output_trajectory.push([current[0], current[1]]);
+            let position = orbita.get_current_orientation()?;
+            output_position_trajectory.push([position[0], position[1]]);
+            let velocity = orbita.get_current_velocity()?;
+            output_velocity_trajectory.push([velocity[0], velocity[1]]);
+            let torque = orbita.get_current_torque()?;
+            output_torque_trajectory.push([torque[0], torque[1]]);
 
             thread::sleep(Duration::from_millis(args.dt as u64));
         }
@@ -125,12 +131,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     orbita.disable_torque()?;
 
     if let Some(output) = args.output {
-        let output_trajectory = Array2::from_shape_vec(
-            (output_trajectory.len(), 2),
-            output_trajectory.into_iter().flatten().collect(),
+        let output_position_trajectory = Array2::from_shape_vec(
+            (output_position_trajectory.len(), 2),
+            output_position_trajectory.into_iter().flatten().collect(),
+        )?;
+        let output_velocity_trajectory = Array2::from_shape_vec(
+            (output_velocity_trajectory.len(), 2),
+            output_velocity_trajectory.into_iter().flatten().collect(),
+        )?;
+        let output_torque_trajectory = Array2::from_shape_vec(
+            (output_torque_trajectory.len(), 2),
+            output_torque_trajectory.into_iter().flatten().collect(),
         )?;
 
-        ndarray_npy::write_npy(output, &output_trajectory)?;
+        let mut npz = NpzWriter::new(File::create(output)?);
+        npz.add_array("position", &output_position_trajectory)?;
+        npz.add_array("velocity", &output_velocity_trajectory)?;
+        npz.add_array("torque", &output_torque_trajectory)?;
+        npz.finish()?;
     }
 
     Ok(())
