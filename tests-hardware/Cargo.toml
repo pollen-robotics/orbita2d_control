@@ -1,0 +1,30 @@
+[package]
+name = "tests-hardware"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+orbita2d_kinematics = { version = "0.1.0", path = "../orbita2d_kinematics" }
+orbita2d_controller = { version = "0.1.0", path = "../orbita2d_controller" }
+cache_cache = "0.1.0"
+rustypot = "0.4.1"
+serialport = "4.2.1"
+clap = "4.3.8"
+rand = "0.8.5"
+
+
+[[test]]
+name="test_torque"
+harness = false
+test = false
+
+
+[[test]]
+name="test_velocity"
+harness = false
+test = false
+
+[[test]]
+name="test_torque_limit"
+harness = false
+test = false

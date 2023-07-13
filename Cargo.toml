@@ -3,4 +3,5 @@
 members = [
     "orbita2d_kinematics",
     "orbita2d_controller",
+    "tests-hardware",
 ]
