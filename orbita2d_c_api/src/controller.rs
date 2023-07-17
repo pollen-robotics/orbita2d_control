@@ -56,6 +56,23 @@ pub extern "C" fn orbita2d_controller_with_flipsky_serial(
 }
 
 #[no_mangle]
+pub extern "C" fn orbita2d_controller_from_config(
+    configfile: *const libc::c_char,
+    uid: &mut u32,
+) -> u32 {
+    let configfile = unsafe { CStr::from_ptr(configfile) }.to_str().unwrap();
+
+    match Orbita2dController::with_config(configfile) {
+        Ok(c) => {
+            *uid = get_available_uid();
+            CONTROLLER.lock().unwrap().insert(*uid, c);
+            0
+        }
+        Err(_) => 1,
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn orbita2d_is_torque_on(uid: u32, is_on: &mut bool) -> u32 {
     match CONTROLLER
         .lock()

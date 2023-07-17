@@ -18,6 +18,8 @@ uint32_t orbita2d_controller_with_flipsky_serial(const char *serial_port_a,
                                                  bool use_cache,
                                                  uint32_t *uid);
 
+uint32_t orbita2d_controller_from_config(const char *configfile, uint32_t *uid);
+
 uint32_t orbita2d_is_torque_on(uint32_t uid, bool *is_on);
 
 uint32_t orbita2d_enable_torque(uint32_t uid, bool reset_target);
