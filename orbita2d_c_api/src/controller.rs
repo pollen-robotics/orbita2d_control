@@ -43,6 +43,7 @@ pub extern "C" fn orbita2d_controller_with_flipsky_serial(
         [offset_1, offset_2],
         [ratio_1, ratio_2],
         orientation_limits,
+        true,
     ) {
         Ok(c) => {
             *uid = get_available_uid();
@@ -187,7 +188,7 @@ pub extern "C" fn orbita2d_get_velocity_limit(uid: u32, vel_limit: &mut [f64; 2]
         .unwrap()
         .get_mut(&uid)
         .unwrap()
-        .get_velocity_limit()
+        .get_raw_motors_velocity_limit()
     {
         Ok(v) => {
             *vel_limit = v;
@@ -204,7 +205,7 @@ pub extern "C" fn orbita2d_set_velocity_limit(uid: u32, vel_limit: &[f64; 2]) ->
         .unwrap()
         .get_mut(&uid)
         .unwrap()
-        .set_velocity_limit(*vel_limit)
+        .set_raw_motors_velocity_limit(*vel_limit)
     {
         Ok(_) => 0,
         Err(_) => 1,
@@ -218,7 +219,7 @@ pub extern "C" fn orbita2d_get_torque_limit(uid: u32, torque_limit: &mut [f64; 2
         .unwrap()
         .get_mut(&uid)
         .unwrap()
-        .get_torque_limit()
+        .get_raw_motors_torque_limit()
     {
         Ok(v) => {
             *torque_limit = v;
@@ -235,7 +236,7 @@ pub extern "C" fn orbita2d_set_torque_limit(uid: u32, torque_limit: &[f64; 2]) -
         .unwrap()
         .get_mut(&uid)
         .unwrap()
-        .set_torque_limit(*torque_limit)
+        .set_raw_motors_torque_limit(*torque_limit)
     {
         Ok(_) => 0,
         Err(_) => 1,
@@ -254,9 +255,9 @@ pub extern "C" fn orbita2d_get_pid_gains(
         .unwrap()
         .get_mut(&uid)
         .unwrap()
-        .get_pid_gains()
+        .get_raw_motors_pid_gains()
     {
-        Ok(pid) => {
+        Ok([pid, _]) => {
             *kp = pid.p;
             *ki = pid.i;
             *kd = pid.d;
@@ -273,11 +274,18 @@ pub extern "C" fn orbita2d_set_pid_gains(uid: u32, kp: f64, ki: f64, kd: f64) ->
         .unwrap()
         .get_mut(&uid)
         .unwrap()
-        .set_pid_gains(PID {
-            p: kp,
-            i: ki,
-            d: kd,
-        }) {
+        .set_raw_motors_pid_gains([
+            PID {
+                p: kp,
+                i: ki,
+                d: kd,
+            },
+            PID {
+                p: kp,
+                i: ki,
+                d: kd,
+            },
+        ]) {
         Ok(_) => 0,
         Err(_) => 1,
     }
