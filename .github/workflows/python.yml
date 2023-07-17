@@ -17,7 +17,7 @@ jobs:
               python -m pip install --upgrade pip
               pip install maturin
           - name: Run maturin
-            run: 
+            run: |
                 cd orbita2d_c_api
                 maturin build
                 pip install ../target/wheels/*.whl
