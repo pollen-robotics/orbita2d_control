@@ -6,14 +6,14 @@ pub extern "C" fn orbita2d_forward_position(
     ratio_b: f64,
     angle_a: f64,
     angle_b: f64,
-    roll: &mut f64,
-    pitch: &mut f64,
+    ring: &mut f64,
+    center: &mut f64,
 ) -> i32 {
     let model = Orbita2dKinematicsModel::new(ratio_a, ratio_b);
     let res = model.compute_forward_kinematics([angle_a, angle_b]);
 
-    *roll = res[0];
-    *pitch = res[1];
+    *ring = res[0];
+    *center = res[1];
 
     0
 }
@@ -24,14 +24,14 @@ pub extern "C" fn orbita2d_forward_velocity(
     ratio_b: f64,
     velocity_a: f64,
     velocity_b: f64,
-    roll_velocity: &mut f64,
-    pitch_velocity: &mut f64,
+    ring_velocity: &mut f64,
+    center_velocity: &mut f64,
 ) -> i32 {
     let model = Orbita2dKinematicsModel::new(ratio_a, ratio_b);
     let res = model.compute_output_velocity([velocity_a, velocity_b]);
 
-    *roll_velocity = res[0];
-    *pitch_velocity = res[1];
+    *ring_velocity = res[0];
+    *center_velocity = res[1];
 
     0
 }
@@ -42,14 +42,14 @@ pub extern "C" fn orbita2d_forward_torque(
     ratio_b: f64,
     torque_a: f64,
     torque_b: f64,
-    roll_torque: &mut f64,
-    pitch_torque: &mut f64,
+    ring_torque: &mut f64,
+    center_torque: &mut f64,
 ) -> i32 {
     let model = Orbita2dKinematicsModel::new(ratio_a, ratio_b);
     let res = model.compute_output_torque([torque_a, torque_b]);
 
-    *roll_torque = res[0];
-    *pitch_torque = res[1];
+    *ring_torque = res[0];
+    *center_torque = res[1];
 
     0
 }
@@ -58,13 +58,13 @@ pub extern "C" fn orbita2d_forward_torque(
 pub extern "C" fn orbita2d_inverse_position(
     ratio_a: f64,
     ratio_b: f64,
-    roll: f64,
-    pitch: f64,
+    ring: f64,
+    center: f64,
     angle_a: &mut f64,
     angle_b: &mut f64,
 ) -> i32 {
     let model = Orbita2dKinematicsModel::new(ratio_a, ratio_b);
-    let res = model.compute_inverse_kinematics([roll, pitch]);
+    let res = model.compute_inverse_kinematics([ring, center]);
 
     *angle_a = res[0];
     *angle_b = res[1];
@@ -76,13 +76,13 @@ pub extern "C" fn orbita2d_inverse_position(
 pub extern "C" fn orbita2d_inverse_velocity(
     ratio_a: f64,
     ratio_b: f64,
-    roll_velocity: f64,
-    pitch_velocity: f64,
+    ring_velocity: f64,
+    center_velocity: f64,
     velocity_a: &mut f64,
     velocity_b: &mut f64,
 ) -> i32 {
     let model = Orbita2dKinematicsModel::new(ratio_a, ratio_b);
-    let res = model.compute_input_velocity([roll_velocity, pitch_velocity]);
+    let res = model.compute_input_velocity([ring_velocity, center_velocity]);
 
     *velocity_a = res[0];
     *velocity_b = res[1];
@@ -94,13 +94,13 @@ pub extern "C" fn orbita2d_inverse_velocity(
 pub extern "C" fn orbita2d_inverse_torque(
     ratio_a: f64,
     ratio_b: f64,
-    roll_torque: f64,
-    pitch_torque: f64,
+    ring_torque: f64,
+    center_torque: f64,
     torque_a: &mut f64,
     torque_b: &mut f64,
 ) -> i32 {
     let model = Orbita2dKinematicsModel::new(ratio_a, ratio_b);
-    let res = model.compute_input_torque([roll_torque, pitch_torque]);
+    let res = model.compute_input_torque([ring_torque, center_torque]);
 
     *torque_a = res[0];
     *torque_b = res[1];
