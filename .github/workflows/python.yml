@@ -6,7 +6,7 @@ jobs:
     maturin:
         runs-on: ubuntu-latest
         env:
-            working-directory: orbita2d_c_api/python
+            working-directory: orbita2d_c_api
         steps:
           - uses: actions/checkout@v3
           - name: Set up Python 3.8
@@ -20,6 +20,7 @@ jobs:
               pip install maturin
           - name: Run maturin
             run: |
-                maturin develop
+                maturin build
+                pip install ../target/wheels/*.whl
     
   
