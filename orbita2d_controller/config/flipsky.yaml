@@ -1,0 +1,15 @@
+!Flipsky
+serial_port:
+- /dev/ttyACM0
+- /dev/ttyACM1
+ids:
+- 0
+- 1
+motors_offset:
+- 0.0
+- 0.0
+motors_ratio:
+- 1.0
+- 1.0
+orientation_limits: null
+use_cache: false

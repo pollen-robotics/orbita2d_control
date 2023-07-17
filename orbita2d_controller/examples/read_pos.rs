@@ -48,6 +48,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         [0.0, 0.0],
         [1.0, 1.0],
         None,
+        false,
     )?;
 
     orbita2d.disable_torque()?;
