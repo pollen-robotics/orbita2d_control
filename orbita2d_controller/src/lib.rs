@@ -257,7 +257,7 @@ impl Orbita2dController {
     }
     /// Set the PID gains of each raw motor
     /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
-    pub fn set_pid_gains(&mut self, pid_gains: [PID; 2]) -> Result<()> {
+    pub fn set_raw_motors_pid_gains(&mut self, pid_gains: [PID; 2]) -> Result<()> {
         debug!(target: &self.log_target(), "set_pid_gains: {:?}", pid_gains);
         self.inner.set_pid_gains(pid_gains)
     }
