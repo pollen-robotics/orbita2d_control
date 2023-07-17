@@ -23,12 +23,13 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install maturin cffi pytest
+          pip install maturin cffi pytest pyudev
 
       - name: Run maturin
         run: |
           cd orbita2d_c_api
           maturin build
           pip install ../target/wheels/*.whl
+          ls /usr/lib/x86_64-linux-gnu/libudev*
           python -c "import orbita2d"
     
