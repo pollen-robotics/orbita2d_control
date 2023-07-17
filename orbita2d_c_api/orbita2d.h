@@ -3,18 +3,19 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-uint32_t orbita2d_controller_with_flipsky_serial(const char *serial_port_1,
-                                                 const char *serial_port_2,
-                                                 uint8_t id_1,
-                                                 uint8_t id_2,
-                                                 double offset_1,
-                                                 double offset_2,
-                                                 double ratio_1,
-                                                 double ratio_2,
-                                                 double lower_limit_1,
-                                                 double upper_limit_1,
-                                                 double lower_limit_2,
-                                                 double upper_limit_2,
+uint32_t orbita2d_controller_with_flipsky_serial(const char *serial_port_a,
+                                                 const char *serial_port_b,
+                                                 uint8_t id_a,
+                                                 uint8_t id_b,
+                                                 double offset_a,
+                                                 double offset_b,
+                                                 double ratio_a,
+                                                 double ratio_b,
+                                                 double lower_limit_a,
+                                                 double upper_limit_a,
+                                                 double lower_limit_b,
+                                                 double upper_limit_b,
+                                                 bool use_cache,
                                                  uint32_t *uid);
 
 uint32_t orbita2d_is_torque_on(uint32_t uid, bool *is_on);
@@ -33,17 +34,20 @@ uint32_t orbita2d_get_target_orientation(uint32_t uid, double (*pos)[2]);
 
 uint32_t orbita2d_set_target_orientation(uint32_t uid, const double (*pos)[2]);
 
-uint32_t orbita2d_get_velocity_limit(uint32_t uid, double (*vel_limit)[2]);
+uint32_t orbita2d_get_raw_motors_velocity_limit(uint32_t uid,
+                                                double (*raw_motors_velocity_limit)[2]);
 
-uint32_t orbita2d_set_velocity_limit(uint32_t uid, const double (*vel_limit)[2]);
+uint32_t orbita2d_raw_motors_set_velocity_limit(uint32_t uid,
+                                                const double (*raw_motors_velocity_limit)[2]);
 
-uint32_t orbita2d_get_torque_limit(uint32_t uid, double (*torque_limit)[2]);
+uint32_t orbita2d_raw_motors_get_torque_limit(uint32_t uid, double (*raw_motors_torque_limit)[2]);
 
-uint32_t orbita2d_set_torque_limit(uint32_t uid, const double (*torque_limit)[2]);
+uint32_t orbita2d_set_raw_motors_torque_limit(uint32_t uid,
+                                              const double (*raw_motors_torque_limit)[2]);
 
-uint32_t orbita2d_get_pid_gains(uint32_t uid, double *kp, double *ki, double *kd);
+uint32_t orbita2d_get_raw_motors_pid_gains(uint32_t uid, double (*pids)[6]);
 
-uint32_t orbita2d_set_pid_gains(uint32_t uid, double kp, double ki, double kd);
+uint32_t orbita2d_set_pid_gains(uint32_t uid, const double (*pids)[6]);
 
 int32_t orbita2d_forward_position(double ratio_a,
                                   double ratio_b,

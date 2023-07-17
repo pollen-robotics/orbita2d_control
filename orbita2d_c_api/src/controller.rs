@@ -9,41 +9,42 @@ lazy_static! {
 
 #[no_mangle]
 pub extern "C" fn orbita2d_controller_with_flipsky_serial(
-    serial_port_1: *const libc::c_char,
-    serial_port_2: *const libc::c_char,
-    id_1: u8,
-    id_2: u8,
-    offset_1: f64,
-    offset_2: f64,
-    ratio_1: f64,
-    ratio_2: f64,
-    lower_limit_1: f64,
-    upper_limit_1: f64,
-    lower_limit_2: f64,
-    upper_limit_2: f64,
+    serial_port_a: *const libc::c_char,
+    serial_port_b: *const libc::c_char,
+    id_a: u8,
+    id_b: u8,
+    offset_a: f64,
+    offset_b: f64,
+    ratio_a: f64,
+    ratio_b: f64,
+    lower_limit_a: f64,
+    upper_limit_a: f64,
+    lower_limit_b: f64,
+    upper_limit_b: f64,
+    use_cache: bool,
     uid: &mut u32,
 ) -> u32 {
-    let serial_port_1 = unsafe { CStr::from_ptr(serial_port_1) }.to_str().unwrap();
-    let serial_port_2 = unsafe { CStr::from_ptr(serial_port_2) }.to_str().unwrap();
+    let serial_port_a = unsafe { CStr::from_ptr(serial_port_a) }.to_str().unwrap();
+    let serial_port_b = unsafe { CStr::from_ptr(serial_port_b) }.to_str().unwrap();
 
     let orientation_limits = Some([
         AngleLimit {
-            min: lower_limit_1,
-            max: upper_limit_1,
+            min: lower_limit_a,
+            max: upper_limit_a,
         },
         AngleLimit {
-            min: lower_limit_2,
-            max: upper_limit_2,
+            min: lower_limit_b,
+            max: upper_limit_b,
         },
     ]);
 
     match Orbita2dController::with_flipsky_serial(
-        (serial_port_1, serial_port_2),
-        (id_1, id_2),
-        [offset_1, offset_2],
-        [ratio_1, ratio_2],
+        (serial_port_a, serial_port_b),
+        (id_a, id_b),
+        [offset_a, offset_b],
+        [ratio_a, ratio_b],
         orientation_limits,
-        true,
+        use_cache,
     ) {
         Ok(c) => {
             *uid = get_available_uid();
@@ -182,7 +183,10 @@ pub extern "C" fn orbita2d_set_target_orientation(uid: u32, pos: &[f64; 2]) -> u
 }
 
 #[no_mangle]
-pub extern "C" fn orbita2d_get_velocity_limit(uid: u32, vel_limit: &mut [f64; 2]) -> u32 {
+pub extern "C" fn orbita2d_get_raw_motors_velocity_limit(
+    uid: u32,
+    raw_motors_velocity_limit: &mut [f64; 2],
+) -> u32 {
     match CONTROLLER
         .lock()
         .unwrap()
@@ -191,7 +195,7 @@ pub extern "C" fn orbita2d_get_velocity_limit(uid: u32, vel_limit: &mut [f64; 2]
         .get_raw_motors_velocity_limit()
     {
         Ok(v) => {
-            *vel_limit = v;
+            *raw_motors_velocity_limit = v;
             0
         }
         Err(_) => 1,
@@ -199,13 +203,16 @@ pub extern "C" fn orbita2d_get_velocity_limit(uid: u32, vel_limit: &mut [f64; 2]
 }
 
 #[no_mangle]
-pub extern "C" fn orbita2d_set_velocity_limit(uid: u32, vel_limit: &[f64; 2]) -> u32 {
+pub extern "C" fn orbita2d_raw_motors_set_velocity_limit(
+    uid: u32,
+    raw_motors_velocity_limit: &[f64; 2],
+) -> u32 {
     match CONTROLLER
         .lock()
         .unwrap()
         .get_mut(&uid)
         .unwrap()
-        .set_raw_motors_velocity_limit(*vel_limit)
+        .set_raw_motors_velocity_limit(*raw_motors_velocity_limit)
     {
         Ok(_) => 0,
         Err(_) => 1,
@@ -213,7 +220,10 @@ pub extern "C" fn orbita2d_set_velocity_limit(uid: u32, vel_limit: &[f64; 2]) ->
 }
 
 #[no_mangle]
-pub extern "C" fn orbita2d_get_torque_limit(uid: u32, torque_limit: &mut [f64; 2]) -> u32 {
+pub extern "C" fn orbita2d_raw_motors_get_torque_limit(
+    uid: u32,
+    raw_motors_torque_limit: &mut [f64; 2],
+) -> u32 {
     match CONTROLLER
         .lock()
         .unwrap()
@@ -222,7 +232,7 @@ pub extern "C" fn orbita2d_get_torque_limit(uid: u32, torque_limit: &mut [f64; 2
         .get_raw_motors_torque_limit()
     {
         Ok(v) => {
-            *torque_limit = v;
+            *raw_motors_torque_limit = v;
             0
         }
         Err(_) => 1,
@@ -230,13 +240,16 @@ pub extern "C" fn orbita2d_get_torque_limit(uid: u32, torque_limit: &mut [f64; 2
 }
 
 #[no_mangle]
-pub extern "C" fn orbita2d_set_torque_limit(uid: u32, torque_limit: &[f64; 2]) -> u32 {
+pub extern "C" fn orbita2d_set_raw_motors_torque_limit(
+    uid: u32,
+    raw_motors_torque_limit: &[f64; 2],
+) -> u32 {
     match CONTROLLER
         .lock()
         .unwrap()
         .get_mut(&uid)
         .unwrap()
-        .set_raw_motors_torque_limit(*torque_limit)
+        .set_raw_motors_torque_limit(*raw_motors_torque_limit)
     {
         Ok(_) => 0,
         Err(_) => 1,
@@ -244,12 +257,7 @@ pub extern "C" fn orbita2d_set_torque_limit(uid: u32, torque_limit: &[f64; 2]) -
 }
 
 #[no_mangle]
-pub extern "C" fn orbita2d_get_pid_gains(
-    uid: u32,
-    kp: &mut f64,
-    ki: &mut f64,
-    kd: &mut f64,
-) -> u32 {
+pub extern "C" fn orbita2d_get_raw_motors_pid_gains(uid: u32, pids: &mut [f64; 6]) -> u32 {
     match CONTROLLER
         .lock()
         .unwrap()
@@ -257,10 +265,14 @@ pub extern "C" fn orbita2d_get_pid_gains(
         .unwrap()
         .get_raw_motors_pid_gains()
     {
-        Ok([pid, _]) => {
-            *kp = pid.p;
-            *ki = pid.i;
-            *kd = pid.d;
+        Ok([pid_a, pid_b]) => {
+            pids[0] = pid_a.p;
+            pids[1] = pid_a.i;
+            pids[2] = pid_a.d;
+            pids[3] = pid_b.p;
+            pids[4] = pid_b.i;
+            pids[5] = pid_b.d;
+
             0
         }
         Err(_) => 1,
@@ -268,7 +280,7 @@ pub extern "C" fn orbita2d_get_pid_gains(
 }
 
 #[no_mangle]
-pub extern "C" fn orbita2d_set_pid_gains(uid: u32, kp: f64, ki: f64, kd: f64) -> u32 {
+pub extern "C" fn orbita2d_set_pid_gains(uid: u32, pids: &[f64; 6]) -> u32 {
     match CONTROLLER
         .lock()
         .unwrap()
@@ -276,14 +288,14 @@ pub extern "C" fn orbita2d_set_pid_gains(uid: u32, kp: f64, ki: f64, kd: f64) ->
         .unwrap()
         .set_raw_motors_pid_gains([
             PID {
-                p: kp,
-                i: ki,
-                d: kd,
+                p: pids[0],
+                i: pids[1],
+                d: pids[2],
             },
             PID {
-                p: kp,
-                i: ki,
-                d: kd,
+                p: pids[3],
+                i: pids[4],
+                d: pids[5],
             },
         ]) {
         Ok(_) => 0,
