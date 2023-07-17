@@ -1,0 +1,25 @@
+name: Python checks
+
+on: [push]
+
+jobs:
+    maturin:
+        runs-on: ubuntu-latest
+        env:
+            working-directory: orbita2d_c_api/python
+        steps:
+          - uses: actions/checkout@v3
+          - name: Set up Python 3.8
+            uses: actions/setup-python@v4
+            with:
+              python-version: "3.8"
+              cache: 'pip' # caching pip dependencies
+          - name: Install dependencies
+            run: |
+              python -m pip install --upgrade pip
+              pip install maturin
+          - name: Run maturin
+            run: |
+                maturin develop
+    
+  
