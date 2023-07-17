@@ -297,7 +297,7 @@ pub extern "C" fn orbita2d_get_raw_motors_pid_gains(uid: u32, pids: &mut [f64; 6
 }
 
 #[no_mangle]
-pub extern "C" fn orbita2d_set_pid_gains(uid: u32, pids: &[f64; 6]) -> u32 {
+pub extern "C" fn orbita2d_set_raw_motors_pid_gains(uid: u32, pids: &[f64; 6]) -> u32 {
     match CONTROLLER
         .lock()
         .unwrap()
