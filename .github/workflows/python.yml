@@ -12,7 +12,7 @@ jobs:
       - name: Deps
         run: |
           sudo apt-get update
-          sudo apt install -y libudev-dev
+          sudo apt install -y libudev-dev libudev1
   
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
