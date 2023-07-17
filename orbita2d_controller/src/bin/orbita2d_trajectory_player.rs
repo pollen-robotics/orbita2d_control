@@ -1,3 +1,5 @@
+extern crate log;
+
 use std::{
     fs::File,
     thread,
@@ -5,6 +7,7 @@ use std::{
 };
 
 use clap::Parser;
+
 use ndarray::Array2;
 use ndarray_npy::{read_npy, NpzWriter};
 use orbita2d_controller::Orbita2dController;
@@ -80,6 +83,8 @@ fn goto(
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    env_logger::init();
+
     let args = Args::parse();
 
     let mut orbita = Orbita2dController::with_config(&args.config)?;

@@ -32,6 +32,7 @@
 //!
 //! ```
 
+use log::{debug, info};
 use std::fmt::Debug;
 
 pub use fake_motor::FakeConfig;
@@ -111,8 +112,10 @@ impl Orbita2dController {
     /// Create a Orbita2d controller with motors implementation as defined in the config file.
     pub fn with_config(configfile: &str) -> Result<Self> {
         let f = std::fs::File::open(configfile)?;
+        info!("Loading config file: {}", configfile);
 
         let config: Orbita2dConfig = serde_yaml::from_reader(f)?;
+        info!("Config: {:?}", config);
 
         match config {
             Orbita2dConfig::FakeMotors(_) => Ok(Self::with_fake_motors()),
@@ -129,6 +132,8 @@ impl Orbita2dController {
 
     /// Check if the torque is ON or OFF.
     pub fn is_torque_on(&mut self) -> Result<bool> {
+        debug!(target: &self.log_target(),
+	       "is_torque_on: {:?}", self.inner.is_torque_on().coherent());
         self.inner.is_torque_on().coherent()
     }
     /// Enable the torque.
@@ -136,51 +141,63 @@ impl Orbita2dController {
     /// # Arguments
     /// * `reset_target` - If true, the target orientation is reset to the current orientation.
     pub fn enable_torque(&mut self, reset_target: bool) -> Result<()> {
+        debug!(target: &self.log_target(), "enable_torque, reset_target: {:?}", reset_target);
         if reset_target {
             let current_pos = self.get_current_orientation()?;
             self.set_target_orientation(current_pos)?;
+            debug!(target: &self.log_target(),
+                "enable_torque -> reset_target to current_pos: {:?}",
+                current_pos
+            );
         }
         self.set_torque(true)?;
         Ok(())
     }
     /// Disable the torque.
     pub fn disable_torque(&mut self) -> Result<()> {
+        debug!(target: &self.log_target(), "disable_torque");
         self.set_torque(false)
     }
     fn set_torque(&mut self, on: bool) -> Result<()> {
+        debug!(target: &self.log_target(), "set_torque: {:?}", on);
         self.inner.set_torque([on, on])
     }
 
     /// Read the current orientation (in radians)
     pub fn get_current_orientation(&mut self) -> Result<[f64; 2]> {
         let pos = self.inner.get_current_position()?;
+        debug!(target: &self.log_target(), "get_current_orientation: {:?}", pos);
 
         let pos = [
             pos[0] - self.motors_offset[0],
             pos[1] - self.motors_offset[1],
         ];
+        debug!(target: &self.log_target(), "get_current_orientation (with offset): {:?}", pos);
 
         Ok(self.kinematics.compute_forward_kinematics(pos))
     }
     /// Read the current velocity (in radians/s)
     pub fn get_current_velocity(&mut self) -> Result<[f64; 2]> {
         let vel = self.inner.get_current_velocity()?;
+        debug!(target: &self.log_target(), "get_current_velocity: {:?}", vel);
         Ok(self.kinematics.compute_output_velocity(vel))
     }
     /// Read the current torque (in Nm)
     pub fn get_current_torque(&mut self) -> Result<[f64; 2]> {
         let torque = self.inner.get_current_torque()?;
+        debug!(target: &self.log_target(), "get_current_torque: {:?}", torque);
         Ok(self.kinematics.compute_output_torque(torque))
     }
 
     /// Get the desired orientation (in radians)
     pub fn get_target_orientation(&mut self) -> Result<[f64; 2]> {
         let pos = self.inner.get_target_position()?;
-
+        debug!(target: &self.log_target(), "get_target_orientation: {:?}", pos);
         let pos = [
             pos[0] - self.motors_offset[0],
             pos[1] - self.motors_offset[1],
         ];
+        debug!(target: &self.log_target(), "get_target_orientation (with offset): {:?}", pos);
 
         Ok(self.kinematics.compute_forward_kinematics(pos))
     }
@@ -193,12 +210,17 @@ impl Orbita2dController {
             ],
             None => target_orientation,
         };
+        debug!(target: &self.log_target(),
+            "set_target_orientation: {:?} orientation_limits {:?}",
+            target_orientation, self.orientation_limits
+        );
 
         let ik = self
             .kinematics
             .compute_inverse_kinematics(target_orientation);
-
+        debug!(target: &self.log_target(), "set_target_orientation ik res: {:?}", ik);
         let pos = [ik[0] + self.motors_offset[0], ik[1] + self.motors_offset[1]];
+        debug!(target: &self.log_target(), "set_target_orientation to motors (with offset): {:?}", pos);
 
         self.inner.set_target_position(pos)
     }
@@ -206,32 +228,43 @@ impl Orbita2dController {
     /// Get the velocity limit of each raw motor (in radians/s)
     /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
     pub fn get_raw_motors_velocity_limit(&mut self) -> Result<[f64; 2]> {
+        debug!(target: &self.log_target(), "get_raw_motors_velocity_limit");
         self.inner.get_velocity_limit()
     }
     /// Set the velocity limit of each raw motor (in radians/s)
     /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
     pub fn set_raw_motors_velocity_limit(&mut self, velocity_limit: [f64; 2]) -> Result<()> {
+        debug!(target: &self.log_target(), "set_raw_motors_velocity_limit: {:?}", velocity_limit);
         self.inner.set_velocity_limit(velocity_limit)
     }
     /// Get the torque limit of each raw motor (in Nm)
     /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
     pub fn get_raw_motors_torque_limit(&mut self) -> Result<[f64; 2]> {
+        debug!(target: &self.log_target(), "get_raw_motors_torque_limit");
         self.inner.get_torque_limit()
     }
     /// Set the torque limit of each raw motor (in Nm)
     /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
     pub fn set_raw_motors_torque_limit(&mut self, torque_limit: [f64; 2]) -> Result<()> {
+        debug!(target: &self.log_target(), "set_raw_motors_torque_limit: {:?}", torque_limit);
         self.inner.set_torque_limit(torque_limit)
     }
     /// Get the PID gains of each raw motor
     /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
     pub fn get_raw_motors_pid_gains(&mut self) -> Result<[PID; 2]> {
+        debug!(target: &self.log_target(), "get_raw_motors_pid_gains");
         self.inner.get_pid_gains()
     }
     /// Set the PID gains of each raw motor
     /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
     pub fn set_pid_gains(&mut self, pid_gains: [PID; 2]) -> Result<()> {
+        debug!(target: &self.log_target(), "set_pid_gains: {:?}", pid_gains);
         self.inner.set_pid_gains(pid_gains)
+    }
+
+    fn log_target(&self) -> String {
+        let name = self.inner.name();
+        format!("Orbita2d_controller: {name}")
     }
 }
 
@@ -280,8 +313,13 @@ mod tests {
     use crate::Orbita2dController;
     use rand::Rng;
 
+    fn init() {
+        let _ = env_logger::builder().is_test(true).try_init();
+    }
+
     #[test]
     fn set_target_orientation() {
+        init();
         let mut rng = rand::thread_rng();
         let orientation = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
 

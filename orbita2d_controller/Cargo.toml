@@ -16,3 +16,5 @@ ndarray = "0.15.6"
 ndarray-npy = "0.8.1"
 serde_yaml = "0.9.22"
 serde = { version = "1.0.171", features = ["derive"] }
+log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
+env_logger = "0.9.0"
