@@ -1,6 +1,6 @@
 [project]
 name = "orbita2d"
-dependencies = ["cffi"]
+dependencies = ["cffi", "numpy"]
 
 [build-system]
 requires = ["maturin>=1.0,<2.0"]
