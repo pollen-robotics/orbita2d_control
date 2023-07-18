@@ -114,7 +114,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut output_position_trajectory = Vec::new();
     let mut output_velocity_trajectory = Vec::new();
     let mut output_torque_trajectory = Vec::new();
-    // output_trajectory.
 
     for _ in 0..args.repeat {
         for row in input_trajectory.rows() {

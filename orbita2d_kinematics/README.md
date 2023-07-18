@@ -11,14 +11,16 @@ Given two motors $M_A$ and $M_B$ with their respective reduction $r_A$ and $r_B$
 
 We note $\theta_A$, $\omega_A$ and $\tau_A$ resp. the angle, angular velocity and torque of the motor $M_A$. Idem for $M_B$.
 
-We note $\theta_{pitch}$ and $\theta_{roll}$ the angle of the pitch and roll orientation of the output (similarly for $\omega_{pitch}$, $\tau_{pitch}$, $\omega_{roll}$, $\tau_{roll}$).
+We note $\theta_{ring}$ and $\theta_{center}$ the angle of the ring and center orientation of the output (similarly for $\omega_{ring}$, $\tau_{ring}$, $\omega_{center}$, $\tau_{center}$).
+
+_Please refer to the [README](../README.md) for more details on the model definition._
 
 $$
 \begin{equation}
 Position:
 \begin{bmatrix}
-  \theta_{pitch} \\
-  \theta_{roll}
+  \theta_{ring} \\
+  \theta_{center}
 \end{bmatrix} = 
 \begin{bmatrix}
   \frac{1}{2R_A} & \frac{1}{2R_B} \\
@@ -35,8 +37,8 @@ $$
 \begin{equation}
 Velocity:
 \begin{bmatrix}
-  \omega_{pitch} \\
-  \omega_{roll}
+  \omega_{ring} \\
+  \omega_{center}
 \end{bmatrix} = 
 \begin{bmatrix}
   \frac{1}{2R_A} & \frac{1}{2R_B} \\
@@ -53,8 +55,8 @@ $$
 \begin{equation}
 Torque:
 \begin{bmatrix}
-  \tau_{pitch} \\
-  \tau_{roll}
+  \tau_{ring} \\
+  \tau_{center}
 \end{bmatrix} = 
 \begin{bmatrix}
   2R_A & 2R_B \\

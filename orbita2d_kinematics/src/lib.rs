@@ -1,8 +1,6 @@
 //! Kinematics model for Orbita2d
 //!
-//! TODO: Add the maths behind the kinematics model here!
-//!
-//! We should explain how we find the mat matrix.
+//! Details on the kinematics model can be found in the Readme.md file
 
 extern crate nalgebra as na;
 
@@ -46,9 +44,9 @@ impl Orbita2dKinematicsModel {
     /// Compute the output 2d orientation give the motor angles (in radians)
     ///
     /// # Arguments
-    /// * motor_angles - Motor angles in radians
+    /// * motor_angles - Motor angles in radians (motor a, motor b)
     /// # Returns
-    /// * Output 2d orientation in radians
+    /// * Output 2d orientation in radians (ring, center)
     pub fn compute_forward_kinematics(&self, motor_angles: [f64; 2]) -> [f64; 2] {
         let a = Vector2f64::from_row_slice(&motor_angles);
         let ret = self.inv_mat * a;
@@ -59,9 +57,9 @@ impl Orbita2dKinematicsModel {
     /// Compute the motor angles (in radians) given the target 2d orientation
     ///
     /// # Arguments
-    /// * target - Target 2d orientation in radians
+    /// * target - Target 2d orientation in radians (ring, center)
     /// # Returns
-    /// * Motor angles in radians
+    /// * Motor angles in radians (motor a, motor b)
     pub fn compute_inverse_kinematics(&self, target: [f64; 2]) -> [f64; 2] {
         let t = Vector2f64::from_row_slice(&target);
         let ret = self.mat * t;
@@ -78,7 +76,7 @@ mod tests {
     use crate::{Orbita2dKinematicsModel, Vector2f64};
 
     #[test]
-    fn roll_only() {
+    fn ring_only() {
         let mut rng = rand::thread_rng();
 
         let kin = Orbita2dKinematicsModel::new(1.0, 1.0);
@@ -91,13 +89,13 @@ mod tests {
         let res = kin.compute_forward_kinematics([-alpha, alpha]);
         assert!(res[0] == 0.0);
 
-        let pitch: f64 = rng.gen();
-        let res = kin.compute_inverse_kinematics([0.0, pitch]);
+        let center: f64 = rng.gen();
+        let res = kin.compute_inverse_kinematics([0.0, center]);
         assert_eq!(res[0], -res[1]);
     }
 
     #[test]
-    fn pitch_only() {
+    fn center_only() {
         let mut rng = rand::thread_rng();
 
         let kin = Orbita2dKinematicsModel::new(1.0, 1.0);
@@ -107,8 +105,8 @@ mod tests {
         let res = kin.compute_forward_kinematics([alpha, alpha]);
         assert!(res[1] == 0.0);
 
-        let roll: f64 = rng.gen();
-        let res = kin.compute_inverse_kinematics([roll, 0.0]);
+        let ring: f64 = rng.gen();
+        let res = kin.compute_inverse_kinematics([ring, 0.0]);
         assert_eq!(res[0], res[1]);
     }
 
