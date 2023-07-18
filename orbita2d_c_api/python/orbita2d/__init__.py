@@ -189,7 +189,7 @@ class Orbita2dController:
         check_error(lib.orbita2d_enable_torque(self.uid, reset_target))
 
     def disable_torque(self):
-        """Disable the torque.""""
+        """Disable the torque."""
         check_error(lib.orbita2d_disable_torque(self.uid))
 
     def get_current_orientation(self) -> (float, float):
@@ -225,7 +225,7 @@ class Orbita2dController:
 
     def get_raw_motors_velocity_limit(self) -> (float, float):
         """Return the velocity limit of the motors (in rads/s).
-        
+
         Be careful, this is not the velocity limit of the ring and the center but of the motor directly!
         """
         limit = ffi.new("double(*)[2]")
@@ -234,7 +234,7 @@ class Orbita2dController:
 
     def set_raw_motors_velocity_limit(self, limit: (float, float)):
         """Set the velocity limit of the motors (in rads/s).
-        
+
         Be careful, this is not the velocity limit of the ring and the center but of the motor directly!
         """
         arr = ffi.new("double(*)[2]", limit)
@@ -265,7 +265,7 @@ class Orbita2dController:
         self,
     ) -> ((float, float, float), (float, float, float)):
         """Return the PID gains of the motors.
-        
+
         Be careful, this is not the PID gains of the ring and the center but of the motor directly!
         """
         pid = ffi.new("double(*)[6]")
@@ -276,7 +276,7 @@ class Orbita2dController:
         self, pid: ((float, float, float), (float, float, float))
     ):
         """Set the PID gains of the motors.
-        
+
         Be careful, this is not the PID gains of the ring and the center but of the motor directly!
         """
         arr = ffi.new("double(*)[6]")
