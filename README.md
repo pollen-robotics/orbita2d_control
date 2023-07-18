@@ -16,7 +16,7 @@ The actuator is defined by the following parameters:
 
 Please refer to the following schema for more details:
 
-TODO: add schema
+![orbita2d_schema](./static/orbita2d-schema.png)
 
 ## Usage
 
