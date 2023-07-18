@@ -28,7 +28,7 @@ jobs:
       - name: Run maturin
         run: |
           cd orbita2d_c_api
-          maturin build
+          maturin develop
           pip install ../target/wheels/*.whl
           python -c "import orbita2d"
     
