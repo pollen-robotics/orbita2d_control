@@ -23,7 +23,10 @@ This repository contains the following sub-packages:
 * [orbita2d_kinematics](orbita2d_kinematics/README.md): forward/inverse kinematics model (in Rust)
 * [orbita2d_control](orbita2d_control/README.md): low-level communication (serial or ethercat) and control (in Rust)
 
-### C-API library
+### C-API library and Python bindings
+
+* [orbita2d c_api](orbita2d_c_api/README.md): plain C-API library to control the actuator
+* [orbita2d python bindings](orbita2d_c_api/python/README.md): Python bindings for the C-API library
 
 
 ### Testing
