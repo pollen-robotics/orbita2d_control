@@ -61,7 +61,7 @@ pub struct PID {
 
 /// Orbita2d controller main interface
 pub struct Orbita2dController {
-    inner: Box<dyn Orbita2dMotorController>,
+    inner: Box<dyn Orbita2dMotorController + Send>,
     kinematics: Orbita2dKinematicsModel,
 
     motors_offset: [f64; 2],
@@ -96,7 +96,7 @@ pub struct AngleLimit {
 
 impl Orbita2dController {
     fn new(
-        motors_controller: Box<dyn Orbita2dMotorController>,
+        motors_controller: Box<dyn Orbita2dMotorController + Send>,
         motors_ratio: [f64; 2],
         motors_offset: [f64; 2],
         orientation_limits: Option<[AngleLimit; 2]>,

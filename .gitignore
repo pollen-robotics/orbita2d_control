@@ -13,5 +13,12 @@ Cargo.lock
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
 
-# Juptyer notebooks
+# Python
+__pycache__/
+orbita2d_c_api/python/orbita2d/_orbita2d
+
+# Coverage
+.coverage
+
+# Jupyter notebooks
 .ipynb_checkpoints
