@@ -38,3 +38,5 @@ while time.time() - t0 < 15:
 
 orbita.disable_torque()
 ```
+
+See [Python API example notebook](./API_example.ipynb) for more complex usage.
