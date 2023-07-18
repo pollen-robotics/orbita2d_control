@@ -17,5 +17,8 @@ Cargo.lock
 __pycache__/
 orbita2d_c_api/python/orbita2d/_orbita2d
 
+# Coverage
+.coverage
+
 # Jupyter notebooks
 .ipynb_checkpoints
