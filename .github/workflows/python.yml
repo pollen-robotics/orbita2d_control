@@ -28,4 +28,5 @@ jobs:
           pip install maturin cffi pytest
           cd orbita2d_c_api
           maturin develop
+          python -c "import orbita2d"
     
