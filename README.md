@@ -8,6 +8,16 @@ This repository contains all libraries required to control an Orbita2d actuator.
 * access the full API (Rust package or C-API library)
 * integrate the actuator in your ROS robot (URDF and ROS2 humble control hardware interface)
 
+## Model definition
+
+The actuator is defined by the following parameters:
+* two motors ($A$ and $B$) with their respective reduction ratio ($r_{A}$ and $r_{B}$). **When not specified, they are always used in this order as argument or results.** Yet, you should never nead to control them directly.
+* the output axes ($ring$ and $center$). **When not specified, they are always given in that order either as argument or results.**
+
+Please refer to the following schema for more details:
+
+![orbita2d_schema](./static/orbita2d-schema.png)
+
 ## Usage
 
 ### Command line tool

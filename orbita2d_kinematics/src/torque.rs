@@ -6,9 +6,9 @@ impl Orbita2dKinematicsModel {
     /// Compute the forward torque
     ///
     /// # Arguments
-    /// * input_torque - Input torque on each motor
+    /// * input_torque - Input torque on each motor (motor a, motor b)
     /// # Returns
-    /// * Output oriented torque
+    /// * Output oriented torque (ring, center)
     pub fn compute_output_torque(&self, input_torque: [f64; 2]) -> [f64; 2] {
         let input_torque = Vector2f64::from_row_slice(&input_torque);
         let res = self.mat * input_torque;
@@ -17,9 +17,9 @@ impl Orbita2dKinematicsModel {
     /// Compute the inverse torque
     ///
     /// # Arguments
-    /// * output_torque - target output oriented torque
+    /// * output_torque - target output oriented torque (ring, center)
     /// # Returns
-    /// * Necessary input torque on each motor
+    /// * Necessary input torque on each motor (motor a, motor b)
     pub fn compute_input_torque(&self, output_torque: [f64; 2]) -> [f64; 2] {
         let output_torque = Vector2f64::from_row_slice(&output_torque);
         let res = self.inv_mat * output_torque;

@@ -29,12 +29,19 @@ pub struct Orbita2dFlipskySerialCachedController {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+/// Flipsky configuration
 pub struct FlipskyConfig {
+    /// Serial port names [motor_a, motor_b]
     pub serial_port: [String; 2],
+    /// Motor ids [motor_a, motor_b]
     pub ids: [u8; 2],
+    /// Motors offset [motor_a, motor_b]
     pub motors_offset: [f64; 2],
+    /// Motors ratio [motor_a, motor_b]
     pub motors_ratio: [f64; 2],
+    /// Orientation limits [motor_a, motor_b]
     pub orientation_limits: Option<[AngleLimit; 2]>,
+    /// Use cache or not
     pub use_cache: bool,
 }
 
@@ -58,11 +65,11 @@ impl Orbita2dController {
     /// * pid_gains: keep last
     ///
     /// # Arguments
-    /// * `serial_port_names` - A tuple with the name of each flipsky serial port.
-    /// * `ids` - A tuple with the id of eachy motor.
-    /// * `motors_ratio` - An array of the ratio for each motor.
-    /// * `motors_offset` - An array of the offset for each motor.
-    /// * `orientation_limits` - An option array of the `AngleLimit` for each motor.
+    /// * `serial_port_names` - A tuple with the name of each flipsky serial port (motor_a, motor_b).
+    /// * `ids` - A tuple with the id of eachy motor (motor_a, motor_b).
+    /// * `motors_ratio` - An array of the ratio for each motor (motor_a, motor)b.
+    /// * `motors_offset` - An array of the offset for each motor (motor_a, motor_b).
+    /// * `orientation_limits` - An option array of the `AngleLimit` for each motor (motor_a, motor_b).
     /// * `use_cache` - A boolean to enable/disable cache.
     pub fn with_flipsky_serial(
         serial_port_names: (&str, &str),
