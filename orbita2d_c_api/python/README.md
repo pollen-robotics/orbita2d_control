@@ -10,6 +10,10 @@ From the orbita2d_c_api folder, run:
 
 ```maturin develop```
 
+or
+
+```maturin build && pip install -e .```
+
 Then you should be able to directly import the orbita2d module in your Python code:
 
 ```python
