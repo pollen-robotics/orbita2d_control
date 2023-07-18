@@ -10,4 +10,4 @@ def test_multiple_controller():
         controller.set_target_orientation((i, i))
 
     for i, controller in enumerate(controllers):
-        assert controller.get_target_orientation() == (i, i)    
+        assert controller.get_target_orientation() == (i, i)
