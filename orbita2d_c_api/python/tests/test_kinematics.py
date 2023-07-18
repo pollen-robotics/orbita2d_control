@@ -15,7 +15,7 @@ def test_kinematics_position():
 
     assert np.isclose(motor_a, motor_a_hat)
     assert np.isclose(motor_b, motor_b_hat)
-    
+
 
 def test_kinematics_velocity():
     ratio_a = np.random.uniform(0.0, 1.0)
