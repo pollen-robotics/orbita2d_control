@@ -30,6 +30,5 @@ jobs:
           cd orbita2d_c_api
           maturin build
           pip install ../target/wheels/*.whl
-          ls -R python/
           python -c "import orbita2d"
     
