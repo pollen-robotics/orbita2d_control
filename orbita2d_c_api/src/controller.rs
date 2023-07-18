@@ -220,7 +220,7 @@ pub extern "C" fn orbita2d_get_raw_motors_velocity_limit(
 }
 
 #[no_mangle]
-pub extern "C" fn orbita2d_raw_motors_set_velocity_limit(
+pub extern "C" fn orbita2d_set_raw_motors_velocity_limit(
     uid: u32,
     raw_motors_velocity_limit: &[f64; 2],
 ) -> u32 {
@@ -237,7 +237,7 @@ pub extern "C" fn orbita2d_raw_motors_set_velocity_limit(
 }
 
 #[no_mangle]
-pub extern "C" fn orbita2d_raw_motors_get_torque_limit(
+pub extern "C" fn orbita2d_get_raw_motors_torque_limit(
     uid: u32,
     raw_motors_torque_limit: &mut [f64; 2],
 ) -> u32 {
