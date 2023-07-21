@@ -236,6 +236,8 @@ class Orbita2dController:
         """Set the velocity limit of the motors (in rads/s).
 
         Be careful, this is not the velocity limit of the ring and the center but of the motor directly!
+
+        Max values are typically around 400-600 rads/s.
         """
         arr = ffi.new("double(*)[2]", limit)
         arr[0][0] = limit[0]
