@@ -39,7 +39,7 @@ struct Args {
 
     /// Velocity limit (same for both motors)
     /// (in radians per second)
-    #[arg(long)]
+    #[arg(long, default_value = "450.0")]
     raw_velocity_limit: Option<f64>,
 
     /// Torque limit (same for both motors)

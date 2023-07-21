@@ -395,6 +395,10 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialCachedController {
             .or_try_insert_with(|_| Ok(self.inner.get_velocity_limit()?.to_vec()))
             .map(|vec| vec.try_into().unwrap())
     }
+    /// Set the current velocity limit of the motors
+    ///
+    /// # Arguments
+    /// * `velocity_limit` - The velocity limit for each motor (motor_a, motor_b) in rad/s. Max values are typically around 400-600 rads/s.
     fn set_velocity_limit(&mut self, velocity_limit: [f64; 2]) -> Result<()> {
         let current_velocity_limit = self.get_velocity_limit()?;
 
