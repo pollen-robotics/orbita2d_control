@@ -16,4 +16,4 @@ cbindgen = "0.24.5"
 
 [lib]
 name = "orbita2d"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "staticlib"]
