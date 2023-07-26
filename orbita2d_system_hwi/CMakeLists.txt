@@ -29,7 +29,7 @@ target_include_directories(
 )
 
 add_library(orbita2d_hwi STATIC IMPORTED)
-set_property(TARGET orbita2d_hwi PROPERTY IMPORTED_LOCATION $ENV{PWD}/../../install/orbita2d_hwi/lib/orbita2d_hwi/liborbita2d_hwi.a )
+set_property(TARGET orbita2d_hwi PROPERTY IMPORTED_LOCATION $ENV{PWD}/../../build/orbita2d_hwi/debug/liborbita2d.a)
 
 target_link_libraries(
     ${PROJECT_NAME}
