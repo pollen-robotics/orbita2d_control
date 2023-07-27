@@ -136,6 +136,9 @@ Orbita2dSystem::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
   hw_commands_torque_[0] = torque_on;
   hw_commands_torque_[1] = torque_on;
 
+  hw_states_torque_[0] = torque_on;
+  hw_states_torque_[1] = torque_on;
+
 
 
 //   orbita2d_serial_hwi_get_max_speed(this->uid, hw_commands_speed_limit_);
@@ -244,25 +247,98 @@ Orbita2dSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   current_timestamp = clock_.now();
   rclcpp::Duration duration = current_timestamp - last_timestamp_;
   last_timestamp_ = current_timestamp;
+  auto ret=hardware_interface::return_type::OK;
 
 
-  //TODO
+  if (orbita2d_get_current_orientation(this->uid, &hw_states_position_) != 0) {
+    //TODO: I think this is done Rust level?
+    /*
+    if (axis1_inverted) {
+      hw_states_position_[0] = -hw_states_position_[0];
+    }
+    if (axis2_inverted) {
+      hw_states_position_[1] = -hw_states_position_[1];
+    }
+    */
+    ret=hardware_interface::return_type::ERROR;
+
+    RCLCPP_INFO_THROTTLE(
+      rclcpp::get_logger("Orbita2dSystem"),
+      clock_,
+      LOG_THROTTLE_DURATION,
+      "(%s) READ ORIENTATION ERROR!", info_.name.c_str()
+      );
+  }
+
+  bool torque_on=false;
+  if(orbita2d_is_torque_on(this->uid, &torque_on)!=0)
+  {
+    ret=hardware_interface::return_type::ERROR;
+
+    RCLCPP_ERROR(
+      rclcpp::get_logger("Orbita2dSystem"),
+      "Error getting torque status"
+    );
+  }
+  hw_states_torque_[0] = torque_on;
+  hw_states_torque_[1] = torque_on;
 
 
-  return hardware_interface::return_type::OK;
+  return ret;
 }
 
 hardware_interface::return_type
 Orbita2dSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
-  // double command[2];
+  auto ret=hardware_interface::return_type::OK;
 
+  //TODO: I think this is done Rust level?
+
+  // double command[2];
   // command[0] = axis1_inverted ? -hw_commands_position_[0] : hw_commands_position_[0];
   // command[1] = axis2_inverted ? -hw_commands_position_[1] : hw_commands_position_[1];
 
-  //TODO
+  if (orbita2d_set_target_orientation(this->uid, &hw_commands_position_) != 0) {
+    ret=hardware_interface::return_type::ERROR;
 
-  return hardware_interface::return_type::OK;
+    RCLCPP_INFO_THROTTLE(
+      rclcpp::get_logger("Orbita2dSystem"),
+      clock_,
+      LOG_THROTTLE_DURATION,
+      "(%s) WRITE ORIENTATION LIMIT ERROR!", info_.name.c_str()
+      );
+  }
+
+  //We only change torque for both axes
+
+  bool torque= (hw_commands_torque_[0]==1.0 && hw_commands_torque_[1]==1.0);
+  //TODO: we can go with orbita2d_set_raw_torque_limit
+  if(torque)
+  {
+    if (orbita2d_enable_torque(this->uid, true) != 0) {
+      ret=hardware_interface::return_type::ERROR;
+
+      RCLCPP_INFO_THROTTLE(
+        rclcpp::get_logger("Orbita2dSystem"),
+        clock_,
+        LOG_THROTTLE_DURATION,
+        "(%s) WRITE TORQUE ERROR!", info_.name.c_str()
+        );
+    }
+  }
+  else{
+      if (orbita2d_disable_torque(this->uid) != 0) {
+        ret=hardware_interface::return_type::ERROR;
+
+        RCLCPP_INFO_THROTTLE(
+          rclcpp::get_logger("Orbita2dSystem"),
+          clock_,
+          LOG_THROTTLE_DURATION,
+          "(%s) WRITE TORQUE ERROR!", info_.name.c_str()
+          );
+      }
+  }
+  return ret;
 }
 
 }

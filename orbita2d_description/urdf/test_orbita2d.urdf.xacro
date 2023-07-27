@@ -1,0 +1,102 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="test_orbita2d">
+
+  <xacro:arg name="use_fake_hardware" default="true"/>
+  <xacro:arg name="use_gazebo" default="false"/>
+
+
+  <xacro:include filename="$(find orbita2d_description)/urdf/inertial_primitives.urdf.xacro"/>
+  <xacro:include filename="$(find orbita2d_description)/urdf/orbita2d.urdf.xacro"/>
+
+
+  <!-- Orbita2d config -->
+  <xacro:arg name="config_file" default="$(find orbita2d_description)/config/fake.yaml"/>
+
+
+  <!-- MODEL PARAMETERS -->
+  <xacro:property name="base_collision" value="false"/>
+  <xacro:property name="base_visual" value="true"/>
+  <xacro:property name="damping" value="0.1"/>
+  <xacro:property name="friction" value="0.1"/>
+
+  <xacro:property name="arm_length" value="0.28"/>
+  <xacro:property name="arm_radius" value="0.03"/>
+  <xacro:property name="arm_mass" value="0.5"/>
+  <xacro:property name="arm_offset_x" value="-0.0479"/>
+  <xacro:property name="arm_offset_y" value="-0.1913"/>
+  <xacro:property name="arm_offset_z" value="0.025"/>
+  <xacro:property name="arm_offset_yaw" value="0.2617993877991494"/>
+
+
+  <xacro:property name="reflect" value="1"/>
+
+  <!-- MODEL PARAMETERS -->
+
+
+
+    <material name="torsoblack">
+        <color rgba="0.5 0.5 0.5 1"/>
+    </material>
+
+
+  <link name="world"/>
+  <joint name="world_joint" type="fixed">
+    <origin xyz="0 0 1.0" rpy="0 0 0"/>
+    <parent link="world"/>
+    <child link="torso"/>
+  </joint>
+
+  <!-- TORSO -->
+  <link name="torso">
+    <xacro:if value="${base_collision}">
+      <collision>
+        <origin xyz="0 0 -0.5" rpy="0 0 0"/>
+        <geometry>
+          <cylinder length="1" radius="0.03"/>
+        </geometry>
+      </collision>
+    </xacro:if>
+    <xacro:if value="${base_visual}">
+      <visual>
+        <origin xyz="-0.05 0 -0.05" rpy="0 0.0 0"/>
+        <geometry>
+          <box size="0.1 0.2 0.22"/>
+        </geometry>
+        <!-- <origin xyz="0 0 -0.5" rpy="0 0 0"/> -->
+        <!-- <geometry> -->
+        <!--   <cylinder length="1" radius="0.03"/> -->
+        <!-- </geometry> -->
+        <material name="torsoblack"/>
+      </visual>
+    </xacro:if>
+    <xacro:inertial_cuboid mass="10" xyz="0 0 0.5"  rpy="0 0 0" x_length="0.05" y_length="0.05" z_length="1"/>
+  </link>
+  <gazebo reference="torso">
+    <material>Gazebo/Black</material>
+    <static>true</static>
+  </gazebo>
+  <!-- TORSO -->
+
+
+  <!-- Shoulder style Orbita2d -->
+  <xacro:orbita2d
+    name="shoulder" parent="torso"
+    length="${arm_length}" radius="${arm_radius}" mass="${arm_mass}"
+    xyz="${arm_offset_x} ${arm_offset_y*reflect} ${arm_offset_z}" rpy="0 0 ${arm_offset_yaw*reflect}"
+    damping="${damping}" friction="${friction}"
+    joint1="pitch" joint2="roll"
+    joint1_min_angle="-${pi/2}" joint1_max_angle="${pi/2}"
+    joint2_min_angle="-${pi/2}" joint2_max_angle="0.0"
+    config_file="$(arg config_file)"
+  />
+
+
+  <link name="tip"/>
+  <joint name="tip_joint" type="fixed">
+    <origin xyz="0 0 -0.2" rpy="0 0 0"/>
+    <parent link="shoulder_ball_link"/>
+    <child link="tip"/>
+  </joint>
+
+
+</robot>
