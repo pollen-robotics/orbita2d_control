@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="test_orbita2d">
 
-  <xacro:arg name="use_fake_hardware" default="true"/>
+  <xacro:arg name="use_fake_hardware" default="false"/>
   <xacro:arg name="use_gazebo" default="false"/>
 
 
@@ -14,7 +14,7 @@
 
 
   <!-- MODEL PARAMETERS -->
-  <xacro:property name="base_collision" value="false"/>
+  <xacro:property name="base_collision" value="true"/>
   <xacro:property name="base_visual" value="true"/>
   <xacro:property name="damping" value="0.1"/>
   <xacro:property name="friction" value="0.1"/>
@@ -35,7 +35,7 @@
 
 
     <material name="torsoblack">
-        <color rgba="0.5 0.5 0.5 1"/>
+        <color rgba="0.5 0.5 0.5 1.0"/>
     </material>
 
 
@@ -91,9 +91,16 @@
   />
 
 
-  <link name="tip"/>
+  <link name="tip">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0.0 0"/>
+      <geometry>
+          <sphere radius="0.05"/>
+      </geometry>
+    </visual>
+  </link>
   <joint name="tip_joint" type="fixed">
-    <origin xyz="0 0 -0.2" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.3" rpy="0 0 0"/>
     <parent link="shoulder_ball_link"/>
     <child link="tip"/>
   </joint>

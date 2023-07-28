@@ -9,7 +9,7 @@
       <hardware>
         <!-- Use real hardware. -->
         <xacro:unless value="$(arg use_fake_hardware)">
-          <plugin>orbita2d_system_hwi/Orbita2dSerialSystem</plugin>
+          <plugin>orbita2d_system_hwi/Orbita2dSystem</plugin>
           <param name="config_file">${config_file}</param>
         </xacro:unless>
 
@@ -27,6 +27,7 @@
       </hardware>
       <xacro:position_joint_control name="${name}_${joint1}"/>
       <xacro:position_joint_control name="${name}_${joint2}"/>
+
     </ros2_control>
 
   </xacro:macro>
