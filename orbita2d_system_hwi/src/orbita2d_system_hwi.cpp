@@ -320,21 +320,14 @@ Orbita2dSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
       );
   }
 
-  //DEBUG
-  else{
-    RCLCPP_ERROR(
-      rclcpp::get_logger("Orbita2dSystem"),
-      "Commanded position: %f, %f", command[0], command[1]
-    );
 
-  }
   //We only change torque for both axes
 
   bool torque= (hw_commands_torque_[0]==1.0 && hw_commands_torque_[1]==1.0);
   //TODO: we can go with orbita2d_set_raw_torque_limit
   if(torque)
   {
-    if (orbita2d_enable_torque(this->uid, true) != 0) {
+    if (orbita2d_enable_torque(this->uid, false) != 0) { //do not reset target
       ret=hardware_interface::return_type::ERROR;
 
       RCLCPP_INFO_THROTTLE(
