@@ -3,7 +3,7 @@
    href="http://download.ros.org/schema/package_format3.xsd"
    schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>orbita2d_hwi</name>
+  <name>orbita2d_c_api</name>
   <version>0.1.0</version>
   <description>Package containing communication layer with Orbita2D hardware</description>
   <maintainer email="steve.nguyen@pollen-robotics.com">Steve Nguyen</maintainer>

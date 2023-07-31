@@ -15,6 +15,8 @@ find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 
+
+
 add_library(
   ${PROJECT_NAME}
   SHARED
@@ -28,13 +30,22 @@ target_include_directories(
  ${CMAKE_SOURCE_DIR}/../orbita2d_c_api/
 )
 
-add_library(orbita2d_hwi STATIC IMPORTED)
-set_property(TARGET orbita2d_hwi PROPERTY IMPORTED_LOCATION $ENV{PWD}/../../build/orbita2d_hwi/debug/liborbita2d.so)
+# add_library(orbita2d STATIC IMPORTED)
+# set_property(TARGET orbita2d PROPERTY IMPORTED_LOCATION $ENV{PWD}/../../build/orbita2d_hwi/debug/liborbita2d.a)
+# add_library(orbita2d_c_api SHARED IMPORTED)
+add_library(orbita2d_c_api STATIC IMPORTED)
 
+# set_property(TARGET orbita2d_c_api PROPERTY IMPORTED_LOCATION /home/steve/Project/DEV/humble_ws/build/orbita2d_c_api/debug/liborbita2d.so)
+set_property(TARGET orbita2d_c_api PROPERTY IMPORTED_LOCATION /home/steve/Project/DEV/humble_ws/build/orbita2d_c_api/debug/liborbita2d.a)
+# set_property(TARGET orbita2d PROPERTY IMPORTED_LOCATION $ENV{PWD}/../../build/orbita2d_hwi/debug/liborbita2d.so)
+# set_property(TARGET orbita2d PROPERTY IMPORTED_LOCATION /home/steve/Project/DEV/humble_ws/build/orbita2d_hwi/debug/liborbita2d.so)
+# set_property(TARGET orbita2d PROPERTY IMPORTED_LOCATION /home/steve/Project/DEV/humble_ws/build/orbita2d_hwi/debug/liborbita2d.a)
+
+add_compile_options(-Wl,--no-as-needed)
 
 target_link_libraries(
     ${PROJECT_NAME}
-    orbita2d_hwi
+    orbita2d_c_api
     udev
     gcc_s
     util

@@ -28,7 +28,9 @@ def launch_setup(context, *args, **kwargs):
 
     # config
     config_file_rl = LaunchConfiguration('config_file')
-    config_file_py = config_file_rl.perform(context) == 'true'
+    config_file_py = config_file_rl.perform(context)
+
+
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name='xacro')]),
