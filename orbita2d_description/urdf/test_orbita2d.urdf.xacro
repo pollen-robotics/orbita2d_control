@@ -88,6 +88,7 @@
     joint1_min_angle="-${pi/2}" joint1_max_angle="${pi/2}"
     joint2_min_angle="-${pi/2}" joint2_max_angle="0.0"
     config_file="$(arg config_file)"
+    axis1_inverted="0" axis2_inverted="1"
   />
 
 

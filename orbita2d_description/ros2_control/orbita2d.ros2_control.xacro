@@ -3,7 +3,7 @@
 
   <xacro:include filename="$(find orbita2d_description)/ros2_control/joint.ros2_control.xacro"/>
 
-  <xacro:macro name="orbita2d_control" params="name joint1 joint2 config_file">
+  <xacro:macro name="orbita2d_control" params="name joint1 joint2 config_file axis1_inverted axis2_inverted">
 
     <ros2_control name="${name}" type="system">
       <hardware>
@@ -11,6 +11,9 @@
         <xacro:unless value="$(arg use_fake_hardware)">
           <plugin>orbita2d_system_hwi/Orbita2dSystem</plugin>
           <param name="config_file">${config_file}</param>
+          <param name="axis1_inverted">${axis1_inverted}</param>
+          <param name="axis2_inverted">${axis2_inverted}</param>
+
         </xacro:unless>
 
         <xacro:if value="$(arg use_fake_hardware)">

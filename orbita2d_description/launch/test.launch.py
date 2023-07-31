@@ -99,10 +99,10 @@ def launch_setup(context, *args, **kwargs):
                    '/controller_manager'],
     )
 
-    test_forward_position_controller_spawner = Node(
+    forward_position_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=['test_forward_position_controller', '-c', '/controller_manager'],
+        arguments=['forward_position_controller', '-c', '/controller_manager'],
     )
 
     forward_torque_controller_spawner = Node(
@@ -141,7 +141,7 @@ def launch_setup(context, *args, **kwargs):
         event_handler=OnProcessExit(
             target_action=joint_state_broadcaster_spawner,
             on_exit=[
-                test_forward_position_controller_spawner,
+                forward_position_controller_spawner,
                 forward_torque_controller_spawner,
                 # forward_torque_limit_controller_spawner,
                 # forward_speed_limit_controller_spawner,
