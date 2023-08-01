@@ -258,15 +258,13 @@ Orbita2dSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   last_timestamp_ = current_timestamp;
   auto ret=hardware_interface::return_type::OK;
 
-
+  //Position
   if (orbita2d_get_current_orientation(this->uid, &hw_states_position_) != 0) {
 
     ret=hardware_interface::return_type::ERROR;
 
-    RCLCPP_INFO_THROTTLE(
+    RCLCPP_ERROR(
       rclcpp::get_logger("Orbita2dSystem"),
-      clock_,
-      LOG_THROTTLE_DURATION,
       "(%s) READ ORIENTATION ERROR!", info_.name.c_str()
       );
   }
@@ -281,6 +279,8 @@ Orbita2dSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
     }
 
   }
+
+  //Torque on/off
   bool torque_on=false;
   if(orbita2d_is_torque_on(this->uid, &torque_on)!=0)
   {
@@ -288,12 +288,76 @@ Orbita2dSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
 
     RCLCPP_ERROR(
       rclcpp::get_logger("Orbita2dSystem"),
-      "Error getting torque status"
+      "(%s) Error getting torque status!",info_.name.c_str()
     );
   }
   hw_states_torque_[0] = torque_on;
   hw_states_torque_[1] = torque_on;
 
+
+  //Velocity
+  if (orbita2d_get_current_velocity(this->uid, &hw_states_velocity_) != 0) {
+
+    ret=hardware_interface::return_type::ERROR;
+
+    RCLCPP_ERROR(
+      rclcpp::get_logger("Orbita2dSystem"),
+      "(%s) READ VELOCITY ERROR!", info_.name.c_str()
+      );
+  }
+
+  //Current torque
+  if (orbita2d_get_current_torque(this->uid, &hw_states_effort_) != 0) {
+
+    ret=hardware_interface::return_type::ERROR;
+
+    RCLCPP_ERROR(
+      rclcpp::get_logger("Orbita2dSystem"),
+      "(%s) READ CURRENT TORQUE ERROR!", info_.name.c_str()
+      );
+  }
+  //Torque limit
+  if (orbita2d_get_raw_motors_torque_limit(this->uid, &hw_states_torque_limit_) != 0) {
+
+    ret=hardware_interface::return_type::ERROR;
+
+    RCLCPP_ERROR(
+      rclcpp::get_logger("Orbita2dSystem"),
+      "(%s) READ TORQUE LIMIT ERROR!", info_.name.c_str()
+      );
+  }
+  //velocity limit
+  if (orbita2d_get_raw_motors_velocity_limit(this->uid, &hw_states_speed_limit_) != 0) {
+
+    ret=hardware_interface::return_type::ERROR;
+
+    RCLCPP_ERROR(
+      rclcpp::get_logger("Orbita2dSystem"),
+      "(%s) READ SPEED LIMIT ERROR!", info_.name.c_str()
+      );
+  }
+
+  //PID gains
+  double pids[6];
+  if (orbita2d_get_raw_motors_pid_gains(this->uid, &pids) != 0) {
+
+    ret=hardware_interface::return_type::ERROR;
+
+    RCLCPP_ERROR(
+      rclcpp::get_logger("Orbita2dSystem"),
+      "(%s) READ PID GAINS ERROR!", info_.name.c_str()
+      );
+  }
+  else{
+    hw_states_p_gain_[0] = pids[0];
+    hw_states_i_gain_[0] = pids[1];
+    hw_states_d_gain_[0] = pids[2];
+    hw_states_p_gain_[1] = pids[3];
+    hw_states_i_gain_[1] = pids[4];
+    hw_states_d_gain_[1] = pids[5];
+  }
+
+  //No temperature for now in Flipsky
 
   return ret;
 }
@@ -350,6 +414,52 @@ Orbita2dSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
           );
       }
   }
+
+
+  //speed limit
+
+  if(orbita2d_set_raw_motors_velocity_limit(this->uid, &hw_commands_speed_limit_) != 0)
+  {
+    ret=hardware_interface::return_type::ERROR;
+
+    RCLCPP_ERROR(
+      rclcpp::get_logger("Orbita2dSystem"),
+      "(%s) WRITE SPEED LIMIT ERROR!", info_.name.c_str()
+      );
+  }
+
+
+  //torque limit
+  if(orbita2d_set_raw_motors_torque_limit(this->uid, &hw_commands_torque_limit_) != 0)
+  {
+    ret=hardware_interface::return_type::ERROR;
+
+    RCLCPP_ERROR(
+      rclcpp::get_logger("Orbita2dSystem"),
+      "(%s) WRITE TORQUE LIMIT ERROR!", info_.name.c_str()
+      );
+  }
+
+  //pid gains
+  double pids[6];
+  pids[0] = hw_commands_p_gain_[0];
+  pids[1] = hw_commands_i_gain_[0];
+  pids[2] = hw_commands_d_gain_[0];
+  pids[3] = hw_commands_p_gain_[1];
+  pids[4] = hw_commands_i_gain_[1];
+  pids[5] = hw_commands_d_gain_[1];
+  if(orbita2d_set_raw_motors_pid_gains(this->uid, &pids) != 0)
+  {
+    ret=hardware_interface::return_type::ERROR;
+
+    RCLCPP_ERROR(
+      rclcpp::get_logger("Orbita2dSystem"),
+      "(%s) WRITE PID GAINS ERROR!", info_.name.c_str()
+      );
+  }
+
+
+
   return ret;
 }
 

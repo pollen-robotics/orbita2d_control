@@ -143,9 +143,9 @@ def launch_setup(context, *args, **kwargs):
             on_exit=[
                 forward_position_controller_spawner,
                 forward_torque_controller_spawner,
-                # forward_torque_limit_controller_spawner,
-                # forward_speed_limit_controller_spawner,
-                # forward_pid_controller_spawner,
+                forward_torque_limit_controller_spawner,
+                forward_speed_limit_controller_spawner,
+                forward_pid_controller_spawner,
             ],
         ),
     )
@@ -153,8 +153,6 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         control_node,
-        # fake_camera_node,
-        # fake_zoom_node,
         robot_state_publisher_node,
         joint_state_broadcaster_spawner,
         delay_rviz_after_joint_state_broadcaster_spawner,
