@@ -149,6 +149,8 @@ Orbita2dSystem::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
   hw_states_torque_[1] = torque_on;
 
 
+  //init the states to the read values
+
     //Velocity
   if (orbita2d_get_current_velocity(this->uid, &hw_states_velocity_) != 0) {
 
@@ -182,14 +184,7 @@ Orbita2dSystem::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
       );
     ret= CallbackReturn::ERROR;
   }
-  // else //DEBUG
-  //   {
-  //   RCLCPP_ERROR(
-  //     rclcpp::get_logger("Orbita2dSystem"),
-  //     "(%s) READ TORQUE LIMIT: %f %f", info_.name.c_str(), hw_states_torque_limit_[0], hw_states_torque_limit_[1]
 
-  //     );
-  //   }
   //velocity limit
   if (orbita2d_get_raw_motors_velocity_limit(this->uid, &hw_states_speed_limit_) != 0) {
 
@@ -224,7 +219,7 @@ Orbita2dSystem::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
   }
 
 
-
+  //set the commands to the read values (otherwise some strange behaviour can happen)
   for (int i=0; i < 2; i++) {
     hw_commands_position_[i]=hw_states_position_[i];
     hw_commands_torque_limit_[i]=hw_states_torque_limit_[i];
@@ -406,14 +401,7 @@ Orbita2dSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
       "(%s) READ TORQUE LIMIT ERROR!", info_.name.c_str()
       );
   }
-  // else //DEBUG
-  //   {
-  //   RCLCPP_ERROR(
-  //     rclcpp::get_logger("Orbita2dSystem"),
-  //     "(%s) READ TORQUE LIMIT: %f %f", info_.name.c_str(), hw_states_torque_limit_[0], hw_states_torque_limit_[1]
 
-  //     );
-  //   }
   //velocity limit
   if (orbita2d_get_raw_motors_velocity_limit(this->uid, &hw_states_speed_limit_) != 0) {
 
@@ -515,12 +503,6 @@ Orbita2dSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
       "(%s) WRITE SPEED LIMIT ERROR!", info_.name.c_str()
       );
   }
-  // else{ //DEBUG
-  //   RCLCPP_ERROR(
-  //     rclcpp::get_logger("Orbita2dSystem"),
-  //     "(%s) WRITE SPEED LIMIT %f %f", info_.name.c_str(), hw_commands_speed_limit_[0], hw_commands_speed_limit_[1]
-  //     );
-  // }
 
   //torque limit
   if(orbita2d_set_raw_motors_torque_limit(this->uid, &hw_commands_torque_limit_) != 0)
