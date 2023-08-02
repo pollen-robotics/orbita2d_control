@@ -30,16 +30,9 @@ target_include_directories(
  ${CMAKE_SOURCE_DIR}/../orbita2d_c_api/
 )
 
-# add_library(orbita2d STATIC IMPORTED)
-# set_property(TARGET orbita2d PROPERTY IMPORTED_LOCATION $ENV{PWD}/../../build/orbita2d_hwi/debug/liborbita2d.a)
-# add_library(orbita2d_c_api SHARED IMPORTED)
-add_library(orbita2d_c_api STATIC IMPORTED)
 
-# set_property(TARGET orbita2d_c_api PROPERTY IMPORTED_LOCATION /home/steve/Project/DEV/humble_ws/build/orbita2d_c_api/debug/liborbita2d.so)
-set_property(TARGET orbita2d_c_api PROPERTY IMPORTED_LOCATION /home/steve/Project/DEV/humble_ws/build/orbita2d_c_api/debug/liborbita2d.a)
-# set_property(TARGET orbita2d PROPERTY IMPORTED_LOCATION $ENV{PWD}/../../build/orbita2d_hwi/debug/liborbita2d.so)
-# set_property(TARGET orbita2d PROPERTY IMPORTED_LOCATION /home/steve/Project/DEV/humble_ws/build/orbita2d_hwi/debug/liborbita2d.so)
-# set_property(TARGET orbita2d PROPERTY IMPORTED_LOCATION /home/steve/Project/DEV/humble_ws/build/orbita2d_hwi/debug/liborbita2d.a)
+add_library(orbita2d_c_api STATIC IMPORTED)
+set_property(TARGET orbita2d_c_api PROPERTY IMPORTED_LOCATION $ENV{PWD}/../../build/orbita2d_c_api/release/liborbita2d.a)
 
 add_compile_options(-Wl,--no-as-needed)
 
