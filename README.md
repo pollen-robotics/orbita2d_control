@@ -28,7 +28,7 @@ Please refer to the following schema for more details:
 
 * To integrate into a ROS2 workspace, simply clone this repository into the src/ directory of your workspace.
 * Update colcon-cargo with: `python3 -m pip install --upgrade --force-reinstall git+https://github.com/pollen-robotics/colcon-cargo.git`
-* Build your workspace with: `colcon build --symlink-install -DCMAKE_BUILD_TYPE=Release --cargo-args --release --packages-select orbita2d_description orbita2d_system_hwi orbita2d_c_api `
+* Build your workspace with: `colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --cargo-args --release --packages-select orbita2d_description orbita2d_system_hwi orbita2d_c_api`
 * See the [orbita2d_description](orbita2d_description/README.md) package for more details.
 
 
