@@ -32,7 +32,7 @@ target_include_directories(
 
 
 add_library(orbita2d_c_api STATIC IMPORTED)
-set_property(TARGET orbita2d_c_api PROPERTY IMPORTED_LOCATION $ENV{PWD}/../../build/orbita2d_c_api/release/liborbita2d.a)
+set_property(TARGET orbita2d_c_api PROPERTY IMPORTED_LOCATION $ENV{PWD}/../../install/orbita2d_c_api/lib/orbita2d_c_api/liborbita2d_c_api.a)
 
 add_compile_options(-Wl,--no-as-needed)
 
