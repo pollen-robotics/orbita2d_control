@@ -149,3 +149,43 @@ impl Orbita2dMotorController for FakeMotors {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::Orbita2dConfig;
+
+    #[test]
+    fn parse_config() {
+        let s = "!FakeMotors
+        inverted_axes:
+            - false
+            - false
+        ";
+
+        let config: Result<Orbita2dConfig, _> = serde_yaml::from_str(s);
+        assert!(config.is_ok());
+
+        let config = config.unwrap();
+
+        if let Orbita2dConfig::FakeMotors(config) = config {
+            assert_eq!(config.inverted_axes, [false, false]);
+        } else {
+            assert!(false, "Wrong config type");
+        }
+    }
+    #[test]
+    fn parse_config_file() {
+        let f = std::fs::File::open("./config/fake.yaml").unwrap();
+
+        let config: Result<Orbita2dConfig, _> = serde_yaml::from_reader(f);
+        assert!(config.is_ok());
+
+        let config = config.unwrap();
+
+        if let Orbita2dConfig::FakeMotors(config) = config {
+            assert_eq!(config.inverted_axes, [false, false]);
+        } else {
+            assert!(false, "Wrong config type");
+        }
+    }
+}
