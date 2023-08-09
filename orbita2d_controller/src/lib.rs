@@ -490,4 +490,55 @@ mod tests {
         assert!((current_target[0] - orientation[0]).abs() < 1e-6);
         assert!((current_target[1] - orientation[1]).abs() < 1e-6);
     }
+
+    #[test]
+    fn inverted_axes() {
+        let mut rng = rand::thread_rng();
+        let raw_motors_pos = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
+
+        let mut no_inversion = Orbita2dController::with_fake_motors([false, false]);
+        no_inversion.enable_torque(false).unwrap();
+        no_inversion
+            .inner
+            .set_target_position(raw_motors_pos)
+            .unwrap();
+
+        let mut ring_inverted: Orbita2dController =
+            Orbita2dController::with_fake_motors([true, false]);
+        ring_inverted.enable_torque(false).unwrap();
+        ring_inverted
+            .inner
+            .set_target_position(raw_motors_pos)
+            .unwrap();
+
+        let mut center_inverted: Orbita2dController =
+            Orbita2dController::with_fake_motors([false, true]);
+        center_inverted.enable_torque(false).unwrap();
+        center_inverted
+            .inner
+            .set_target_position(raw_motors_pos)
+            .unwrap();
+
+        let mut both_inverted: Orbita2dController =
+            Orbita2dController::with_fake_motors([true, true]);
+        both_inverted.enable_torque(false).unwrap();
+        both_inverted
+            .inner
+            .set_target_position(raw_motors_pos)
+            .unwrap();
+
+        let orientation = no_inversion.get_current_orientation().unwrap();
+
+        let ring_inverted_orientation = ring_inverted.get_current_orientation().unwrap();
+        assert_eq!(orientation[0], -ring_inverted_orientation[0]);
+        assert_eq!(orientation[1], ring_inverted_orientation[1]);
+
+        let center_inverted_orientation = center_inverted.get_current_orientation().unwrap();
+        assert_eq!(orientation[0], center_inverted_orientation[0]);
+        assert_eq!(orientation[1], -center_inverted_orientation[1]);
+
+        let both_inverted_orientation = both_inverted.get_current_orientation().unwrap();
+        assert_eq!(orientation[0], -both_inverted_orientation[0]);
+        assert_eq!(orientation[1], -both_inverted_orientation[1]);
+    }
 }
