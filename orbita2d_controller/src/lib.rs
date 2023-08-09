@@ -538,10 +538,7 @@ mod tests {
         let mut fake_orbita = Orbita2dController::with_fake_motors([true, true]);
 
         fake_orbita.orientation_limits = Some([
-            AngleLimit {
-                min: 0.0,
-                max: 1.0,
-            },
+            AngleLimit { min: 0.0, max: 1.0 },
             AngleLimit {
                 min: -1.0,
                 max: 0.0,
