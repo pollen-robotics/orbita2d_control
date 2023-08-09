@@ -40,7 +40,7 @@ pub struct FlipskyConfig {
     /// Motors ratio [motor_a, motor_b]
     pub motors_ratio: [f64; 2],
     /// Motors axes inverted [motor_a, motor_b]
-    pub motors_axes_inverted: [bool; 2],
+    pub inverted_axes: [bool; 2],
     /// Orientation limits [motor_a, motor_b] (expressed in the corrected motor reference frame - after offset and inversion)
     pub orientation_limits: Option<[AngleLimit; 2]>,
     /// Use cache or not
@@ -79,7 +79,7 @@ impl Orbita2dController {
         ids: (u8, u8),
         motors_offset: [f64; 2],
         motors_ratio: [f64; 2],
-        motors_axes_inverted: [bool; 2],
+        inverted_axes: [bool; 2],
         orientation_limits: Option<[AngleLimit; 2]>,
         use_cache: bool,
     ) -> Result<Self> {
@@ -110,14 +110,14 @@ impl Orbita2dController {
                 }),
                 motors_ratio,
                 motors_offset,
-                motors_axes_inverted,
+                inverted_axes,
                 orientation_limits,
             ),
             false => Self::new(
                 Box::new(serial_controller),
                 motors_ratio,
                 motors_offset,
-                motors_axes_inverted,
+                inverted_axes,
                 orientation_limits,
             ),
         })
@@ -499,7 +499,7 @@ mod tests {
         motors_ratio:
         - 1.0
         - 1.0
-        motors_axes_inverted:
+        inverted_axes:
         - false
         - false
         orientation_limits: null

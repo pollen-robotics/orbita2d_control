@@ -21,8 +21,8 @@ struct FakeMotors {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct FakeConfig {
-    /// Motors axes inverted [motor_a, motor_b]
-    pub motors_axes_inverted: [bool; 2],
+    /// Inverted axes [ring, center]
+    pub inverted_axes: [bool; 2],
 }
 
 impl Default for FakeMotors {

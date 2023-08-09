@@ -7,7 +7,7 @@
 //! ## Setup
 //! - [x] Load configuration from file
 //! - [x] Different support for communication layer (Flipsky serial, Fake motors)
-//! - [x] Support for inverted axes
+//! - [x] Support for inverted axes (ring and center)
 //!
 //! ## Control
 //! - [x] Torque ON/OFF
@@ -70,11 +70,10 @@ pub struct Orbita2dController {
     inner: Box<dyn Orbita2dMotorController + Send>,
     kinematics: Orbita2dKinematicsModel,
 
-    // Expressed in the motor reference frame
     motors_offset: [f64; 2],
-    motors_axes_inverted: [bool; 2],
+    inverted_axes: [bool; 2],
 
-    // Expressed in the "corrected" motor reference frame
+    // Expressed in the "corrected" Orbita2d reference frame
     // Meaning after offset and inverted axes correction
     orientation_limits: Option<[AngleLimit; 2]>,
 }
@@ -110,14 +109,14 @@ impl Orbita2dController {
         motors_controller: Box<dyn Orbita2dMotorController + Send>,
         motors_ratio: [f64; 2],
         motors_offset: [f64; 2],
-        motors_axes_inverted: [bool; 2],
+        inverted_axes: [bool; 2],
         orientation_limits: Option<[AngleLimit; 2]>,
     ) -> Self {
         Self {
             inner: motors_controller,
             kinematics: Orbita2dKinematicsModel::new(motors_ratio[0], motors_ratio[1]),
             motors_offset,
-            motors_axes_inverted,
+            inverted_axes,
             orientation_limits,
         }
     }
@@ -132,14 +131,14 @@ impl Orbita2dController {
 
         match config {
             Orbita2dConfig::FakeMotors(config) => {
-                Ok(Self::with_fake_motors(config.motors_axes_inverted))
+                Ok(Self::with_fake_motors(config.inverted_axes))
             }
             Orbita2dConfig::Flipsky(config) => Self::with_flipsky_serial(
                 (&config.serial_port[0], &config.serial_port[1]),
                 (config.ids[0], config.ids[1]),
                 config.motors_offset,
                 config.motors_ratio,
-                config.motors_axes_inverted,
+                config.inverted_axes,
                 config.orientation_limits,
                 config.use_cache,
             ),
