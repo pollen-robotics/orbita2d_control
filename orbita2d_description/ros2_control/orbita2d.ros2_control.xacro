@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:include filename="$(find orbita2d_description)/ros2_control/joint.ros2_control.xacro"/>
+  <xacro:include filename="$(find pollen_generic_description)/ros2_control/joint.ros2_control.xacro"/>
 
   <xacro:macro name="orbita2d_control" params="name joint1 joint2 config_file axis1_inverted axis2_inverted">
 
