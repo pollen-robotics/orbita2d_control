@@ -130,9 +130,7 @@ impl Orbita2dController {
         info!("Config: {:?}", config);
 
         match config {
-            Orbita2dConfig::FakeMotors(config) => {
-                Ok(Self::with_fake_motors(config.inverted_axes))
-            }
+            Orbita2dConfig::FakeMotors(config) => Ok(Self::with_fake_motors(config.inverted_axes)),
             Orbita2dConfig::Flipsky(config) => Self::with_flipsky_serial(
                 (&config.serial_port[0], &config.serial_port[1]),
                 (config.ids[0], config.ids[1]),
