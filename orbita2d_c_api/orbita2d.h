@@ -1,7 +1,10 @@
-#include <stdarg.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include <cstdarg>
+#include <cstdint>
+#include <cstdlib>
+#include <ostream>
+#include <new>
+
+extern "C" {
 
 uint32_t orbita2d_controller_with_flipsky_serial(const char *serial_port_a,
                                                  const char *serial_port_b,
@@ -92,3 +95,5 @@ int32_t orbita2d_inverse_torque(double ratio_a,
                                 double center_torque,
                                 double *torque_a,
                                 double *torque_b);
+
+} // extern "C"

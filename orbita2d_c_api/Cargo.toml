@@ -15,5 +15,6 @@ orbita2d_kinematics = { version = "0.1.0", path = "../orbita2d_kinematics" }
 cbindgen = "0.24.5"
 
 [lib]
-name = "orbita2d"
-crate-type = ["cdylib"]
+# Make sure to march the package name, otherwise colcon cargo gets confused
+name = "orbita2d_c_api"
+crate-type = ["staticlib", "cdylib"]

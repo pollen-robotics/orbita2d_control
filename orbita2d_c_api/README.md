@@ -10,6 +10,6 @@ The full API can be seen in the generated header file: [orbita2d.h](./orbita2d.h
 
 * Install rust and cargo: https://www.rust-lang.org/tools/install
 * Install cbindgen: ```cargo install cbindgen```
-* Build the library: ```cargo build --release```
+* Build the library: ```cargo build --release``` (both static and dynamic)
 
 The library is generated in the `target/release` folder.

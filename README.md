@@ -24,6 +24,25 @@ Please refer to the following schema for more details:
 ### Configuration tool
 ### Via Python
 
+### ROS2 integration
+
+#### Setup
+
+* To integrate into a ROS2 workspace, simply clone this repository into the src/ directory of your workspace.
+* Make sure to use "patched version" of cargo-ament-built (see [this PR](https://github.com/ros2-rust/cargo-ament-build/pull/3) for more details)
+* Update colcon-cargo with: `python3 -m pip install --upgrade --force-reinstall git+https://github.com/pollen-robotics/colcon-cargo.git`
+
+#### Build the hwi
+
+ * `colcon build --symlink-install --packages-up-to orbita2d_system_hwi`
+
+ #### Build the description
+
+  * `colcon build --symlink-install --packages-up-to orbita2d_description`
+
+* See the [orbita2d_description](orbita2d_description/README.md) package for more details.
+
+
 ## Contents
 
 This repository contains the following sub-packages:
