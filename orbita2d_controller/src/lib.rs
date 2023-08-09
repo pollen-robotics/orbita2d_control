@@ -90,6 +90,7 @@ impl Debug for Orbita2dController {
             .field("inner", &self.inner.name())
             .field("kinematics", &self.kinematics)
             .field("motors_offset", &self.motors_offset)
+            .field("inverted_axes", &self.inverted_axes)
             .field("orientation_limits", &self.orientation_limits)
             .finish()
     }
