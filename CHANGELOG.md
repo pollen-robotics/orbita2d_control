@@ -2,6 +2,8 @@
 
 ## Version 1.0 - Initial release
  
+* Orbita2d kinematics (forward and inverse for position, velocity and torque)
+
 * Rust controller
     * all basic registers control (position, velocity, torque, PID, limits, etc.)
     * abstract communication layer (+ flipsky implementation) 
