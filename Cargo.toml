@@ -1,0 +1,8 @@
+[workspace]
+
+members = [
+    "orbita2d_c_api",
+    "orbita2d_controller",
+    "orbita2d_kinematics",
+    "tests-hardware",
+]
