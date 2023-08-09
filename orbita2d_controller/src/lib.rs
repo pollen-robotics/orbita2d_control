@@ -541,4 +541,24 @@ mod tests {
         assert_eq!(orientation[0], -both_inverted_orientation[0]);
         assert_eq!(orientation[1], -both_inverted_orientation[1]);
     }
+
+    #[test]
+    fn set_target_inverted_axes() {
+        for axes in [[false, false], [true, false], [false, true], [true, true]] {
+            let mut fake_orbita = Orbita2dController::with_fake_motors(axes);
+            fake_orbita.enable_torque(false).unwrap();
+
+            let mut rng = rand::thread_rng();
+            let orientation = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
+            fake_orbita.set_target_orientation(orientation).unwrap();
+
+            let current_target = fake_orbita.get_target_orientation().unwrap();
+            assert!((current_target[0] - orientation[0]).abs() < 1e-6);
+            assert!((current_target[1] - orientation[1]).abs() < 1e-6);
+
+            let current_orientation = fake_orbita.get_current_orientation().unwrap();
+            assert!((current_orientation[0] - orientation[0]).abs() < 1e-6);
+            assert!((current_orientation[1] - orientation[1]).abs() < 1e-6);
+        }
+    }
 }
