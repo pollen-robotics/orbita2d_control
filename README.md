@@ -3,8 +3,7 @@
 ## Overview
 
 This repository contains all libraries required to control an Orbita2d actuator. It allows:
-* to configure and test the actuator via a command-line or grapihcal tool
-* to fully control the actuator using Python (only serial)
+* to fully control the actuator using Python
 * access the full API (Rust package or C-API library)
 * integrate the actuator in your ROS robot (URDF and ROS2 humble control hardware interface)
 
@@ -20,9 +19,13 @@ Please refer to the following schema for more details:
 
 ## Usage
 
-### Command line tool
-### Configuration tool
+### Via Rust
+
+See [orbita2d_control](orbita2d_controller) for more details.
+
 ### Via Python
+
+See [orbita2d python bindings](orbita2d_c_api/python/) for more details.
 
 ### ROS2 integration
 
