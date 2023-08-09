@@ -69,6 +69,10 @@ This repository contains the following sub-packages:
   - velocity limit: `cargo run --bin test_velocity -- --config $(PWD)/orbita2d_controller/config/left_shoulder_flipsky.yaml`
   - torque limit: `cargo run --bin test_torque_limit -- --config $(PWD)/orbita2d_controller/config/left_shoulder_flipsky.yaml`
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md)
+
 ## Related repositories
 
 ### Flipsky design
