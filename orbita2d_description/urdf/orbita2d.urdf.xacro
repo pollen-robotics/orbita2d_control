@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:include filename="$(find orbita2d_description)/urdf/inertial_primitives.urdf.xacro"/>
+  <xacro:include filename="$(find pollen_generic_description)/urdf/inertial_primitives.urdf.xacro"/>
   <xacro:include filename="$(find orbita2d_description)/ros2_control/orbita2d.ros2_control.xacro"/>
 
 

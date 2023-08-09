@@ -5,7 +5,7 @@
   <xacro:arg name="use_gazebo" default="false"/>
 
 
-  <xacro:include filename="$(find orbita2d_description)/urdf/inertial_primitives.urdf.xacro"/>
+  <xacro:include filename="$(find pollen_generic_description)/urdf/inertial_primitives.urdf.xacro"/>
   <xacro:include filename="$(find orbita2d_description)/urdf/orbita2d.urdf.xacro"/>
 
 
