@@ -60,6 +60,10 @@ This repository contains the following sub-packages:
 * [orbita2d c_api](orbita2d_c_api/README.md): plain C-API library to control the actuator
 * [orbita2d python bindings](orbita2d_c_api/python/README.md): Python bindings for the C-API library
 
+### ROS2 humble integration
+
+* [orbita2d_description](orbita2d_description/README.md): URDF/ros2_control description of the actuator
+* [orbita2d_system_hwi](orbita2d_system_hwi/README.md): ros2 control hardware system interface for the actuator
 
 ### Testing
 
