@@ -24,7 +24,7 @@
     </xacro:if>
   </xacro:macro>
 
-  <xacro:macro name="orbita2d" params="name parent length radius mass xyz rpy damping friction joint1 joint2 joint1_min_angle joint1_max_angle joint2_min_angle joint2_max_angle config_file axis1_inverted axis2_inverted">
+  <xacro:macro name="orbita2d" params="name parent length radius mass xyz rpy damping friction joint1 joint2 joint1_min_angle joint1_max_angle joint2_min_angle joint2_max_angle config_file">
 
     <!--
       Orbita 2 dof
@@ -115,7 +115,6 @@
       name="${name}"
       joint1="${joint1}" joint2="${joint2}"
       config_file="${config_file}"
-      axis1_inverted="${axis1_inverted}" axis2_inverted="${axis2_inverted}"
     />
 
 

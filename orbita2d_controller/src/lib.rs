@@ -4,6 +4,11 @@
 //!
 //! # Overview
 //!
+//! ## Setup
+//! - [x] Load configuration from file
+//! - [x] Different support for communication layer (Flipsky serial, Fake motors)
+//! - [x] Support for inverted axes (ring and center)
+//!
 //! ## Control
 //! - [x] Torque ON/OFF
 //! - [x] Read the current 2D orientation (position/velocity/torque)
@@ -23,6 +28,7 @@
 //!     (30, 31),
 //!     [0.0, 0.0],
 //!     [1.0, 1.0],
+//!     [false, false],
 //!     None,
 //!     false,
 //! ).expect("Failed to initialize Orbita2d controller");
@@ -65,6 +71,10 @@ pub struct Orbita2dController {
     kinematics: Orbita2dKinematicsModel,
 
     motors_offset: [f64; 2],
+    inverted_axes: [bool; 2],
+
+    // Expressed in the "corrected" Orbita2d reference frame
+    // Meaning after offset and inverted axes correction
     orientation_limits: Option<[AngleLimit; 2]>,
 }
 
@@ -80,6 +90,7 @@ impl Debug for Orbita2dController {
             .field("inner", &self.inner.name())
             .field("kinematics", &self.kinematics)
             .field("motors_offset", &self.motors_offset)
+            .field("inverted_axes", &self.inverted_axes)
             .field("orientation_limits", &self.orientation_limits)
             .finish()
     }
@@ -99,12 +110,14 @@ impl Orbita2dController {
         motors_controller: Box<dyn Orbita2dMotorController + Send>,
         motors_ratio: [f64; 2],
         motors_offset: [f64; 2],
+        inverted_axes: [bool; 2],
         orientation_limits: Option<[AngleLimit; 2]>,
     ) -> Self {
         Self {
             inner: motors_controller,
             kinematics: Orbita2dKinematicsModel::new(motors_ratio[0], motors_ratio[1]),
             motors_offset,
+            inverted_axes,
             orientation_limits,
         }
     }
@@ -118,12 +131,13 @@ impl Orbita2dController {
         info!("Config: {:?}", config);
 
         match config {
-            Orbita2dConfig::FakeMotors(_) => Ok(Self::with_fake_motors()),
+            Orbita2dConfig::FakeMotors(config) => Ok(Self::with_fake_motors(config.inverted_axes)),
             Orbita2dConfig::Flipsky(config) => Self::with_flipsky_serial(
                 (&config.serial_port[0], &config.serial_port[1]),
                 (config.ids[0], config.ids[1]),
                 config.motors_offset,
                 config.motors_ratio,
+                config.inverted_axes,
                 config.orientation_limits,
                 config.use_cache,
             ),
@@ -174,19 +188,72 @@ impl Orbita2dController {
         ];
         debug!(target: &self.log_target(), "get_current_orientation (with offset): {:?}", pos);
 
-        Ok(self.kinematics.compute_forward_kinematics(pos))
+        let orientation = self.kinematics.compute_forward_kinematics(pos);
+        debug!(target: &self.log_target(), "get_current_orientation (with kinematics): {:?}", orientation);
+
+        let orientation = [
+            if self.inverted_axes[0] {
+                -orientation[0]
+            } else {
+                orientation[0]
+            },
+            if self.inverted_axes[1] {
+                -orientation[1]
+            } else {
+                orientation[1]
+            },
+        ];
+        debug!(target: &self.log_target(), "get_current_orientation (with inverted axes): {:?}", orientation);
+
+        Ok(orientation)
     }
     /// Read the current velocity [ring, center] (in radians/s)
     pub fn get_current_velocity(&mut self) -> Result<[f64; 2]> {
         let vel = self.inner.get_current_velocity()?;
         debug!(target: &self.log_target(), "get_current_velocity: {:?}", vel);
-        Ok(self.kinematics.compute_output_velocity(vel))
+
+        let oriented_velocity = self.kinematics.compute_forward_kinematics(vel);
+        debug!(target: &self.log_target(), "get_current_velocity (with kinematics): {:?}", oriented_velocity);
+
+        let oriented_velocity = [
+            if self.inverted_axes[0] {
+                -oriented_velocity[0]
+            } else {
+                oriented_velocity[0]
+            },
+            if self.inverted_axes[1] {
+                -oriented_velocity[1]
+            } else {
+                oriented_velocity[1]
+            },
+        ];
+        debug!(target: &self.log_target(), "get_current_velocity (with inverted axes): {:?}", oriented_velocity);
+
+        Ok(oriented_velocity)
     }
     /// Read the current torque [ring, center] (in Nm)
     pub fn get_current_torque(&mut self) -> Result<[f64; 2]> {
         let torque = self.inner.get_current_torque()?;
         debug!(target: &self.log_target(), "get_current_torque: {:?}", torque);
-        Ok(self.kinematics.compute_output_torque(torque))
+
+        let oriented_torque = self.kinematics.compute_output_torque(torque);
+        debug!(target: &self.log_target(), "get_current_torque (with kinematics): {:?}", oriented_torque);
+
+        let oriented_torque = [
+            if self.inverted_axes[0] {
+                -oriented_torque[0]
+            } else {
+                oriented_torque[0]
+            },
+            if self.inverted_axes[1] {
+                -oriented_torque[1]
+            } else {
+                oriented_torque[1]
+            },
+        ];
+        debug!(target: &self.log_target(), "get_current_torque (with inverted axes): {:?}", oriented_torque);
+
+        Ok(oriented_torque)
     }
 
     /// Get the desired orientation [ring, center] (in radians)
@@ -199,7 +266,24 @@ impl Orbita2dController {
         ];
         debug!(target: &self.log_target(), "get_target_orientation (with offset): {:?}", pos);
 
-        Ok(self.kinematics.compute_forward_kinematics(pos))
+        let oriented_target = self.kinematics.compute_forward_kinematics(pos);
+        debug!(target: &self.log_target(), "get_target_orientation (with kinematics): {:?}", oriented_target);
+
+        let oriented_target = [
+            if self.inverted_axes[0] {
+                -oriented_target[0]
+            } else {
+                oriented_target[0]
+            },
+            if self.inverted_axes[1] {
+                -oriented_target[1]
+            } else {
+                oriented_target[1]
+            },
+        ];
+        debug!(target: &self.log_target(), "get_target_orientation (with inverted axes): {:?}", oriented_target);
+
+        Ok(oriented_target)
     }
     /// Set the desired orientation [ring, center] (in radians)
     pub fn set_target_orientation(&mut self, target_orientation: [f64; 2]) -> Result<()> {
@@ -214,6 +298,20 @@ impl Orbita2dController {
             "set_target_orientation: {:?} orientation_limits {:?}",
             target_orientation, self.orientation_limits
         );
+
+        let target_orientation = [
+            if self.inverted_axes[0] {
+                -target_orientation[0]
+            } else {
+                target_orientation[0]
+            },
+            if self.inverted_axes[1] {
+                -target_orientation[1]
+            } else {
+                target_orientation[1]
+            },
+        ];
+        debug!(target: &self.log_target(), "set_target_orientation (with inverted axes): {:?}", target_orientation);
 
         let ik = self
             .kinematics
@@ -323,7 +421,7 @@ mod tests {
         let mut rng = rand::thread_rng();
         let orientation = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
 
-        let mut fake_orbita = Orbita2dController::with_fake_motors();
+        let mut fake_orbita = Orbita2dController::with_fake_motors([false, false]);
 
         fake_orbita.set_target_orientation(orientation).unwrap();
 
@@ -338,7 +436,7 @@ mod tests {
         let mut rng = rand::thread_rng();
         let orientation = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
 
-        let mut fake_orbita = Orbita2dController::with_fake_motors();
+        let mut fake_orbita = Orbita2dController::with_fake_motors([false, false]);
         fake_orbita.motors_offset = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
 
         fake_orbita.set_target_orientation(orientation).unwrap();
@@ -355,7 +453,7 @@ mod tests {
         let mut rng = rand::thread_rng();
         let orientation = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
 
-        let mut fake_orbita = Orbita2dController::with_fake_motors();
+        let mut fake_orbita = Orbita2dController::with_fake_motors([false, false]);
         fake_orbita.motors_offset = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
 
         fake_orbita.orientation_limits = Some([
@@ -377,7 +475,7 @@ mod tests {
         let mut rng = rand::thread_rng();
         let orientation = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
 
-        let mut fake_orbita = Orbita2dController::with_fake_motors();
+        let mut fake_orbita = Orbita2dController::with_fake_motors([false, false]);
         fake_orbita.motors_offset = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
 
         fake_orbita.orientation_limits = Some([
@@ -436,8 +534,27 @@ mod tests {
     }
 
     #[test]
+    fn set_target_outside_limits_and_inverted_axes() {
+        let mut fake_orbita = Orbita2dController::with_fake_motors([true, true]);
+
+        fake_orbita.orientation_limits = Some([
+            AngleLimit { min: 0.0, max: 1.0 },
+            AngleLimit {
+                min: -1.0,
+                max: 0.0,
+            },
+        ]);
+
+        fake_orbita.set_target_orientation([0.5, -0.5]).unwrap();
+        let current_target = fake_orbita.get_target_orientation().unwrap();
+
+        assert_eq!(current_target[0], 0.5);
+        assert_eq!(current_target[1], -0.5);
+    }
+
+    #[test]
     fn set_torque() {
-        let mut fake_orbita = Orbita2dController::with_fake_motors();
+        let mut fake_orbita = Orbita2dController::with_fake_motors([false, false]);
         // Test each transition
         fake_orbita.set_torque(true).unwrap();
         assert!(fake_orbita.is_torque_on().unwrap());
@@ -453,7 +570,7 @@ mod tests {
 
     #[test]
     fn test_torque_with_target_reset() {
-        let mut fake_orbita = Orbita2dController::with_fake_motors();
+        let mut fake_orbita = Orbita2dController::with_fake_motors([false, false]);
         fake_orbita.set_torque(true).unwrap();
         let mut rng = rand::thread_rng();
         let orientation = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
@@ -475,5 +592,76 @@ mod tests {
         let current_target = fake_orbita.get_target_orientation().unwrap();
         assert!((current_target[0] - orientation[0]).abs() < 1e-6);
         assert!((current_target[1] - orientation[1]).abs() < 1e-6);
+    }
+
+    #[test]
+    fn inverted_axes() {
+        let mut rng = rand::thread_rng();
+        let raw_motors_pos = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
+
+        let mut no_inversion = Orbita2dController::with_fake_motors([false, false]);
+        no_inversion.enable_torque(false).unwrap();
+        no_inversion
+            .inner
+            .set_target_position(raw_motors_pos)
+            .unwrap();
+
+        let mut ring_inverted: Orbita2dController =
+            Orbita2dController::with_fake_motors([true, false]);
+        ring_inverted.enable_torque(false).unwrap();
+        ring_inverted
+            .inner
+            .set_target_position(raw_motors_pos)
+            .unwrap();
+
+        let mut center_inverted: Orbita2dController =
+            Orbita2dController::with_fake_motors([false, true]);
+        center_inverted.enable_torque(false).unwrap();
+        center_inverted
+            .inner
+            .set_target_position(raw_motors_pos)
+            .unwrap();
+
+        let mut both_inverted: Orbita2dController =
+            Orbita2dController::with_fake_motors([true, true]);
+        both_inverted.enable_torque(false).unwrap();
+        both_inverted
+            .inner
+            .set_target_position(raw_motors_pos)
+            .unwrap();
+
+        let orientation = no_inversion.get_current_orientation().unwrap();
+
+        let ring_inverted_orientation = ring_inverted.get_current_orientation().unwrap();
+        assert_eq!(orientation[0], -ring_inverted_orientation[0]);
+        assert_eq!(orientation[1], ring_inverted_orientation[1]);
+
+        let center_inverted_orientation = center_inverted.get_current_orientation().unwrap();
+        assert_eq!(orientation[0], center_inverted_orientation[0]);
+        assert_eq!(orientation[1], -center_inverted_orientation[1]);
+
+        let both_inverted_orientation = both_inverted.get_current_orientation().unwrap();
+        assert_eq!(orientation[0], -both_inverted_orientation[0]);
+        assert_eq!(orientation[1], -both_inverted_orientation[1]);
+    }
+
+    #[test]
+    fn set_target_inverted_axes() {
+        for axes in [[false, false], [true, false], [false, true], [true, true]] {
+            let mut fake_orbita = Orbita2dController::with_fake_motors(axes);
+            fake_orbita.enable_torque(false).unwrap();
+
+            let mut rng = rand::thread_rng();
+            let orientation = [rng.gen_range(-PI..PI), rng.gen_range(-PI..PI)];
+            fake_orbita.set_target_orientation(orientation).unwrap();
+
+            let current_target = fake_orbita.get_target_orientation().unwrap();
+            assert!((current_target[0] - orientation[0]).abs() < 1e-6);
+            assert!((current_target[1] - orientation[1]).abs() < 1e-6);
+
+            let current_orientation = fake_orbita.get_current_orientation().unwrap();
+            assert!((current_orientation[0] - orientation[0]).abs() < 1e-6);
+            assert!((current_orientation[1] - orientation[1]).abs() < 1e-6);
+        }
     }
 }

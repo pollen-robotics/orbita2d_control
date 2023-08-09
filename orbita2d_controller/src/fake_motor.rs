@@ -20,7 +20,10 @@ struct FakeMotors {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct FakeConfig;
+pub struct FakeConfig {
+    /// Inverted axes [ring, center]
+    pub inverted_axes: [bool; 2],
+}
 
 impl Default for FakeMotors {
     fn default() -> Self {
@@ -60,8 +63,14 @@ impl Orbita2dController {
     /// More precisely, the motors current position directly teleports to the target when the torque is on.
     ///
     /// Other registers such as velocity, torque, limits, pid gains are not supported in this version.
-    pub fn with_fake_motors() -> Self {
-        Self::new(Box::<FakeMotors>::default(), [1.0, 1.0], [0.0, 0.0], None)
+    pub fn with_fake_motors(motors_axes_inverted: [bool; 2]) -> Self {
+        Self::new(
+            Box::<FakeMotors>::default(),
+            [1.0, 1.0],
+            [0.0, 0.0],
+            motors_axes_inverted,
+            None,
+        )
     }
 }
 
@@ -138,5 +147,45 @@ impl Orbita2dMotorController for FakeMotors {
     fn set_pid_gains(&mut self, pid_gains: [crate::PID; 2]) -> crate::Result<()> {
         self.pid_gains = pid_gains;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::Orbita2dConfig;
+
+    #[test]
+    fn parse_config() {
+        let s = "!FakeMotors
+        inverted_axes:
+            - false
+            - false
+        ";
+
+        let config: Result<Orbita2dConfig, _> = serde_yaml::from_str(s);
+        assert!(config.is_ok());
+
+        let config = config.unwrap();
+
+        if let Orbita2dConfig::FakeMotors(config) = config {
+            assert_eq!(config.inverted_axes, [false, false]);
+        } else {
+            assert!(false, "Wrong config type");
+        }
+    }
+    #[test]
+    fn parse_config_file() {
+        let f = std::fs::File::open("./config/fake.yaml").unwrap();
+
+        let config: Result<Orbita2dConfig, _> = serde_yaml::from_reader(f);
+        assert!(config.is_ok());
+
+        let config = config.unwrap();
+
+        if let Orbita2dConfig::FakeMotors(config) = config {
+            assert_eq!(config.inverted_axes, [false, false]);
+        } else {
+            assert!(false, "Wrong config type");
+        }
     }
 }

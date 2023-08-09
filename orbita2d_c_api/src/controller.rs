@@ -17,6 +17,8 @@ pub extern "C" fn orbita2d_controller_with_flipsky_serial(
     offset_b: f64,
     ratio_a: f64,
     ratio_b: f64,
+    ring_inverted: bool,
+    center_inverted: bool,
     lower_limit_a: f64,
     upper_limit_a: f64,
     lower_limit_b: f64,
@@ -43,6 +45,7 @@ pub extern "C" fn orbita2d_controller_with_flipsky_serial(
         (id_a, id_b),
         [offset_a, offset_b],
         [ratio_a, ratio_b],
+        [ring_inverted, center_inverted],
         orientation_limits,
         use_cache,
     ) {

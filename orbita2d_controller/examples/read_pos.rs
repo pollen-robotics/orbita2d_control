@@ -47,6 +47,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         (id_a, id_b),
         [0.0, 0.0],
         [1.0, 1.0],
+        [false, false],
         None,
         false,
     )?;

@@ -56,15 +56,6 @@ Orbita2dSystem::on_init(const hardware_interface::HardwareInfo & info)
       config_file = params.second.c_str();
       from_config=true;
     }
-
-    //TODO: put that in Rust level??
-    else if (params.first == "axis1_inverted") {
-      axis1_inverted = (uint8_t)std::stoi(params.second.c_str());
-    }
-    else if (params.first == "axis2_inverted") {
-      axis2_inverted = (uint8_t)std::stoi(params.second.c_str());
-    }
-
     //else, init with "manual" parameters
     else{
       RCLCPP_INFO(
@@ -343,17 +334,6 @@ Orbita2dSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
       "(%s) READ ORIENTATION ERROR!", info_.name.c_str()
       );
   }
-  else{
-    //TODO: I think this is done Rust level?
-
-    if (axis1_inverted) {
-      hw_states_position_[0] = -hw_states_position_[0];
-    }
-    if (axis2_inverted) {
-      hw_states_position_[1] = -hw_states_position_[1];
-    }
-
-  }
 
   //Torque on/off
   bool torque_on=false;
@@ -443,13 +423,7 @@ Orbita2dSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
   auto ret=hardware_interface::return_type::OK;
 
-  //TODO: I think this is done Rust level?
-
-  double command[2];
-  command[0] = axis1_inverted ? -hw_commands_position_[0] : hw_commands_position_[0];
-  command[1] = axis2_inverted ? -hw_commands_position_[1] : hw_commands_position_[1];
-
-  if (orbita2d_set_target_orientation(this->uid, &command) != 0) {
+  if (orbita2d_set_target_orientation(this->uid, &hw_commands_position_) != 0) {
     ret=hardware_interface::return_type::ERROR;
 
     RCLCPP_INFO_THROTTLE(
