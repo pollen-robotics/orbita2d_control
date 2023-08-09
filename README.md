@@ -68,6 +68,8 @@ This repository contains the following sub-packages:
 
 ## Related repositories
 
-* Mechanical design: [orbita2d_mechanical]()
-* Electronics design: [orbita2d_electronics](https://github.com/pollen-robotics/orbita2d_elec)
-* Firmware: [orbita2d_firmware](https://github.com/pollen-robotics/firmware_Orbita2Dofs)
+### Flipsky design
+
+* [Mechanical design](https://cad.onshape.com/documents/d108475d689e47a5561e996c/w/1d6ae1891c12354f3ac85124/e/f54fa638e232e8705b683608)
+* [Electronics design](https://github.com/pollen-robotics/orbita2d_elec)
+* [Firmware](https://github.com/pollen-robotics/firmware_Orbita2Dofs/tree/Flipsky_FSESC6.7-pro)
