@@ -43,4 +43,6 @@ while time.time() - t0 < 15:
 orbita.disable_torque()
 ```
 
+_You can find examples of config files in the [config](../../orbita2d_controller/config/) folder._
+
 See [Python API example notebook](./API_example.ipynb) for more complex usage.
