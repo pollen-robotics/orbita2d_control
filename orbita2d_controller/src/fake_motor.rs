@@ -20,7 +20,10 @@ struct FakeMotors {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct FakeConfig;
+pub struct FakeConfig {
+    /// Motors axes inverted [motor_a, motor_b]
+    pub motors_axes_inverted: [bool; 2],
+}
 
 impl Default for FakeMotors {
     fn default() -> Self {
@@ -60,8 +63,14 @@ impl Orbita2dController {
     /// More precisely, the motors current position directly teleports to the target when the torque is on.
     ///
     /// Other registers such as velocity, torque, limits, pid gains are not supported in this version.
-    pub fn with_fake_motors() -> Self {
-        Self::new(Box::<FakeMotors>::default(), [1.0, 1.0], [0.0, 0.0], None)
+    pub fn with_fake_motors(motors_axes_inverted: [bool; 2]) -> Self {
+        Self::new(
+            Box::<FakeMotors>::default(),
+            [1.0, 1.0],
+            [0.0, 0.0],
+            motors_axes_inverted,
+            None,
+        )
     }
 }
 

@@ -52,6 +52,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         (id_a, id_b),
         [0.0, 0.0],
         [1.9 * 25.01, 1.9 * 25.0], //shoulder
+        [false, false],
         None,
         false,
     )?;

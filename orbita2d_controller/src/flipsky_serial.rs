@@ -39,7 +39,9 @@ pub struct FlipskyConfig {
     pub motors_offset: [f64; 2],
     /// Motors ratio [motor_a, motor_b]
     pub motors_ratio: [f64; 2],
-    /// Orientation limits [motor_a, motor_b]
+    /// Motors axes inverted [motor_a, motor_b]
+    pub motors_axes_inverted: [bool; 2],
+    /// Orientation limits [motor_a, motor_b] (expressed in the corrected motor reference frame - after offset and inversion)
     pub orientation_limits: Option<[AngleLimit; 2]>,
     /// Use cache or not
     pub use_cache: bool,
@@ -69,13 +71,15 @@ impl Orbita2dController {
     /// * `ids` - A tuple with the id of eachy motor (motor_a, motor_b).
     /// * `motors_ratio` - An array of the ratio for each motor (motor_a, motor)b.
     /// * `motors_offset` - An array of the offset for each motor (motor_a, motor_b).
-    /// * `orientation_limits` - An option array of the `AngleLimit` for each motor (motor_a, motor_b).
+    /// * `motor_axes_inverted` - An array of boolean to invert the direction of each motor (motor_a, motor_b).
+    /// * `orientation_limits` - An option array of the `AngleLimit` for each motor (motor_a, motor_b). The limits is expressed in the corrected motor reference frame (after offset and inversion)
     /// * `use_cache` - A boolean to enable/disable cache.
     pub fn with_flipsky_serial(
         serial_port_names: (&str, &str),
         ids: (u8, u8),
         motors_offset: [f64; 2],
         motors_ratio: [f64; 2],
+        motors_axes_inverted: [bool; 2],
         orientation_limits: Option<[AngleLimit; 2]>,
         use_cache: bool,
     ) -> Result<Self> {
@@ -106,12 +110,14 @@ impl Orbita2dController {
                 }),
                 motors_ratio,
                 motors_offset,
+                motors_axes_inverted,
                 orientation_limits,
             ),
             false => Self::new(
                 Box::new(serial_controller),
                 motors_ratio,
                 motors_offset,
+                motors_axes_inverted,
                 orientation_limits,
             ),
         })
@@ -493,6 +499,9 @@ mod tests {
         motors_ratio:
         - 1.0
         - 1.0
+        motors_axes_inverted:
+        - false
+        - false
         orientation_limits: null
         use_cache: true
         ";

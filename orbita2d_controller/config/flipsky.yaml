@@ -11,5 +11,8 @@ motors_offset:
 motors_ratio:
 - 1.0
 - 1.0
+motors_axes_inverted:
+- false
+- false
 orientation_limits: null
 use_cache: false

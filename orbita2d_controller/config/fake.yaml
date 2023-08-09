@@ -1,1 +1,4 @@
 !FakeMotors
+  motors_axes_inverted:
+      - false
+      - false
