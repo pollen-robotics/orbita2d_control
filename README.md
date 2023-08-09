@@ -3,8 +3,7 @@
 ## Overview
 
 This repository contains all libraries required to control an Orbita2d actuator. It allows:
-* to configure and test the actuator via a command-line or grapihcal tool
-* to fully control the actuator using Python (only serial)
+* to fully control the actuator using Python
 * access the full API (Rust package or C-API library)
 * integrate the actuator in your ROS robot (URDF and ROS2 humble control hardware interface)
 
@@ -20,9 +19,13 @@ Please refer to the following schema for more details:
 
 ## Usage
 
-### Command line tool
-### Configuration tool
+### Via Rust
+
+See [orbita2d_control](orbita2d_controller) for more details.
+
 ### Via Python
+
+See [orbita2d python bindings](orbita2d_c_api/python/) for more details.
 
 ### ROS2 integration
 
@@ -65,6 +68,10 @@ This repository contains the following sub-packages:
   - torque on/off: `cargo run --bin test_torque -- --config $(PWD)/orbita2d_controller/config/left_shoulder_flipsky.yaml`
   - velocity limit: `cargo run --bin test_velocity -- --config $(PWD)/orbita2d_controller/config/left_shoulder_flipsky.yaml`
   - torque limit: `cargo run --bin test_torque_limit -- --config $(PWD)/orbita2d_controller/config/left_shoulder_flipsky.yaml`
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md)
 
 ## Related repositories
 
