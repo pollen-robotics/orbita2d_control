@@ -139,6 +139,7 @@ impl Orbita2dController {
                 (config.ids[0], config.ids[1]),
                 config.motors_offset,
                 config.motors_ratio,
+                config.motors_axes_inverted,
                 config.orientation_limits,
                 config.use_cache,
             ),
