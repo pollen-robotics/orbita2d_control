@@ -188,19 +188,72 @@ impl Orbita2dController {
         ];
         debug!(target: &self.log_target(), "get_current_orientation (with offset): {:?}", pos);
 
-        Ok(self.kinematics.compute_forward_kinematics(pos))
+        let orientation = self.kinematics.compute_forward_kinematics(pos);
+        debug!(target: &self.log_target(), "get_current_orientation (with kinematics): {:?}", orientation);
+
+        let orientation = [
+            if self.inverted_axes[0] {
+                -orientation[0]
+            } else {
+                orientation[0]
+            },
+            if self.inverted_axes[1] {
+                -orientation[1]
+            } else {
+                orientation[1]
+            },
+        ];
+        debug!(target: &self.log_target(), "get_current_orientation (with inverted axes): {:?}", orientation);
+
+        Ok(orientation)
     }
     /// Read the current velocity [ring, center] (in radians/s)
     pub fn get_current_velocity(&mut self) -> Result<[f64; 2]> {
         let vel = self.inner.get_current_velocity()?;
         debug!(target: &self.log_target(), "get_current_velocity: {:?}", vel);
-        Ok(self.kinematics.compute_output_velocity(vel))
+
+        let oriented_velocity = self.kinematics.compute_forward_kinematics(vel);
+        debug!(target: &self.log_target(), "get_current_velocity (with kinematics): {:?}", oriented_velocity);
+
+        let oriented_velocity = [
+            if self.inverted_axes[0] {
+                -oriented_velocity[0]
+            } else {
+                oriented_velocity[0]
+            },
+            if self.inverted_axes[1] {
+                -oriented_velocity[1]
+            } else {
+                oriented_velocity[1]
+            },
+        ];
+        debug!(target: &self.log_target(), "get_current_velocity (with inverted axes): {:?}", oriented_velocity);
+
+        Ok(oriented_velocity)
     }
     /// Read the current torque [ring, center] (in Nm)
     pub fn get_current_torque(&mut self) -> Result<[f64; 2]> {
         let torque = self.inner.get_current_torque()?;
         debug!(target: &self.log_target(), "get_current_torque: {:?}", torque);
-        Ok(self.kinematics.compute_output_torque(torque))
+
+        let oriented_torque = self.kinematics.compute_output_torque(torque);
+        debug!(target: &self.log_target(), "get_current_torque (with kinematics): {:?}", oriented_torque);
+
+        let oriented_torque = [
+            if self.inverted_axes[0] {
+                -oriented_torque[0]
+            } else {
+                oriented_torque[0]
+            },
+            if self.inverted_axes[1] {
+                -oriented_torque[1]
+            } else {
+                oriented_torque[1]
+            },
+        ];
+        debug!(target: &self.log_target(), "get_current_torque (with inverted axes): {:?}", oriented_torque);
+
+        Ok(oriented_torque)
     }
 
     /// Get the desired orientation [ring, center] (in radians)
@@ -213,7 +266,24 @@ impl Orbita2dController {
         ];
         debug!(target: &self.log_target(), "get_target_orientation (with offset): {:?}", pos);
 
-        Ok(self.kinematics.compute_forward_kinematics(pos))
+        let oriented_target = self.kinematics.compute_forward_kinematics(pos);
+        debug!(target: &self.log_target(), "get_target_orientation (with kinematics): {:?}", oriented_target);
+
+        let oriented_target = [
+            if self.inverted_axes[0] {
+                -oriented_target[0]
+            } else {
+                oriented_target[0]
+            },
+            if self.inverted_axes[1] {
+                -oriented_target[1]
+            } else {
+                oriented_target[1]
+            },
+        ];
+        debug!(target: &self.log_target(), "get_target_orientation (with inverted axes): {:?}", oriented_target);
+
+        Ok(oriented_target)
     }
     /// Set the desired orientation [ring, center] (in radians)
     pub fn set_target_orientation(&mut self, target_orientation: [f64; 2]) -> Result<()> {
@@ -228,6 +298,20 @@ impl Orbita2dController {
             "set_target_orientation: {:?} orientation_limits {:?}",
             target_orientation, self.orientation_limits
         );
+
+        let target_orientation = [
+            if self.inverted_axes[0] {
+                -target_orientation[0]
+            } else {
+                target_orientation[0]
+            },
+            if self.inverted_axes[1] {
+                -target_orientation[1]
+            } else {
+                target_orientation[1]
+            },
+        ];
+        debug!(target: &self.log_target(), "set_target_orientation (with inverted axes): {:?}", target_orientation);
 
         let ik = self
             .kinematics
