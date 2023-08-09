@@ -534,6 +534,25 @@ mod tests {
     }
 
     #[test]
+    fn set_target_outside_limits_and_inverted_axes() {
+        let mut fake_orbita = Orbita2dController::with_fake_motors([true, true]);
+
+        fake_orbita.orientation_limits = Some([
+            AngleLimit { min: 0.0, max: 1.0 },
+            AngleLimit {
+                min: -1.0,
+                max: 0.0,
+            },
+        ]);
+
+        fake_orbita.set_target_orientation([0.5, -0.5]).unwrap();
+        let current_target = fake_orbita.get_target_orientation().unwrap();
+
+        assert_eq!(current_target[0], 0.5);
+        assert_eq!(current_target[1], -0.5);
+    }
+
+    #[test]
     fn set_torque() {
         let mut fake_orbita = Orbita2dController::with_fake_motors([false, false]);
         // Test each transition
