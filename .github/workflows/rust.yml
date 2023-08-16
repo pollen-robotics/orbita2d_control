@@ -1,4 +1,4 @@
-name: Lint And Test
+name: Rust Lint And Test
 
 on: [push, pull_request]
 
@@ -25,4 +25,6 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
     - name: Format
-      run: cargo fmt --all -- --check
+      run: cargo fmt --all -- --check        
+    - name: Lint
+      run: cargo clippy --all-targets --all-features -- -D warnings

@@ -519,7 +519,7 @@ mod tests {
             assert!(config.orientation_limits.is_none());
             assert!(config.use_cache);
         } else {
-            assert!(false, "Wrong config type");
+            panic!("Wrong config type");
         }
     }
     #[test]
@@ -538,7 +538,7 @@ mod tests {
             assert!(config.orientation_limits.is_none());
             assert!(!config.use_cache);
         } else {
-            assert!(false, "Wrong config type");
+            panic!("Wrong config type");
         }
     }
 }
