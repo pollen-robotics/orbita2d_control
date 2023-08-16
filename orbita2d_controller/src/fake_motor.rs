@@ -170,7 +170,7 @@ mod tests {
         if let Orbita2dConfig::FakeMotors(config) = config {
             assert_eq!(config.inverted_axes, [false, false]);
         } else {
-            assert!(false, "Wrong config type");
+            panic!("Wrong config type");
         }
     }
     #[test]
@@ -185,7 +185,7 @@ mod tests {
         if let Orbita2dConfig::FakeMotors(config) = config {
             assert_eq!(config.inverted_axes, [false, false]);
         } else {
-            assert!(false, "Wrong config type");
+            panic!("Wrong config type");
         }
     }
 }
