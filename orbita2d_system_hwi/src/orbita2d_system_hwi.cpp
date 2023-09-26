@@ -209,6 +209,15 @@ Orbita2dSystem::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
     hw_states_d_gain_[1] = pids[5];
   }
 
+  if (orbita2d_get_current_orientation(this->uid, &hw_states_position_) != 0) {
+
+    // ret=hardware_interface::return_type::ERROR;
+    ret= CallbackReturn::ERROR;
+    RCLCPP_ERROR(
+      rclcpp::get_logger("Orbita2dSystem"),
+      "(%s) READ ORIENTATION ERROR!", info_.name.c_str()
+      );
+  }
 
   //set the commands to the read values (otherwise some strange behaviour can happen)
   for (int i=0; i < 2; i++) {
@@ -422,6 +431,11 @@ hardware_interface::return_type
 Orbita2dSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
 {
   auto ret=hardware_interface::return_type::OK;
+    // RCLCPP_INFO(
+    //   rclcpp::get_logger("Orbita2dSystem"),
+    //   "(%s) WRITE ORIENTATION %f %f", info_.name.c_str(), hw_commands_position_[0], hw_commands_position_[1]
+
+    //   );
 
   if (orbita2d_set_target_orientation(this->uid, &hw_commands_position_) != 0) {
     ret=hardware_interface::return_type::ERROR;
@@ -467,45 +481,46 @@ Orbita2dSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
 
 
   //speed limit
+  //TODO
 
-  if(orbita2d_set_raw_motors_velocity_limit(this->uid, &hw_commands_speed_limit_) != 0)
-  {
-    ret=hardware_interface::return_type::ERROR;
+  // if(orbita2d_set_raw_motors_velocity_limit(this->uid, &hw_commands_speed_limit_) != 0)
+  // {
+  //   ret=hardware_interface::return_type::ERROR;
 
-    RCLCPP_ERROR(
-      rclcpp::get_logger("Orbita2dSystem"),
-      "(%s) WRITE SPEED LIMIT ERROR!", info_.name.c_str()
-      );
-  }
+  //   RCLCPP_ERROR(
+  //     rclcpp::get_logger("Orbita2dSystem"),
+  //     "(%s) WRITE SPEED LIMIT ERROR!", info_.name.c_str()
+  //     );
+  // }
 
-  //torque limit
-  if(orbita2d_set_raw_motors_torque_limit(this->uid, &hw_commands_torque_limit_) != 0)
-  {
-    ret=hardware_interface::return_type::ERROR;
+  // //torque limit
+  // if(orbita2d_set_raw_motors_torque_limit(this->uid, &hw_commands_torque_limit_) != 0)
+  // {
+  //   ret=hardware_interface::return_type::ERROR;
 
-    RCLCPP_ERROR(
-      rclcpp::get_logger("Orbita2dSystem"),
-      "(%s) WRITE TORQUE LIMIT ERROR!", info_.name.c_str()
-      );
-  }
+  //   RCLCPP_ERROR(
+  //     rclcpp::get_logger("Orbita2dSystem"),
+  //     "(%s) WRITE TORQUE LIMIT ERROR!", info_.name.c_str()
+  //     );
+  // }
 
-  //pid gains
-  double pids[6];
-  pids[0] = hw_commands_p_gain_[0];
-  pids[1] = hw_commands_i_gain_[0];
-  pids[2] = hw_commands_d_gain_[0];
-  pids[3] = hw_commands_p_gain_[1];
-  pids[4] = hw_commands_i_gain_[1];
-  pids[5] = hw_commands_d_gain_[1];
-  if(orbita2d_set_raw_motors_pid_gains(this->uid, &pids) != 0)
-  {
-    ret=hardware_interface::return_type::ERROR;
+  // //pid gains
+  // double pids[6];
+  // pids[0] = hw_commands_p_gain_[0];
+  // pids[1] = hw_commands_i_gain_[0];
+  // pids[2] = hw_commands_d_gain_[0];
+  // pids[3] = hw_commands_p_gain_[1];
+  // pids[4] = hw_commands_i_gain_[1];
+  // pids[5] = hw_commands_d_gain_[1];
+  // if(orbita2d_set_raw_motors_pid_gains(this->uid, &pids) != 0)
+  // {
+  //   ret=hardware_interface::return_type::ERROR;
 
-    RCLCPP_ERROR(
-      rclcpp::get_logger("Orbita2dSystem"),
-      "(%s) WRITE PID GAINS ERROR!", info_.name.c_str()
-      );
-  }
+  //   RCLCPP_ERROR(
+  //     rclcpp::get_logger("Orbita2dSystem"),
+  //     "(%s) WRITE PID GAINS ERROR!", info_.name.c_str()
+  //     );
+  // }
 
 
 
