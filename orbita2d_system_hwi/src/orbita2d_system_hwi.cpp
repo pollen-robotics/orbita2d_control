@@ -336,7 +336,7 @@ Orbita2dSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   //Position
   if (orbita2d_get_current_orientation(this->uid, &hw_states_position_) != 0) {
 
-    ret=hardware_interface::return_type::ERROR;
+    // ret=hardware_interface::return_type::ERROR;
 
     RCLCPP_ERROR(
       rclcpp::get_logger("Orbita2dSystem"),
@@ -348,7 +348,7 @@ Orbita2dSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   bool torque_on=false;
   if(orbita2d_is_torque_on(this->uid, &torque_on)!=0)
   {
-    ret=hardware_interface::return_type::ERROR;
+    // ret=hardware_interface::return_type::ERROR;
 
     RCLCPP_ERROR(
       rclcpp::get_logger("Orbita2dSystem"),
@@ -362,7 +362,7 @@ Orbita2dSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   //Velocity
   if (orbita2d_get_current_velocity(this->uid, &hw_states_velocity_) != 0) {
 
-    ret=hardware_interface::return_type::ERROR;
+    // ret=hardware_interface::return_type::ERROR;
 
     RCLCPP_ERROR(
       rclcpp::get_logger("Orbita2dSystem"),
@@ -373,7 +373,7 @@ Orbita2dSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   //Current torque
   if (orbita2d_get_current_torque(this->uid, &hw_states_effort_) != 0) {
 
-    ret=hardware_interface::return_type::ERROR;
+    // ret=hardware_interface::return_type::ERROR;
 
     RCLCPP_ERROR(
       rclcpp::get_logger("Orbita2dSystem"),
@@ -383,7 +383,7 @@ Orbita2dSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   //Torque limit
   if (orbita2d_get_raw_motors_torque_limit(this->uid, &hw_states_torque_limit_) != 0) {
 
-    ret=hardware_interface::return_type::ERROR;
+    // ret=hardware_interface::return_type::ERROR;
 
     RCLCPP_ERROR(
       rclcpp::get_logger("Orbita2dSystem"),
@@ -394,7 +394,7 @@ Orbita2dSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   //velocity limit
   if (orbita2d_get_raw_motors_velocity_limit(this->uid, &hw_states_speed_limit_) != 0) {
 
-    ret=hardware_interface::return_type::ERROR;
+    // ret=hardware_interface::return_type::ERROR;
 
     RCLCPP_ERROR(
       rclcpp::get_logger("Orbita2dSystem"),
@@ -406,7 +406,7 @@ Orbita2dSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   double pids[6];
   if (orbita2d_get_raw_motors_pid_gains(this->uid, &pids) != 0) {
 
-    ret=hardware_interface::return_type::ERROR;
+    // ret=hardware_interface::return_type::ERROR;
 
     RCLCPP_ERROR(
       rclcpp::get_logger("Orbita2dSystem"),
@@ -438,9 +438,9 @@ Orbita2dSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
     //   );
 
   if (orbita2d_set_target_orientation(this->uid, &hw_commands_position_) != 0) {
-    ret=hardware_interface::return_type::ERROR;
+    // ret=hardware_interface::return_type::ERROR;
 
-    RCLCPP_INFO_THROTTLE(
+    RCLCPP_ERROR_THROTTLE(
       rclcpp::get_logger("Orbita2dSystem"),
       clock_,
       LOG_THROTTLE_DURATION,
@@ -456,9 +456,9 @@ Orbita2dSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
   if(torque)
   {
     if (orbita2d_enable_torque(this->uid, false) != 0) { //do not reset target
-      ret=hardware_interface::return_type::ERROR;
+      // ret=hardware_interface::return_type::ERROR;
 
-      RCLCPP_INFO_THROTTLE(
+      RCLCPP_ERROR_THROTTLE(
         rclcpp::get_logger("Orbita2dSystem"),
         clock_,
         LOG_THROTTLE_DURATION,
@@ -468,9 +468,9 @@ Orbita2dSystem::write(const rclcpp::Time &, const rclcpp::Duration &)
   }
   else{
       if (orbita2d_disable_torque(this->uid) != 0) {
-        ret=hardware_interface::return_type::ERROR;
+        // ret=hardware_interface::return_type::ERROR;
 
-        RCLCPP_INFO_THROTTLE(
+        RCLCPP_ERROR_THROTTLE(
           rclcpp::get_logger("Orbita2dSystem"),
           clock_,
           LOG_THROTTLE_DURATION,
