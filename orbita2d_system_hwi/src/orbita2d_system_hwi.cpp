@@ -290,7 +290,7 @@ Orbita2dSystem::export_state_interfaces()
         rclcpp::get_logger("Orbita2dSystem"),
         "export state interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str()
       );
-    } else if (gpio.name.find(raw_motor) != std::string::npos) {
+    } else if (gpio.name.find("raw_motor") != std::string::npos) {
       state_interfaces.emplace_back(hardware_interface::StateInterface(
         gpio.name, "temperature", &hw_states_temperature_[i]));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -334,34 +334,36 @@ Orbita2dSystem::export_command_interfaces()
 
   for (std::size_t i = 0; i < 3; i++)
   {
+    auto gpio = info_.gpios[i];
+
     if (gpio.name == info_.name.c_str()) {
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
         info_.name.c_str(), "torque", &hw_commands_torque_));
       RCLCPP_INFO(
         rclcpp::get_logger("Orbita2dSystem"),
-        "export command interface (%s) \"%s\"!", info_.name.c_str(), joint.name.c_str()
+        "export command interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str()
       );
 
-    } else if (gpio.name.find(raw_motor) != std::string::npos) {
+    } else if (gpio.name.find("raw_motor") != std::string::npos) {
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        joint.name, "speed_limit", &hw_commands_speed_limit_[i]));
+        gpio.name, "speed_limit", &hw_commands_speed_limit_[i]));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        joint.name, "torque_limit", &hw_commands_torque_limit_[i]));
+        gpio.name, "torque_limit", &hw_commands_torque_limit_[i]));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        joint.name, "p_gain", &hw_commands_p_gain_[i]));
+        gpio.name, "p_gain", &hw_commands_p_gain_[i]));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        joint.name, "i_gain", &hw_commands_i_gain_[i]));
+        gpio.name, "i_gain", &hw_commands_i_gain_[i]));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        joint.name, "d_gain", &hw_commands_d_gain_[i]));
+        gpio.name, "d_gain", &hw_commands_d_gain_[i]));
 
       RCLCPP_INFO(
         rclcpp::get_logger("Orbita2dSystem"),
-        "export command interface (%s) \"%s\"!", info_.name.c_str(), joint.name.c_str()
+        "export command interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str()
       );
     } else {
       RCLCPP_WARN(
         rclcpp::get_logger("Orbita2dSystem"),
-        "Unkown command interface (%s) \"%s\"!", info_.name.c_str(), joint.name.c_str()
+        "Unkown command interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str()
       );
     }
   }
