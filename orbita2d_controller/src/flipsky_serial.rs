@@ -184,20 +184,52 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialController {
     }
 
     fn get_current_position(&mut self) -> Result<[f64; 2]> {
-        Ok([
+        let mut clone_0 = self.serial_ports[0].try_clone().expect("Failed to clone");
+        let id_0 = self.ids[0];
+        let h0 = thread::spawn(move || {
             orbita2dof_foc::read_motor_a_present_position(
-                &self.io,
-                self.serial_ports[0].as_mut(),
-                self.ids[0],
+                &DynamixelSerialIO::v1(),
+                clone_0.as_mut(),
+                id_0,
             )
-            .map(|pos| pos as f64)?,
+            .map(|pos| pos as f64)
+            .map_or(None, |v| Some(v))
+        });
+        let mut clone_1 = self.serial_ports[1].try_clone().expect("Failed to clone");
+        let id_1 = self.ids[1];
+        let h1 = thread::spawn(move || {
             orbita2dof_foc::read_motor_a_present_position(
-                &self.io,
-                self.serial_ports[1].as_mut(),
-                self.ids[1],
+                &DynamixelSerialIO::v1(),
+                clone_1.as_mut(),
+                id_1,
             )
-            .map(|pos| pos as f64)?,
-        ])
+            .map(|pos: f32| pos as f64)
+            .map_or(None, |v| Some(v))
+        });
+
+        let t0 = h0.join().unwrap();
+        let t1 = h1.join().unwrap();
+
+        if t0.is_none() || t1.is_none() {
+            return Err("Failed to read torque enable".into());
+        }
+
+        Ok([t0.unwrap(), t1.unwrap()])
+
+        // Ok([
+        //     orbita2dof_foc::read_motor_a_present_position(
+        //         &self.io,
+        //         self.serial_ports[0].as_mut(),
+        //         self.ids[0],
+        //     )
+        //     .map(|pos| pos as f64)?,
+        //     orbita2dof_foc::read_motor_a_present_position(
+        //         &self.io,
+        //         self.serial_ports[1].as_mut(),
+        //         self.ids[1],
+        //     )
+        //     .map(|pos| pos as f64)?,
+        // ])
     }
 
     fn get_current_velocity(&mut self) -> Result<[f64; 2]> {
@@ -252,15 +284,49 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialController {
     }
 
     fn set_target_position(&mut self, target_position: [f64; 2]) -> Result<()> {
-        for (i, &target_position) in target_position.iter().enumerate() {
+        let mut clone_0 = self.serial_ports[0].try_clone().expect("Failed to clone");
+        let id_0 = self.ids[0];
+        let target_0 = target_position[0];
+        let h0 = thread::spawn(move || {
             orbita2dof_foc::write_motor_a_goal_position(
-                &self.io,
-                self.serial_ports[i].as_mut(),
-                self.ids[i],
-                target_position as f32,
-            )?;
+                &DynamixelSerialIO::v1(),
+                clone_0.as_mut(),
+                id_0,
+                target_0 as f32,
+            )
+            .map_or(None, |v| Some(v))
+        });
+        let mut clone_1 = self.serial_ports[1].try_clone().expect("Failed to clone");
+        let id_1 = self.ids[1];
+        let target_1 = target_position[1];
+        let h1 = thread::spawn(move || {
+            orbita2dof_foc::write_motor_a_goal_position(
+                &DynamixelSerialIO::v1(),
+                clone_1.as_mut(),
+                id_1,
+                target_1 as f32,
+            )
+            .map_or(None, |v| Some(v))
+        });
+
+        let t0 = h0.join().unwrap();
+        let t1 = h1.join().unwrap();
+
+        if t0.is_none() || t1.is_none() {
+            return Err("Failed to read torque enable".into());
         }
+
         Ok(())
+
+        // for (i, &target_position) in target_position.iter().enumerate() {
+        //     orbita2dof_foc::write_motor_a_goal_position(
+        //         &self.io,
+        //         self.serial_ports[i].as_mut(),
+        //         self.ids[i],
+        //         target_position as f32,
+        //     )?;
+        // }
+        // Ok(())
     }
 
     fn get_velocity_limit(&mut self) -> Result<[f64; 2]> {
