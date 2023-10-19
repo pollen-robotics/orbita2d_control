@@ -1,7 +1,7 @@
 use crate::{AngleLimit, Orbita2dController, Orbita2dMotorController, Result, PID};
 use cache_cache::Cache;
 use log::info;
-use std::time::Duration;
+use std::{thread, time::Duration};
 
 use rustypot::{
     device::orbita2dof_foc::{self},
@@ -130,20 +130,45 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialController {
     }
 
     fn is_torque_on(&mut self) -> Result<[bool; 2]> {
-        Ok([
-            orbita2dof_foc::read_torque_enable(
-                &self.io,
-                self.serial_ports[0].as_mut(),
-                self.ids[0],
-            )
-            .map(|torque| torque != 0)?,
-            orbita2dof_foc::read_torque_enable(
-                &self.io,
-                self.serial_ports[1].as_mut(),
-                self.ids[1],
-            )
-            .map(|torque| torque != 0)?,
-        ])
+        let mut clone_0 = self.serial_ports[0].try_clone().expect("Failed to clone");
+        let id_0 = self.ids[0];
+        let h0 = thread::spawn(move || {
+            orbita2dof_foc::read_torque_enable(&DynamixelSerialIO::v1(), clone_0.as_mut(), id_0)
+                .map(|torque| torque != 0)
+                .map_or(None, |torque| Some(torque))
+        });
+
+        let mut clone_1 = self.serial_ports[1].try_clone().expect("Failed to clone");
+        let id_1 = self.ids[1];
+        let h1 = thread::spawn(move || {
+            orbita2dof_foc::read_torque_enable(&DynamixelSerialIO::v1(), clone_1.as_mut(), id_1)
+                .map(|torque| torque != 0)
+                .map_or(None, |torque| Some(torque))
+        });
+
+        let t0 = h0.join().unwrap();
+        let t1 = h1.join().unwrap();
+
+        if t0.is_none() || t1.is_none() {
+            return Err("Failed to read torque enable".into());
+        }
+
+        Ok([t0.unwrap(), t1.unwrap()])
+
+        // Ok([
+        //     orbita2dof_foc::read_torque_enable(
+        //         &self.io,
+        //         self.serial_ports[0].as_mut(),
+        //         self.ids[0],
+        //     )
+        //     .map(|torque| torque != 0)?,
+        //     orbita2dof_foc::read_torque_enable(
+        //         &self.io,
+        //         self.serial_ports[1].as_mut(),
+        //         self.ids[1],
+        //     )
+        //     .map(|torque| torque != 0)?,
+        // ])
     }
 
     fn set_torque(&mut self, on: [bool; 2]) -> Result<()> {
