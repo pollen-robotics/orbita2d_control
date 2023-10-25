@@ -15,4 +15,4 @@ inverted_axes:
 - false
 - false
 orientation_limits: null
-use_cache: false
+use_cache: true
