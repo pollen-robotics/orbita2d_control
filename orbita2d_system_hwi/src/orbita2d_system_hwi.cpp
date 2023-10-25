@@ -359,27 +359,27 @@ Orbita2dSystem::read(const rclcpp::Time &, const rclcpp::Duration &)
   hw_states_torque_[1] = torque_on;
 
 
-  //Velocity
-  if (orbita2d_get_current_velocity(this->uid, &hw_states_velocity_) != 0) {
+  // //Velocity
+  // if (orbita2d_get_current_velocity(this->uid, &hw_states_velocity_) != 0) {
 
-    // ret=hardware_interface::return_type::ERROR;
+  //   // ret=hardware_interface::return_type::ERROR;
 
-    RCLCPP_ERROR(
-      rclcpp::get_logger("Orbita2dSystem"),
-      "(%s) READ VELOCITY ERROR!", info_.name.c_str()
-      );
-  }
+  //   RCLCPP_ERROR(
+  //     rclcpp::get_logger("Orbita2dSystem"),
+  //     "(%s) READ VELOCITY ERROR!", info_.name.c_str()
+  //     );
+  // }
 
-  //Current torque
-  if (orbita2d_get_current_torque(this->uid, &hw_states_effort_) != 0) {
+  // //Current torque
+  // if (orbita2d_get_current_torque(this->uid, &hw_states_effort_) != 0) {
 
-    // ret=hardware_interface::return_type::ERROR;
+  //   // ret=hardware_interface::return_type::ERROR;
 
-    RCLCPP_ERROR(
-      rclcpp::get_logger("Orbita2dSystem"),
-      "(%s) READ CURRENT TORQUE ERROR!", info_.name.c_str()
-      );
-  }
+  //   RCLCPP_ERROR(
+  //     rclcpp::get_logger("Orbita2dSystem"),
+  //     "(%s) READ CURRENT TORQUE ERROR!", info_.name.c_str()
+  //     );
+  // }
   //Torque limit
   if (orbita2d_get_raw_motors_torque_limit(this->uid, &hw_states_torque_limit_) != 0) {
 
