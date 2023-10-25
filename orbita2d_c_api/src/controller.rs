@@ -6,7 +6,7 @@ use orbita2d_controller::{AngleLimit, Orbita2dController, PID};
 use crate::sync_map::SyncMap;
 
 static UID: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
-static CONTROLLER: Lazy<SyncMap<u32, Orbita2dController>> = Lazy::new(|| SyncMap::new());
+static CONTROLLER: Lazy<SyncMap<u32, Orbita2dController>> = Lazy::new(SyncMap::new);
 
 #[no_mangle]
 pub extern "C" fn orbita2d_controller_with_flipsky_serial(
