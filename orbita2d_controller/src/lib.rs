@@ -39,20 +39,22 @@
 //! ```
 
 use log::{debug, info};
+use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 pub use fake_motor::FakeConfig;
 pub use flipsky_serial::FlipskyConfig;
 use orbita2d_kinematics::Orbita2dKinematicsModel;
+pub use poulpe::PoulpeConfig;
 
 /// Result generic wrapper using `std::error::Error` trait
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 mod coherency;
 use coherency::CoherentResult;
-use serde::{Deserialize, Serialize};
 mod fake_motor;
 mod flipsky_serial;
+mod poulpe;
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 /// PID gains wrapper
@@ -82,6 +84,7 @@ pub struct Orbita2dController {
 pub enum Orbita2dConfig {
     FakeMotors(FakeConfig),
     Flipsky(FlipskyConfig),
+    Poulpe(PoulpeConfig),
 }
 
 impl Debug for Orbita2dController {
@@ -135,6 +138,15 @@ impl Orbita2dController {
             Orbita2dConfig::Flipsky(config) => Self::with_flipsky_serial(
                 (&config.serial_port[0], &config.serial_port[1]),
                 (config.ids[0], config.ids[1]),
+                config.motors_offset,
+                config.motors_ratio,
+                config.inverted_axes,
+                config.orientation_limits,
+                config.use_cache,
+            ),
+            Orbita2dConfig::Poulpe(config) => Self::with_poulpe_serial(
+                &config.serial_port,
+                config.id,
                 config.motors_offset,
                 config.motors_ratio,
                 config.inverted_axes,
