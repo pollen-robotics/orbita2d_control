@@ -536,7 +536,7 @@ mod tests {
             assert_eq!(config.motors_offset, [0.0, 0.0]);
             assert_eq!(config.motors_ratio, [45.018, 45.018]);
             assert!(config.orientation_limits.is_none());
-            assert!(!config.use_cache);
+            assert!(config.use_cache);
         } else {
             panic!("Wrong config type");
         }
