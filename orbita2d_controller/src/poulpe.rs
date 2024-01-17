@@ -3,13 +3,13 @@ use std::time::Duration;
 use cache_cache::Cache;
 use log::info;
 use rustypot::{
-    device::orbita2d_poulpe::{self, ValuePerMotor},
+    device::orbita2d_poulpe::{self, MotorValue},
     DynamixelSerialIO,
 };
 use serde::{Deserialize, Serialize};
-use serialport::SerialPort;
+use serialport::TTYPort;
 
-use crate::{AngleLimit, Orbita2dController, Orbita2dMotorController, Result, PID};
+use crate::{AngleLimit, Orbita2dController, Orbita2dMotorController, Result, PID, Orbita2dFeedback};
 
 #[derive(Debug, Deserialize, Serialize)]
 /// Flipsky configuration
@@ -32,7 +32,7 @@ pub struct PoulpeConfig {
 
 /// Orbita serial controller
 struct Orbita2dPoulpeSerialController {
-    serial_port: Box<dyn SerialPort>,
+    serial_port: Box<TTYPort>,
     io: DynamixelSerialIO,
     id: u8,
 }
@@ -53,15 +53,18 @@ impl Orbita2dController {
         orientation_limits: Option<[AngleLimit; 2]>,
         use_cache: bool,
     ) -> Result<Self> {
-        let poulpe_controller = Orbita2dPoulpeSerialController {
-            serial_port: serialport::new(serial_port, 1_000_000)
-                .timeout(Duration::from_millis(10))
-                .open()?,
+        let mut poulpe_controller = Orbita2dPoulpeSerialController {
+            serial_port: Box::new(serialport::new(serial_port, 2_000_000)
+				  .timeout(Duration::from_millis(10))
+				  .open_native()?),
             io: DynamixelSerialIO::v1(),
             id,
         };
+
+	poulpe_controller.serial_port.set_exclusive(false)?;
+
         info!(
-            "PoulpeSerialController:\n\t - serial_port: {:?}\n\t - id: {:?}\n\t - use_cache: {:?}",
+            "Orbita2d PoulpeSerialController:\n\t - serial_port: {:?}\n\t - id: {:?}\n\t - use_cache: {:?}",
             serial_port, id, use_cache
         );
 
@@ -90,12 +93,12 @@ impl Orbita2dController {
 
 impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
     fn name(&self) -> &'static str {
-        "FlipskySerialController"
+        "PoulpeSerialController"
     }
 
     fn is_torque_on(&mut self) -> Result<[bool; 2]> {
         orbita2d_poulpe::read_torque_enable(&self.io, self.serial_port.as_mut(), self.id)
-            .map(|val| [val.motor_a != 0, val.motor_b != 0])
+            .map(|val| [val.motor_a, val.motor_b])
     }
 
     fn set_torque(&mut self, on: [bool; 2]) -> Result<()> {
@@ -103,71 +106,166 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
             &self.io,
             self.serial_port.as_mut(),
             self.id,
-            ValuePerMotor {
-                motor_a: on[0] as u8,
-                motor_b: on[1] as u8,
+            MotorValue {
+                motor_a: on[0],
+                motor_b: on[1],
             },
         )
     }
 
     fn get_current_position(&mut self) -> Result<[f64; 2]> {
-        orbita2d_poulpe::read_present_position(&self.io, self.serial_port.as_mut(), self.id)
+        orbita2d_poulpe::read_current_position(&self.io, self.serial_port.as_mut(), self.id)
             .map(|val| [val.motor_a as f64, val.motor_b as f64])
     }
 
     fn get_current_velocity(&mut self) -> Result<[f64; 2]> {
-        Err("Not implemented".into())
+
+	orbita2d_poulpe::read_current_velocity(&self.io, self.serial_port.as_mut(), self.id)
+			.map(|val| [val.motor_a as f64, val.motor_b as f64])
+
     }
 
     fn get_current_torque(&mut self) -> Result<[f64; 2]> {
-        Err("Not implemented".into())
+	orbita2d_poulpe::read_current_torque(&self.io, self.serial_port.as_mut(), self.id)
+			.map(|val| [val.motor_a as f64, val.motor_b as f64])
+
     }
 
     fn get_target_position(&mut self) -> Result<[f64; 2]> {
-        orbita2d_poulpe::read_goal_position(&self.io, self.serial_port.as_mut(), self.id)
+        orbita2d_poulpe::read_target_position(&self.io, self.serial_port.as_mut(), self.id)
             .map(|val| [val.motor_a as f64, val.motor_b as f64])
     }
 
     fn set_target_position(&mut self, target_position: [f64; 2]) -> Result<()> {
-        orbita2d_poulpe::write_goal_position(
+        match orbita2d_poulpe::write_target_position(
             &self.io,
             self.serial_port.as_mut(),
             self.id,
-            ValuePerMotor {
+            MotorValue {
                 motor_a: target_position[0] as f32,
                 motor_b: target_position[1] as f32,
             },
         )
+	{
+	    Ok(_) => Ok(()),
+	    Err(e) => {
+		info!("Error while setting target position: {:?}", e);
+		Err(e)
+	    }
+
+	}
+
+    }
+
+
+    fn set_target_position_fb(&mut self, target_position: [f64; 2]) -> Result<Orbita2dFeedback> {
+        match orbita2d_poulpe::write_target_position(
+            &self.io,
+            self.serial_port.as_mut(),
+            self.id,
+            MotorValue {
+                motor_a: target_position[0] as f32,
+                motor_b: target_position[1] as f32,
+            },
+        )
+	{
+	    Ok(fb) => Ok(Orbita2dFeedback{orientation: [fb.position.motor_a as f64,fb.position.motor_b as f64], velocity: [fb.speed.motor_a as f64, fb.speed.motor_b as f64], torque: [fb.load.motor_a as f64, fb.load.motor_b as f64]}),
+	    Err(e) => {
+		info!("Error while setting target position: {:?}", e);
+		Err(e)
+	    }
+
+	}
+
     }
 
     fn get_velocity_limit(&mut self) -> Result<[f64; 2]> {
-        Err("Not implemented".into())
+
+	orbita2d_poulpe::read_velocity_limit(&self.io, self.serial_port.as_mut(), self.id)
+			.map(|val| [val.motor_a as f64, val.motor_b as f64])
+
     }
 
     fn set_velocity_limit(&mut self, _velocity_limit: [f64; 2]) -> Result<()> {
-        Err("Not implemented".into())
+	orbita2d_poulpe::write_velocity_limit(
+			&self.io,
+			self.serial_port.as_mut(),
+			self.id,
+			MotorValue {
+				motor_a: _velocity_limit[0] as u32,
+				motor_b: _velocity_limit[1] as u32,
+			},
+		)
     }
 
     fn get_torque_limit(&mut self) -> Result<[f64; 2]> {
-        Err("Not implemented".into())
+	orbita2d_poulpe::read_torque_flux_limit(&self.io, self.serial_port.as_mut(), self.id)
+			.map(|val| [val.motor_a as f64, val.motor_b as f64])
+
+
     }
 
     fn set_torque_limit(&mut self, _torque_limit: [f64; 2]) -> Result<()> {
-        Err("Not implemented".into())
+	orbita2d_poulpe::write_torque_flux_limit(
+			&self.io,
+			self.serial_port.as_mut(),
+			self.id,
+			MotorValue {
+				motor_a: _torque_limit[0] as u16,
+				motor_b: _torque_limit[1] as u16,
+			},
+		)
+
     }
 
     fn get_pid_gains(&mut self) -> Result<[PID; 2]> {
-        Err("Not implemented".into())
+	orbita2d_poulpe::read_position_pid(&self.io, self.serial_port.as_mut(), self.id).map(
+            |thetas| {
+		[
+		    PID{
+			p: thetas.motor_a.p as f64,
+			i: thetas.motor_a.i as f64,
+			d: 0.0,
+		    },
+		    PID{
+			p: thetas.motor_b.p as f64,
+			i: thetas.motor_b.i as f64,
+			d: 0.0,
+		    },
+
+		]
+
+            },
+        )
+
+
     }
 
     fn set_pid_gains(&mut self, _pid_gains: [PID; 2]) -> Result<()> {
-        Err("Not implemented".into())
+	orbita2d_poulpe::write_position_pid(
+			&self.io,
+			self.serial_port.as_mut(),
+			self.id,
+			MotorValue {
+				motor_a: orbita2d_poulpe::Pid {
+					p: _pid_gains[0].p as i16,
+					i: _pid_gains[0].i as i16,
+				},
+				motor_b: orbita2d_poulpe::Pid {
+					p: _pid_gains[1].p as i16,
+					i: _pid_gains[1].i as i16,
+
+				},
+			},
+		)
+
+
     }
 }
 
 impl Orbita2dMotorController for Orbita2dPoulpeSerialCachedController {
     fn name(&self) -> &'static str {
-        "FlipskySerialCachedController"
+        "PoulpeSerialCachedController"
     }
 
     fn is_torque_on(&mut self) -> Result<[bool; 2]> {
@@ -214,6 +312,22 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialCachedController {
         }
 
         Ok(())
+    }
+    fn set_target_position_fb(&mut self, target_position: [f64; 2]) -> Result<Orbita2dFeedback> {
+        let current_target = self.get_target_position()?;
+
+	let mut fb=None;
+        if current_target != target_position {
+            match self.inner.set_target_position_fb(target_position)
+	    {
+		Ok(f) => fb=Some(f),
+		Err(e) => return Err(e)
+	    }
+	    self.target_position.insert(self.inner.id, target_position);
+	}
+
+	Ok(fb.unwrap())
+
     }
 
     fn get_velocity_limit(&mut self) -> Result<[f64; 2]> {

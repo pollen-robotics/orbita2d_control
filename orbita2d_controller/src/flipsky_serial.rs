@@ -1,4 +1,4 @@
-use crate::{AngleLimit, Orbita2dController, Orbita2dMotorController, Result, PID};
+use crate::{AngleLimit, Orbita2dController, Orbita2dMotorController, Result, PID, Orbita2dFeedback};
 use cache_cache::Cache;
 use log::info;
 use std::time::Duration;
@@ -237,6 +237,18 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialController {
         }
         Ok(())
     }
+    fn set_target_position_fb(&mut self, target_position: [f64; 2]) -> Result<Orbita2dFeedback> {
+        for (i, &target_position) in target_position.iter().enumerate() {
+            orbita2dof_foc::write_motor_a_goal_position(
+                &self.io,
+                self.serial_ports[i].as_mut(),
+                self.ids[i],
+                target_position as f32,
+            )?;
+        }
+        Ok(Orbita2dFeedback{orientation:[0.0,0.0], velocity:[0.0,0.0], torque:[0.0,0.0]}) //Not implemented in Flipsky
+
+    }
 
     fn get_velocity_limit(&mut self) -> Result<[f64; 2]> {
         Ok([
@@ -392,6 +404,21 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialCachedController {
 
         Ok(())
     }
+
+    fn set_target_position_fb(&mut self, target_position: [f64; 2]) -> Result<Orbita2dFeedback> {
+        let current_target = self.get_target_position()?;
+
+        if current_target != target_position {
+            self.inner.set_target_position_fb(target_position)?; //Not implemented
+
+            for (&id, &pos) in self.inner.ids.iter().zip(target_position.iter()) {
+                self.target_position.insert(id, pos);
+            }
+        }
+        Ok(Orbita2dFeedback{orientation:[0.0,0.0], velocity:[0.0,0.0], torque:[0.0,0.0]}) //Not implemented in Flipsky
+
+    }
+
 
     fn get_velocity_limit(&mut self) -> Result<[f64; 2]> {
         let ids = self.inner.ids;
