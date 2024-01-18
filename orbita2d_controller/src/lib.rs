@@ -89,6 +89,26 @@ pub struct Orbita2dController {
     orientation_limits: Option<[AngleLimit; 2]>,
 }
 
+// #[derive(Debug, Deserialize, Serialize)]
+// /// Zero type config
+// /// This is used to configure the zero of each disk
+// pub enum ZeroType {
+//     /// ZeroStartup config
+//     ZeroStartup(ZeroStartup),
+//     /// HallZero config
+//     SensorZero(SensorZero),
+
+// }
+
+// #[derive(Debug, Deserialize, Serialize)]
+// /// ZeroStartup config
+// pub struct ZeroStartup;
+
+
+// #[derive(Debug, Deserialize, Serialize)]
+// /// SensorZero config
+// pub struct SensorZero;
+
 #[derive(Debug, Deserialize, Serialize)]
 pub enum Orbita2dConfig {
     FakeMotors(FakeConfig),
@@ -447,6 +467,12 @@ impl Orbita2dController {
         self.inner.set_pid_gains(pid_gains)
     }
 
+    pub fn get_axis_sensors(&mut self) -> Result<[f64; 2]> {
+	debug!(target: &self.log_target(), "get_axis_sensors");
+	self.inner.get_axis_sensors()
+    }
+
+
     fn log_target(&self) -> String {
         let name = self.inner.name();
         format!("Orbita2d_controller: {name}")
@@ -466,7 +492,8 @@ pub trait Orbita2dMotorController {
     fn set_torque(&mut self, on: [bool; 2]) -> Result<()>;
     /// Read the current position (in radians) of each motor [motor_a, motor_b]
     fn get_current_position(&mut self) -> Result<[f64; 2]>;
-
+    /// Read the Ring/Center sensors
+    fn get_axis_sensors(&mut self) -> Result<[f64; 2]>;
     /// Read the current velocity (in radians/s) of each motor [motor_a, motor_b]
     fn get_current_velocity(&mut self) -> Result<[f64; 2]>;
     /// Read the current torque (in Nm) of each motor [motor_a, motor_b]

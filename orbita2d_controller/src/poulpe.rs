@@ -68,26 +68,63 @@ impl Orbita2dController {
             serial_port, id, use_cache
         );
 
-        Ok(match use_cache {
-            true => Self::new(
-                Box::new(Orbita2dPoulpeSerialCachedController {
-                    inner: poulpe_controller,
-                    target_position: Cache::keep_last(),
-                    torque_on: Cache::keep_last(),
-                }),
-                motors_ratio,
-                motors_offset,
-                inverted_axes,
-                orientation_limits,
-            ),
-            false => Self::new(
-                Box::new(poulpe_controller),
-                motors_ratio,
-                motors_offset,
-                inverted_axes,
-                orientation_limits,
-            ),
-        })
+
+
+        // Ok(match use_cache {
+        //     true => Self::new(
+        //         Box::new(Orbita2dPoulpeSerialCachedController {
+        //             inner: poulpe_controller,
+        //             target_position: Cache::keep_last(),
+        //             torque_on: Cache::keep_last(),
+        //         }),
+        //         motors_ratio,
+        //         motors_offset,
+        //         inverted_axes,
+        //         orientation_limits,
+        //     ),
+        //     false => Self::new(
+        //         Box::new(poulpe_controller),
+        //         motors_ratio,
+        //         motors_offset,
+        //         inverted_axes,
+        //         orientation_limits,
+        //     ),
+        // })
+
+	let mut controller = match use_cache {
+			true => Self::new(
+				Box::new(Orbita2dPoulpeSerialCachedController {
+					inner: poulpe_controller,
+					target_position: Cache::keep_last(),
+					torque_on: Cache::keep_last(),
+				}),
+				motors_ratio,
+				motors_offset,
+				inverted_axes,
+				orientation_limits,
+			),
+			false => Self::new(
+				Box::new(poulpe_controller),
+				motors_ratio,
+				motors_offset,
+				inverted_axes,
+				orientation_limits,
+			),
+		};
+
+
+	//Compute zero based on given offset and inverted axes
+
+	controller.disable_torque()?;
+	let current_position = controller.inner.get_current_position()?;
+	let current_axis_position = controller.inner.get_axis_sensors()?;
+	let raw_motor_offsets = find_raw_motor_offsets(current_position, motors_offset, inverted_axes, motors_ratio);
+	// controller.inner.set
+
+
+	Ok(controller)
+
+
     }
 }
 
@@ -178,6 +215,13 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
 	}
 
     }
+
+    fn get_axis_sensors(&mut self) -> Result<[f64; 2]> {
+	orbita2d_poulpe::read_axis_sensor(&self.io, self.serial_port.as_mut(), self.id)
+			.map(|val| [val.motor_a as f64, val.motor_b as f64])
+
+	}
+
 
     fn get_velocity_limit(&mut self) -> Result<[f64; 2]> {
 
@@ -285,6 +329,11 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialCachedController {
         Ok(())
     }
 
+    fn get_axis_sensors(&mut self) -> Result<[f64; 2]> {
+	self.inner.get_axis_sensors()
+	}
+
+
     fn get_current_position(&mut self) -> Result<[f64; 2]> {
         self.inner.get_current_position()
     }
@@ -359,6 +408,13 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialCachedController {
     fn set_pid_gains(&mut self, pid_gains: [PID; 2]) -> Result<()> {
         self.inner.set_pid_gains(pid_gains)
     }
+}
+
+
+fn find_raw_motor_offsets(current_positions: [f64;2], motors_offset: [f64;2], inverted_axis: [bool;2], motors_ratio: [f64;2]) -> [f64;2]
+{
+
+    [0.0,0.0]
 }
 
 #[cfg(test)]

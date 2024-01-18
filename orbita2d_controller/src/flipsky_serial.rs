@@ -267,6 +267,24 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialController {
         ])
     }
 
+    fn get_axis_sensors(&mut self) -> Result<[f64; 2]> {
+	Ok([
+	    orbita2dof_foc::read_sensor_ring_present_position(
+		&self.io,
+		self.serial_ports[0].as_mut(),
+		self.ids[0],
+	    )
+		.map(|pos| pos as f64)?,
+	    orbita2dof_foc::read_sensor_center_present_position(
+		&self.io,
+		self.serial_ports[1].as_mut(),
+		self.ids[1],
+	    )
+		.map(|pos| pos as f64)?,
+	])
+    }
+
+
     fn set_velocity_limit(&mut self, velocity_limit: [f64; 2]) -> Result<()> {
         for (i, &velocity_limit) in velocity_limit.iter().enumerate() {
             orbita2dof_foc::write_angle_velocity_limit(
@@ -355,6 +373,11 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialCachedController {
             .or_try_insert_with(|_| Ok(self.inner.is_torque_on()?.to_vec()))
             .map(|vec| vec.try_into().unwrap())
     }
+
+    fn get_axis_sensors(&mut self) -> Result<[f64; 2]> {
+	self.inner.get_axis_sensors()
+	}
+
 
     fn set_torque(&mut self, torque: [bool; 2]) -> Result<()> {
         let current_torques = self.is_torque_on()?;

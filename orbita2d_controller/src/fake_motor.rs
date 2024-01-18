@@ -99,6 +99,10 @@ impl Orbita2dMotorController for FakeMotors {
         Ok(self.current_position)
     }
 
+    fn get_axis_sensors(&mut self) -> crate::Result<[f64; 2]> {
+        Ok([0.0,0.0]) //TODO
+    }
+
     fn get_current_velocity(&mut self) -> crate::Result<[f64; 2]> {
         Ok(self.current_velocity)
     }
