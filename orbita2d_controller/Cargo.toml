@@ -9,6 +9,7 @@ edition = "2021"
 orbita2d_kinematics = { version = "0.1.0", path = "../orbita2d_kinematics" }
 cache_cache = "0.1.0"
 rustypot = { git = "https://github.com/pollen-robotics/rustypot", branch = "support-poulpe" }
+motor_toolbox_rs = { git = "https://github.com/pollen-robotics/motor_toolbox_rs", branch="support-poulpe" }
 serialport = "4.2.1"
 clap = "4.3.8"
 rand = "0.8.5"
@@ -16,5 +17,5 @@ ndarray = "0.15.6"
 ndarray-npy = "0.8.1"
 serde_yaml = "0.9.22"
 serde = { version = "1.0.171", features = ["derive"] }
-log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
+log = { version = "0.4.20", features = ["max_level_debug", "release_max_level_warn"] }
 env_logger = "0.9.0"

@@ -1,7 +1,7 @@
-use std::time::Duration;
+use std::{time::Duration, thread};
 
 use cache_cache::Cache;
-use log::info;
+use log::{info, debug, warn};
 use rustypot::{
     device::orbita2d_poulpe::{self, MotorValue},
     DynamixelSerialIO,
@@ -9,32 +9,21 @@ use rustypot::{
 use serde::{Deserialize, Serialize};
 use serialport::TTYPort;
 
-use crate::{AngleLimit, Orbita2dController, Orbita2dMotorController, Result, PID, Orbita2dFeedback};
-
-#[derive(Debug, Deserialize, Serialize)]
-/// Flipsky configuration
-pub struct PoulpeConfig {
-    /// Serial port name
-    pub serial_port: String,
-    /// Actuator id
-    pub id: u8,
-    /// Motors offset [motor_a, motor_b]
-    pub motors_offset: [f64; 2],
-    /// Motors ratio [motor_a, motor_b]
-    pub motors_ratio: [f64; 2],
-    /// Motors axes inverted [motor_a, motor_b]
-    pub inverted_axes: [bool; 2],
-    /// Orientation limits [motor_a, motor_b] (expressed in the corrected motor reference frame - after offset and inversion)
-    pub orientation_limits: Option<[AngleLimit; 2]>,
-    /// Use cache or not
-    pub use_cache: bool,
-}
+use crate::{AngleLimit, Orbita2dController, Orbita2dMotorController, Orbita2dFeedback};
+use motor_toolbox_rs::{Limit, MissingResisterErrror, MotorsController, RawMotorsIO, Result, PID};
 
 /// Orbita serial controller
 struct Orbita2dPoulpeSerialController {
     serial_port: Box<TTYPort>,
     io: DynamixelSerialIO,
     id: u8,
+    // offset: [Option<f64>; 2],
+    // reduction: [Option<f64>; 2],
+    // limits: [Option<Limit>; 2],
+    // inverted_axes: [Option<bool>; 2],
+    // raw_motor_offsets: [Option<f64>; 2],
+
+
 }
 struct Orbita2dPoulpeSerialCachedController {
     inner: Orbita2dPoulpeSerialController,
@@ -59,6 +48,13 @@ impl Orbita2dController {
 				  .open_native()?),
             io: DynamixelSerialIO::v1(),
             id,
+	    // offset: [Some(motors_offset[0]), Some(motors_offset[1])],
+	    // reduction: [Some(motors_ratio[0]), Some(motors_ratio[1])],
+	    // limits: [None,None], //Orientation limits
+	    // inverted_axes: [Some(inverted_axes[0]), Some(inverted_axes[1])],
+	    // raw_motor_offsets: [None,None],
+
+
         };
 
 	poulpe_controller.serial_port.set_exclusive(false)?;
@@ -115,11 +111,19 @@ impl Orbita2dController {
 
 	//Compute zero based on given offset and inverted axes
 
-	controller.disable_torque()?;
+	controller.disable_torque()?; //FIXME: It seems that the axis sensors do not work if the torque is enabled
+	thread::sleep(Duration::from_millis(100));
+
 	let current_position = controller.inner.get_current_position()?;
-	let current_axis_position = controller.inner.get_axis_sensors()?;
-	let raw_motor_offsets = find_raw_motor_offsets(current_position, motors_offset, inverted_axes, motors_ratio);
-	// controller.inner.set
+	let current_axis_sensors = controller.inner.get_axis_sensors()?;
+
+
+	let current_axis_position= controller.kinematics.compute_inverse_kinematics(current_axis_sensors);
+	warn!("AXIS SENSOR: {:?}, AXIS POS: {:?}",current_axis_sensors, current_axis_position); //TODO Handle NaN
+
+	//TODO change the name in the config: motors_offset -> axis_offset (angle offset on the axis, measured with axis_sensors). motors_offset is used for raw motors offset
+	controller.motors_offset = find_raw_motor_offsets(current_position, current_axis_position, motors_offset, inverted_axes, motors_ratio);
+
 
 
 	Ok(controller)
@@ -128,7 +132,35 @@ impl Orbita2dController {
     }
 }
 
+
+
+// impl MotorsController<2> for Orbita2dPoulpeSerialController {
+//     fn io(&mut self) -> &mut dyn RawMotorsIO<2> {
+//         self
+//     }
+
+//     fn offsets(&self) -> [Option<f64>; 2] {
+//         self.offsets
+
+//     }
+
+//     fn reduction(&self) -> [Option<f64>; 2] {
+// 	let mut reduction = [None; 2];
+//         reduction.iter_mut().enumerate().for_each(|(i, r)| {
+// 			*r = Some(self.reduction[i].unwrap());
+// 		});
+// 	reduction
+
+//     }
+
+//     fn limits(&self) -> [Option<motor_toolbox_rs::Limit>; 2] {
+//         self.limits
+//     }
+// }
+
+
 impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
+
     fn name(&self) -> &'static str {
         "PoulpeSerialController"
     }
@@ -217,6 +249,7 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
     }
 
     fn get_axis_sensors(&mut self) -> Result<[f64; 2]> {
+
 	orbita2d_poulpe::read_axis_sensor(&self.io, self.serial_port.as_mut(), self.id)
 			.map(|val| [val.motor_a as f64, val.motor_b as f64])
 
@@ -411,8 +444,11 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialCachedController {
 }
 
 
-fn find_raw_motor_offsets(current_positions: [f64;2], motors_offset: [f64;2], inverted_axis: [bool;2], motors_ratio: [f64;2]) -> [f64;2]
+fn find_raw_motor_offsets(current_positions: [f64;2], current_axis_position: [f64;2],  motors_offset: [f64;2], inverted_axis: [bool;2], motors_ratio: [f64;2]) -> [f64;2]
 {
+    info!("Finding raw motor offsets");
+    debug!("Current positions: {:?} current_axis_position: {:?} inverted_axis: {:?} motors_ratio: {:?}", current_positions, current_axis_position, inverted_axis, motors_ratio);
+
 
     [0.0,0.0]
 }

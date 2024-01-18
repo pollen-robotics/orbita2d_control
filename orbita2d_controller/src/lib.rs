@@ -45,10 +45,10 @@ use std::fmt::Debug;
 pub use fake_motor::FakeConfig;
 pub use flipsky_serial::FlipskyConfig;
 use orbita2d_kinematics::Orbita2dKinematicsModel;
-pub use poulpe::PoulpeConfig;
 
+use motor_toolbox_rs::{FakeMotorsController, MotorsController, Result, PID};
 /// Result generic wrapper using `std::error::Error` trait
-pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+// pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 mod coherency;
 use coherency::CoherentResult;
@@ -56,16 +56,16 @@ mod fake_motor;
 mod flipsky_serial;
 mod poulpe;
 
-#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
-/// PID gains wrapper
-pub struct PID {
-    /// Propotional gain
-    pub p: f64,
-    /// Integral gain
-    pub i: f64,
-    /// Derivative gain
-    pub d: f64,
-}
+// #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+// /// PID gains wrapper
+// pub struct PID {
+//     /// Propotional gain
+//     pub p: f64,
+//     /// Integral gain
+//     pub i: f64,
+//     /// Derivative gain
+//     pub d: f64,
+// }
 
 #[derive(Debug, Deserialize, Serialize, Copy, Clone)]
 /// Feedback struct
@@ -116,10 +116,29 @@ pub enum Orbita2dConfig {
     Poulpe(PoulpeConfig),
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+/// Flipsky configuration
+pub struct PoulpeConfig {
+    /// Serial port name
+    pub serial_port: String,
+    /// Actuator id
+    pub id: u8,
+    /// Motors offset [motor_a, motor_b]
+    pub motors_offset: [f64; 2],
+    /// Motors ratio [motor_a, motor_b]
+    pub motors_ratio: [f64; 2],
+    /// Motors axes inverted [motor_a, motor_b]
+    pub inverted_axes: [bool; 2],
+    /// Orientation limits [motor_a, motor_b] (expressed in the corrected motor reference frame - after offset and inversion)
+    pub orientation_limits: Option<[AngleLimit; 2]>,
+    /// Use cache or not
+    pub use_cache: bool,
+}
+
 impl Debug for Orbita2dController {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Orbita2dController")
-            .field("inner", &self.inner.name())
+            // .field("inner", &self.inner.name())
             .field("kinematics", &self.kinematics)
             .field("motors_offset", &self.motors_offset)
             .field("inverted_axes", &self.inverted_axes)
@@ -162,6 +181,7 @@ impl Orbita2dController {
         let config: Orbita2dConfig = serde_yaml::from_reader(f)?;
         info!("Config: {:?}", config);
 
+
         match config {
             Orbita2dConfig::FakeMotors(config) => Ok(Self::with_fake_motors(config.inverted_axes)),
             Orbita2dConfig::Flipsky(config) => Self::with_flipsky_serial(
@@ -173,7 +193,8 @@ impl Orbita2dController {
                 config.orientation_limits,
                 config.use_cache,
             ),
-            Orbita2dConfig::Poulpe(config) => Self::with_poulpe_serial(
+            Orbita2dConfig::Poulpe(config) =>
+		Self::with_poulpe_serial(
                 &config.serial_port,
                 config.id,
                 config.motors_offset,
@@ -181,7 +202,7 @@ impl Orbita2dController {
                 config.inverted_axes,
                 config.orientation_limits,
                 config.use_cache,
-            ),
+		)
         }
     }
 
