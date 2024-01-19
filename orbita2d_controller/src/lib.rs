@@ -49,7 +49,6 @@ use orbita2d_kinematics::Orbita2dKinematicsModel;
 use motor_toolbox_rs::{FakeMotorsController, MotorsController, Result, PID};
 /// Result generic wrapper using `std::error::Error` trait
 // pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
 mod coherency;
 use coherency::CoherentResult;
 mod fake_motor;
@@ -70,11 +69,10 @@ mod poulpe;
 #[derive(Debug, Deserialize, Serialize, Copy, Clone)]
 /// Feedback struct
 pub struct Orbita2dFeedback {
-	pub orientation: [f64; 2],
-	pub velocity: [f64; 2],
-	pub torque: [f64; 2],
+    pub orientation: [f64; 2],
+    pub velocity: [f64; 2],
+    pub torque: [f64; 2],
 }
-
 
 /// Orbita2d controller main interface
 pub struct Orbita2dController {
@@ -103,7 +101,6 @@ pub struct Orbita2dController {
 // #[derive(Debug, Deserialize, Serialize)]
 // /// ZeroStartup config
 // pub struct ZeroStartup;
-
 
 // #[derive(Debug, Deserialize, Serialize)]
 // /// SensorZero config
@@ -181,7 +178,6 @@ impl Orbita2dController {
         let config: Orbita2dConfig = serde_yaml::from_reader(f)?;
         info!("Config: {:?}", config);
 
-
         match config {
             Orbita2dConfig::FakeMotors(config) => Ok(Self::with_fake_motors(config.inverted_axes)),
             Orbita2dConfig::Flipsky(config) => Self::with_flipsky_serial(
@@ -193,8 +189,7 @@ impl Orbita2dController {
                 config.orientation_limits,
                 config.use_cache,
             ),
-            Orbita2dConfig::Poulpe(config) =>
-		Self::with_poulpe_serial(
+            Orbita2dConfig::Poulpe(config) => Self::with_poulpe_serial(
                 &config.serial_port,
                 config.id,
                 config.motors_offset,
@@ -202,7 +197,7 @@ impl Orbita2dController {
                 config.inverted_axes,
                 config.orientation_limits,
                 config.use_cache,
-		)
+            ),
         }
     }
 
@@ -385,9 +380,11 @@ impl Orbita2dController {
         self.inner.set_target_position(pos)
     }
 
-
     /// Set the desired orientation [ring, center] (in radians)
-    pub fn set_target_orientation_fb(&mut self, target_orientation: [f64; 2]) -> Result<Orbita2dFeedback> {
+    pub fn set_target_orientation_fb(
+        &mut self,
+        target_orientation: [f64; 2],
+    ) -> Result<Orbita2dFeedback> {
         let target_orientation = match &self.orientation_limits {
             Some(limits) => [
                 target_orientation[0].clamp(limits[0].min, limits[0].max),
@@ -421,35 +418,30 @@ impl Orbita2dController {
         let pos = [ik[0] + self.motors_offset[0], ik[1] + self.motors_offset[1]];
         debug!(target: &self.log_target(), "set_target_orientation to motors (with offset): {:?}", pos);
 
-        match self.inner.set_target_position_fb(pos)
-	{
-	    Ok(fb) => {
-		let orientation = self.kinematics.compute_forward_kinematics(fb.orientation);
-		let orientation = [
-		    if self.inverted_axes[0] {
-			-orientation[0]
-		    } else {
-			orientation[0]
-		    },
-		    if self.inverted_axes[1] {
-			-orientation[1]
-		    } else {
-			orientation[1]
-		    },
-		];
-		Ok(Orbita2dFeedback {
-		    orientation,
-		    velocity: fb.velocity,
-		    torque: fb.torque,
-		})
-	    }
-	    Err(e) => Err(e),
-
-	}
-
+        match self.inner.set_target_position_fb(pos) {
+            Ok(fb) => {
+                let orientation = self.kinematics.compute_forward_kinematics(fb.orientation);
+                let orientation = [
+                    if self.inverted_axes[0] {
+                        -orientation[0]
+                    } else {
+                        orientation[0]
+                    },
+                    if self.inverted_axes[1] {
+                        -orientation[1]
+                    } else {
+                        orientation[1]
+                    },
+                ];
+                Ok(Orbita2dFeedback {
+                    orientation,
+                    velocity: fb.velocity,
+                    torque: fb.torque,
+                })
+            }
+            Err(e) => Err(e),
+        }
     }
-
-
 
     /// Get the velocity limit of each raw motor [motor_a, motor_b] (in radians/s)
     /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
@@ -489,10 +481,9 @@ impl Orbita2dController {
     }
 
     pub fn get_axis_sensors(&mut self) -> Result<[f64; 2]> {
-	debug!(target: &self.log_target(), "get_axis_sensors");
-	self.inner.get_axis_sensors()
+        debug!(target: &self.log_target(), "get_axis_sensors");
+        self.inner.get_axis_sensors()
     }
-
 
     fn log_target(&self) -> String {
         let name = self.inner.name();
