@@ -33,6 +33,17 @@ See [orbita2d python bindings](orbita2d_c_api/python/) for more details.
 
 * To integrate into a ROS2 workspace, simply clone this repository into the src/ directory of your workspace.
 * Make sure to have the [ros2_pollen_toolbox](https://github.com/pollen-robotics/ros2_pollen_toolbox) in the same workspace
+* Make sure to have [ros2_rust]() setup.
+   <details markdown="1">
+    <summary>If its your first time using rust with ros</summary>
+   Make sure to install:
+    
+   ```
+   pip install git+https://github.com/colcon/colcon-cargo.git
+   pip install git+https://github.com/colcon/colcon-ros-cargo.git
+   ```
+   
+   </details>
 * Make sure to use "patched version" of cargo-ament-built (see [this PR](https://github.com/ros2-rust/cargo-ament-build/pull/3) for more details)
 ```
 cargo install --debug --git https://github.com/jerry73204/cargo-ament-build.git  --branch conditionally-copy-cargo-lock-file
