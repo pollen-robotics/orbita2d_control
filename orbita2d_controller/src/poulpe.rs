@@ -256,8 +256,8 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
             self.serial_port.as_mut(),
             self.id,
             MotorValue {
-                motor_a: _velocity_limit[0] as u32,
-                motor_b: _velocity_limit[1] as u32,
+                motor_a: _velocity_limit[0] as f32,
+                motor_b: _velocity_limit[1] as f32,
             },
         )
     }
@@ -273,8 +273,8 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
             self.serial_port.as_mut(),
             self.id,
             MotorValue {
-                motor_a: _torque_limit[0] as u16,
-                motor_b: _torque_limit[1] as u16,
+                motor_a: _torque_limit[0] as f32,
+                motor_b: _torque_limit[1] as f32,
             },
         )
     }
