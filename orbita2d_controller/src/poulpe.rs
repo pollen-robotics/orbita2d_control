@@ -1,16 +1,15 @@
 use std::{thread, time::Duration};
 
 use cache_cache::Cache;
-use log::{debug, info, warn};
+use log::{debug, info};
 use rustypot::{
     device::orbita2d_poulpe::{self, MotorValue},
     DynamixelSerialIO,
 };
-use serde::{Deserialize, Serialize};
 use serialport::TTYPort;
 
 use crate::{AngleLimit, Orbita2dController, Orbita2dFeedback, Orbita2dMotorController};
-use motor_toolbox_rs::{Limit, MissingResisterErrror, MotorsController, RawMotorsIO, Result, PID};
+use motor_toolbox_rs::{Result, PID};
 
 /// Orbita serial controller
 struct Orbita2dPoulpeSerialController {
