@@ -25,6 +25,10 @@ jobs:
         toolchain: nightly
         override: true
 
+    - name: Install Rustfmt
+      run: rustup component add rustfmt --toolchain nightly
+      
+
     - name: Check
       run: cargo check --all --tests
     - name: Build
