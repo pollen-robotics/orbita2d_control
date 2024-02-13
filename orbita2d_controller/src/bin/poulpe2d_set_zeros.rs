@@ -4,8 +4,8 @@ use std::f64::consts::PI;
 use std::time::SystemTime;
 use std::{error::Error, thread, time::Duration, time::Instant};
 
-use log::{info, warn};
 use log::Level;
+use log::{info, warn};
 
 use clap::Parser;
 
@@ -42,18 +42,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     warn!("Set Orbita2D in the zero position!");
     thread::sleep(Duration::from_secs(10));
 
-    let mut axis1:[f64;10]=[0.0;10];
-    let mut axis2:[f64;10]=[0.0;10];
+    let mut axis1: [f64; 10] = [0.0; 10];
+    let mut axis2: [f64; 10] = [0.0; 10];
 
     for i in 0..10 {
-	let res=controller.get_axis_sensors()?;
-	axis1[i]=res[0];
-	axis2[i]=res[1];
-	thread::sleep(Duration::from_millis(100));
+        let res = controller.get_axis_sensors()?;
+        axis1[i] = res[0];
+        axis2[i] = res[1];
+        thread::sleep(Duration::from_millis(100));
     }
 
-    let avg1=axis1.iter().sum::<f64>()/10.0;
-    let avg2=axis2.iter().sum::<f64>()/10.0;
+    let avg1 = axis1.iter().sum::<f64>() / 10.0;
+    let avg2 = axis2.iter().sum::<f64>() / 10.0;
 
     println!("Zeros to write to the yaml config");
     println!();
