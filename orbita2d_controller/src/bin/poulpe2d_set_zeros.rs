@@ -1,11 +1,8 @@
 use orbita2d_controller::Orbita2dController;
 
-use std::f64::consts::PI;
-use std::time::SystemTime;
-use std::{error::Error, thread, time::Duration, time::Instant};
+use std::{error::Error, thread, time::Duration};
 
-use log::Level;
-use log::{info, warn};
+use log::warn;
 
 use clap::Parser;
 
