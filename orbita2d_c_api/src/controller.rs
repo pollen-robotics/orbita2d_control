@@ -1,7 +1,7 @@
 use std::{ffi::CStr, sync::Mutex};
 
 use once_cell::sync::Lazy;
-use orbita2d_controller::{AngleLimit, Orbita2dController, PID};
+use orbita2d_controller::{AngleLimit, Orbita2dController, motor_toolbox_rs::pid::PID};
 
 use crate::sync_map::SyncMap;
 
