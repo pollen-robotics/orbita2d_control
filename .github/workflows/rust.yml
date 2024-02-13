@@ -18,6 +18,13 @@ jobs:
         sudo apt-get update
         sudo apt install -y libudev-dev
 
+    
+    - name: Setup Rust Toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        override: true
+
     - name: Check
       run: cargo check --all --tests
     - name: Build
