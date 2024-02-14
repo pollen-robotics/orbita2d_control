@@ -74,6 +74,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let now = SystemTime::now();
     let mut t = now.elapsed().unwrap().as_secs_f32();
+    let amplitude = PI / 4.0;
+    let freq = 0.5;
 
     loop {
         if t > 2.0 {
@@ -82,16 +84,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         t = now.elapsed().unwrap().as_secs_f32();
 
-        // let s=amplitude*(2.0*PI*freq*t as f64).sin();
+        let s = amplitude * (2.0 * PI * freq * t as f64).sin();
 
         // let target_yaw_mat=conversion::intrinsic_roll_pitch_yaw_to_matrix(0.0, 0.0, s);
         // let target=conversion::rotation_matrix_to_quaternion(target_yaw_mat);
 
-        // let fb=controller.set_target_orientation_fb(target);
-        // match fb {
-        // Ok(fb) => log::info!("Feedback: {:?}", fb),
-        // Err(e) => log::error!("Error: {}", e),
-        // }
+        let fb = controller.set_target_orientation_fb([s, s]);
+        match fb {
+            Ok(fb) => log::info!("Feedback: {:?}", fb),
+            Err(e) => log::error!("Error: {}", e),
+        }
 
         thread::sleep(Duration::from_millis(1));
     }
