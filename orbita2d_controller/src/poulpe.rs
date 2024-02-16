@@ -372,16 +372,16 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialCachedController {
         Ok(())
     }
     fn set_target_position_fb(&mut self, target_position: [f64; 2]) -> Result<Orbita2dFeedback> {
-        let current_target = self.get_target_position()?;
+        // let current_target = self.get_target_position()?;
 
         let mut fb = None;
-        if current_target != target_position {
-            match self.inner.set_target_position_fb(target_position) {
-                Ok(f) => fb = Some(f),
-                Err(e) => return Err(e),
-            }
-            self.target_position.insert(self.inner.id, target_position);
+        // if current_target != target_position {
+        match self.inner.set_target_position_fb(target_position) {
+            Ok(f) => fb = Some(f),
+            Err(e) => return Err(e),
         }
+        self.target_position.insert(self.inner.id, target_position);
+        // }
 
         Ok(fb.unwrap())
     }
