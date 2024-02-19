@@ -1,7 +1,7 @@
 use std::{thread, time::Duration};
 
 use cache_cache::Cache;
-use log::{debug, info, warn};
+use log::{debug, error, info, warn};
 use rustypot::{
     device::orbita2d_poulpe::{self, MotorValue},
     DynamixelSerialIO,
@@ -212,7 +212,7 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
         ) {
             Ok(_) => Ok(()),
             Err(e) => {
-                info!("Error while setting target position: {:?}", e);
+                error!("Error while setting target position: {:?}", e);
                 Err(e)
             }
         }
@@ -234,7 +234,7 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
                 torque: [fb.load.motor_a as f64, fb.load.motor_b as f64],
             }),
             Err(e) => {
-                info!("Error while setting target position: {:?}", e);
+                error!("Error while setting target position: {:?}", e);
                 Err(e)
             }
         }
