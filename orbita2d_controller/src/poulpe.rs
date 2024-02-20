@@ -1,7 +1,7 @@
 use std::{thread, time::Duration};
 
 use cache_cache::Cache;
-use log::{debug, info};
+use log::{debug, error, info, warn};
 use rustypot::{
     device::orbita2d_poulpe::{self, MotorValue},
     DynamixelSerialIO,
@@ -211,7 +211,7 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
         ) {
             Ok(_) => Ok(()),
             Err(e) => {
-                info!("Error while setting target position: {:?}", e);
+                error!("Error while setting target position: {:?}", e);
                 Err(e)
             }
         }
@@ -229,11 +229,11 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
         ) {
             Ok(fb) => Ok(Orbita2dFeedback {
                 orientation: [fb.position.motor_a as f64, fb.position.motor_b as f64],
-                velocity: [fb.speed.motor_a as f64, fb.speed.motor_b as f64],
-                torque: [fb.load.motor_a as f64, fb.load.motor_b as f64],
+                // velocity: [fb.speed.motor_a as f64, fb.speed.motor_b as f64],
+                // torque: [fb.load.motor_a as f64, fb.load.motor_b as f64],
             }),
             Err(e) => {
-                info!("Error while setting target position: {:?}", e);
+                error!("Error while setting target position: {:?}", e);
                 Err(e)
             }
         }
@@ -373,16 +373,17 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialCachedController {
     fn set_target_position_fb(&mut self, target_position: [f64; 2]) -> Result<Orbita2dFeedback> {
         // let current_target = self.get_target_position()?;
 
-        let mut fb = None;
+        // let mut fb = None;
         // if current_target != target_position {
         match self.inner.set_target_position_fb(target_position) {
-            Ok(f) => fb = Some(f),
-            Err(e) => return Err(e),
+            Ok(f) => {
+                self.target_position.insert(self.inner.id, target_position);
+                Ok(f)
+            }
+            Err(e) => Err(e),
         }
-        self.target_position.insert(self.inner.id, target_position);
-        // }
 
-        Ok(fb.unwrap())
+        // }
     }
 
     fn get_velocity_limit(&mut self) -> Result<[f64; 2]> {

@@ -71,11 +71,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let now = SystemTime::now();
     let mut t = now.elapsed().unwrap().as_secs_f32();
-    let amplitude = std::f64::consts::PI / 16.0;
+    let amplitude = PI / 16.0;
     let freq = 0.5;
     let mut s = 0.0;
     loop {
-        if t > 10.0 {
+        if t > 30.0 {
             break;
         }
 
@@ -88,7 +88,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         let fb = controller.set_target_orientation_fb([s, 0.0]);
         match fb {
-            Ok(fb) => log::info!("Feedback: {:?}", fb),
+            Ok(fb) => {
+                log::info!("Feedback: {:?}", fb);
+                println!(
+                    "{:?} {:?} {:?} {:?}",
+                    t as f64, s, fb.orientation[0], fb.orientation[1]
+                );
+            }
             Err(e) => log::error!("Error: {}", e),
         }
 

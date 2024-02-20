@@ -250,8 +250,8 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialController {
         }
         Ok(Orbita2dFeedback {
             orientation: [0.0, 0.0],
-            velocity: [0.0, 0.0],
-            torque: [0.0, 0.0],
+            // velocity: [0.0, 0.0],
+            // torque: [0.0, 0.0],
         }) //Not implemented in Flipsky
     }
 
@@ -443,8 +443,8 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialCachedController {
         }
         Ok(Orbita2dFeedback {
             orientation: [0.0, 0.0],
-            velocity: [0.0, 0.0],
-            torque: [0.0, 0.0],
+            // velocity: [0.0, 0.0],
+            // torque: [0.0, 0.0],
         }) //Not implemented in Flipsky
     }
 
