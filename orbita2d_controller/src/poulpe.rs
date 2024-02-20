@@ -230,8 +230,8 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
         ) {
             Ok(fb) => Ok(Orbita2dFeedback {
                 orientation: [fb.position.motor_a as f64, fb.position.motor_b as f64],
-                velocity: [fb.speed.motor_a as f64, fb.speed.motor_b as f64],
-                torque: [fb.load.motor_a as f64, fb.load.motor_b as f64],
+                // velocity: [fb.speed.motor_a as f64, fb.speed.motor_b as f64],
+                // torque: [fb.load.motor_a as f64, fb.load.motor_b as f64],
             }),
             Err(e) => {
                 error!("Error while setting target position: {:?}", e);
