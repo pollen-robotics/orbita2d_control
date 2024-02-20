@@ -139,8 +139,8 @@ impl Orbita2dMotorController for FakeMotors {
         }
         Ok(Orbita2dFeedback {
             orientation: self.current_position,
-            velocity: self.current_velocity,
-            torque: self.current_torque,
+            // velocity: self.current_velocity,
+            // torque: self.current_torque,
         })
     }
 

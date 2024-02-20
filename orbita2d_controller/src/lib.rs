@@ -70,8 +70,8 @@ mod poulpe;
 /// Feedback struct
 pub struct Orbita2dFeedback {
     pub orientation: [f64; 2],
-    pub velocity: [f64; 2],
-    pub torque: [f64; 2],
+    // pub velocity: [f64; 2],
+    // pub torque: [f64; 2],
 }
 
 /// Orbita2d controller main interface
@@ -435,8 +435,8 @@ impl Orbita2dController {
                 ];
                 Ok(Orbita2dFeedback {
                     orientation,
-                    velocity: fb.velocity,
-                    torque: fb.torque,
+                    // velocity: fb.velocity,
+                    // torque: fb.torque,
                 })
             }
             Err(e) => Err(e),
