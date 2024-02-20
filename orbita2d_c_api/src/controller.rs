@@ -1,5 +1,4 @@
 use std::{ffi::CStr, sync::Mutex};
-
 use crate::sync_map::SyncMap;
 use motor_toolbox_rs::PID;
 use once_cell::sync::Lazy;

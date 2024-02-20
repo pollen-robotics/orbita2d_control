@@ -1,11 +1,7 @@
 use orbita2d_controller::Orbita2dController;
 
-use std::f64::consts::PI;
 use std::time::SystemTime;
-use std::{error::Error, thread, time::Duration, time::Instant};
-
-use log::info;
-use log::Level;
+use std::{error::Error, thread, time::Duration};
 
 use clap::Parser;
 
@@ -58,7 +54,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let pid = controller.get_raw_motors_pid_gains()?;
     log::info!("Pid: {:?}", pid);
 
-    let _ = controller.enable_torque(true);
+    // let _ = controller.enable_torque(true);
     thread::sleep(Duration::from_millis(100));
     let _ = controller.set_target_orientation([0.0, 0.0]);
     thread::sleep(Duration::from_millis(1000));
@@ -85,7 +81,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         t = now.elapsed().unwrap().as_secs_f32();
 
-        s = amplitude * (2.0 * PI * freq * t as f64).sin();
+        s = amplitude * (2.0 * std::f64::consts::PI * freq * t as f64).sin();
         // s += 0.001;
         // let target_yaw_mat=conversion::intrinsic_roll_pitch_yaw_to_matrix(0.0, 0.0, s);
         // let target=conversion::rotation_matrix_to_quaternion(target_yaw_mat);
