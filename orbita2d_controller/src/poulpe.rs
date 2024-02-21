@@ -61,27 +61,6 @@ impl Orbita2dController {
             serial_port, id, use_cache
         );
 
-        // Ok(match use_cache {
-        //     true => Self::new(
-        //         Box::new(Orbita2dPoulpeSerialCachedController {
-        //             inner: poulpe_controller,
-        //             target_position: Cache::keep_last(),
-        //             torque_on: Cache::keep_last(),
-        //         }),
-        //         motors_ratio,
-        //         motors_offset,
-        //         inverted_axes,
-        //         orientation_limits,
-        //     ),
-        //     false => Self::new(
-        //         Box::new(poulpe_controller),
-        //         motors_ratio,
-        //         motors_offset,
-        //         inverted_axes,
-        //         orientation_limits,
-        //     ),
-        // })
-
         let mut controller = match use_cache {
             true => Self::new(
                 Box::new(Orbita2dPoulpeSerialCachedController {
