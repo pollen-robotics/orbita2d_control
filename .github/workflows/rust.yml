@@ -19,16 +19,16 @@ jobs:
         sudo apt install -y libudev-dev
 
     
-    - name: Setup Rust Toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: nightly
-        override: true
+    # - name: Setup Rust Toolchain
+    #   uses: actions-rs/toolchain@v1
+    #   with:
+    #     toolchain: nightly
+    #     override: true
 
-    - name: Toolchain in nightly mode
-      run: |
-        rustup component add rustfmt --toolchain nightly
-        rustup component add clippy --toolchain nightly
+    # - name: Toolchain in nightly mode
+    #   run: |
+    #     rustup component add rustfmt --toolchain nightly
+    #     rustup component add clippy --toolchain nightly
       
 
     - name: Check
