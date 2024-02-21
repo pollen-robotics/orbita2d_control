@@ -54,7 +54,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let pid = controller.get_raw_motors_pid_gains()?;
     log::info!("Pid: {:?}", pid);
 
-    // let _ = controller.enable_torque(true);
+    let _ = controller.enable_torque(true);
     thread::sleep(Duration::from_millis(100));
     let _ = controller.set_target_orientation([0.0, 0.0]);
     thread::sleep(Duration::from_millis(1000));
