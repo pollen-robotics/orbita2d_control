@@ -1,7 +1,7 @@
 use std::{thread, time::Duration};
 
 use cache_cache::Cache;
-use log::{debug, error, info, warn};
+use log::{debug, error, info};
 use rustypot::{
     device::orbita2d_poulpe::{self, MotorValue},
     DynamixelSerialIO,
