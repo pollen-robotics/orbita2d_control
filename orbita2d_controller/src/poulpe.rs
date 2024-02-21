@@ -1,7 +1,7 @@
 use std::{thread, time::Duration};
 
 use cache_cache::Cache;
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use rustypot::{
     device::orbita2d_poulpe::{self, MotorValue},
     DynamixelSerialIO,
@@ -103,7 +103,7 @@ impl Orbita2dController {
             ),
         };
 
-        //Compute zero based on given offset and inverted axes
+        // Compute zero based on given offset and inverted axes
 
         // 	controller.disable_torque()?; //FIXME: It seems that the axis sensors do not work if the torque is enabled
         // 	thread::sleep(Duration::from_millis(100));
@@ -126,8 +126,21 @@ impl Orbita2dController {
         // controller.motors_offset=current_axis_position;
         //TODO change the name in the config: motors_offset -> axis_offset (angle offset on the axis, measured with axis_sensors). motors_offset is used for raw motors offset
 
-        controller.motors_offset =
-            find_raw_motor_offsets(&mut controller, motors_offset, inverted_axes, motors_ratio)?;
+        let offsets = loop {
+            match find_raw_motor_offsets(
+                &mut controller,
+                motors_offset,
+                inverted_axes,
+                motors_ratio,
+            ) {
+                Ok(offsets) => break offsets,
+                Err(e) => {
+                    warn!("Error while finding raw motor offsets: {:?}", e);
+                    thread::sleep(Duration::from_millis(100));
+                }
+            }
+        };
+        controller.motors_offset = offsets;
 
         Ok(controller)
     }
