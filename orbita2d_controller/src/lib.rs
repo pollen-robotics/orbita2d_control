@@ -213,7 +213,7 @@ impl Orbita2dController {
     /// * `reset_target` - If true, the target orientation is reset to the current orientation.
     pub fn enable_torque(&mut self, reset_target: bool) -> Result<()> {
         debug!(target: &self.log_target(), "enable_torque, reset_target: {:?}", reset_target);
-        if reset_target {
+        if !self.is_torque_on()? && reset_target {
             let current_pos = self.get_current_orientation()?;
             self.set_target_orientation(current_pos)?;
             debug!(target: &self.log_target(),
