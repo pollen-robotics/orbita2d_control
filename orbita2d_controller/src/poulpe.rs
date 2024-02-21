@@ -105,6 +105,7 @@ impl Orbita2dController {
         // controller.motors_offset=current_axis_position;
         //TODO change the name in the config: motors_offset -> axis_offset (angle offset on the axis, measured with axis_sensors). motors_offset is used for raw motors offset
 
+        let mut trials = 0;
         let offsets = loop {
             match find_raw_motor_offsets(
                 &mut controller,
@@ -117,6 +118,10 @@ impl Orbita2dController {
                     warn!("Error while finding raw motor offsets: {:?}", e);
                     thread::sleep(Duration::from_millis(100));
                 }
+            }
+            trials += 1;
+            if trials > 10 {
+                return Err("Error while finding raw motor offsets".into());
             }
         };
         controller.motors_offset = offsets;
