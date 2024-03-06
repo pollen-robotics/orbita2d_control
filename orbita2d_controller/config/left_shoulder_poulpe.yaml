@@ -1,0 +1,14 @@
+!Poulpe
+serial_port: /dev/left_shoulder
+id: 83
+motors_offset:
+- 0.0
+- 0.0
+motors_ratio:
+- 45.018
+- 45.018
+inverted_axes:
+- false
+- false
+orientation_limits: null
+use_cache: true

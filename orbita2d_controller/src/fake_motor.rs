@@ -2,7 +2,7 @@ use std::f64::{INFINITY, NAN};
 
 use serde::{Deserialize, Serialize};
 
-use crate::{Orbita2dController, Orbita2dMotorController, PID};
+use crate::{Orbita2dController, Orbita2dFeedback, Orbita2dMotorController, PID};
 
 /// Fake motors implementation, only used for testing
 struct FakeMotors {
@@ -99,6 +99,10 @@ impl Orbita2dMotorController for FakeMotors {
         Ok(self.current_position)
     }
 
+    fn get_axis_sensors(&mut self) -> crate::Result<[f64; 2]> {
+        Ok([0.0, 0.0]) //TODO
+    }
+
     fn get_current_velocity(&mut self) -> crate::Result<[f64; 2]> {
         Ok(self.current_velocity)
     }
@@ -120,6 +124,24 @@ impl Orbita2dMotorController for FakeMotors {
             }
         }
         Ok(())
+    }
+
+    fn set_target_position_fb(
+        &mut self,
+        target_position: [f64; 2],
+    ) -> crate::Result<Orbita2dFeedback> {
+        self.target_position = target_position;
+
+        for (i, &target_position) in target_position.iter().enumerate() {
+            if self.torque_on[i] {
+                self.current_position[i] = target_position;
+            }
+        }
+        Ok(Orbita2dFeedback {
+            orientation: self.current_position,
+            // velocity: self.current_velocity,
+            // torque: self.current_torque,
+        })
     }
 
     fn get_velocity_limit(&mut self) -> crate::Result<[f64; 2]> {

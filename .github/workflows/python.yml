@@ -19,6 +19,12 @@ jobs:
         with:
           python-version: "3.10"
           cache: 'pip' # caching pip dependencies
+          
+      - name: Setup Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
 
       - name: Maturin
         run: |

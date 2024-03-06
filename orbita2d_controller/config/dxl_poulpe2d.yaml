@@ -1,0 +1,14 @@
+!Poulpe
+serial_port: /dev/ttyUSB0
+id: 42
+use_cache: true
+motors_offset:
+  - 4.223385
+  - 4.5646386
+motors_ratio:
+  - 47.519
+  - 47.519
+inverted_axes:
+  - false
+  - false
+orientation_limits: null
