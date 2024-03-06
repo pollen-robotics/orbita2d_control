@@ -420,7 +420,11 @@ impl Orbita2dController {
 
         match self.inner.set_target_position_fb(pos) {
             Ok(fb) => {
-                let orientation = self.kinematics.compute_forward_kinematics(fb.orientation);
+                let pos = [
+                    fb.orientation[0] - self.motors_offset[0],
+                    fb.orientation[1] - self.motors_offset[1],
+                ];
+                let orientation = self.kinematics.compute_forward_kinematics(pos);
                 let orientation = [
                     if self.inverted_axes[0] {
                         -orientation[0]
