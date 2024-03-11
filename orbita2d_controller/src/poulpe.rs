@@ -45,7 +45,7 @@ impl Orbita2dController {
                     .timeout(Duration::from_millis(10))
                     .open_native()?,
             ),
-            io: DynamixelSerialIO::v1().with_post_delay(Duration::from_millis(2)),
+            io: DynamixelSerialIO::v1().with_post_delay(Duration::from_micros(1000)),
             id,
             // offset: [Some(motors_offset[0]), Some(motors_offset[1])],
             // reduction: [Some(motors_ratio[0]), Some(motors_ratio[1])],
