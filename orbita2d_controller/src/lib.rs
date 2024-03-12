@@ -489,6 +489,12 @@ impl Orbita2dController {
         self.inner.get_axis_sensors()
     }
 
+    /// Get the BoardState code
+    pub fn get_board_state(&mut self) -> Result<u8> {
+        debug!(target: &self.log_target(), "get_board_state");
+        self.inner.get_board_state()
+    }
+
     fn log_target(&self) -> String {
         let name = self.inner.name();
         format!("Orbita2d_controller: {name}")
@@ -532,6 +538,8 @@ pub trait Orbita2dMotorController {
     fn get_pid_gains(&mut self) -> Result<[PID; 2]>;
     /// Set the `PID` gains for each motor [motor_a, motor_b]
     fn set_pid_gains(&mut self, pid_gains: [PID; 2]) -> Result<()>;
+    /// Get the BoardState code
+    fn get_board_state(&mut self) -> Result<u8>;
 }
 
 #[cfg(test)]

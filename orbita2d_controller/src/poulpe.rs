@@ -311,6 +311,10 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
             },
         )
     }
+
+    fn get_board_state(&mut self) -> Result<u8> {
+        orbita2d_poulpe::read_board_state(&self.io, self.serial_port.as_mut(), self.id)
+    }
 }
 
 impl Orbita2dMotorController for Orbita2dPoulpeSerialCachedController {
@@ -411,6 +415,10 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialCachedController {
     /// Set the current angle PID
     fn set_pid_gains(&mut self, pid_gains: [PID; 2]) -> Result<()> {
         self.inner.set_pid_gains(pid_gains)
+    }
+    /// Get the BoardState register
+    fn get_board_state(&mut self) -> Result<u8> {
+        self.inner.get_board_state()
     }
 }
 
