@@ -315,6 +315,10 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
     fn get_board_state(&mut self) -> Result<u8> {
         orbita2d_poulpe::read_board_state(&self.io, self.serial_port.as_mut(), self.id)
     }
+
+    fn set_board_state(&mut self, state: u8) -> Result<()> {
+        orbita2d_poulpe::write_board_state(&self.io, self.serial_port.as_mut(), self.id, state)
+    }
 }
 
 impl Orbita2dMotorController for Orbita2dPoulpeSerialCachedController {
@@ -419,6 +423,10 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialCachedController {
     /// Get the BoardState register
     fn get_board_state(&mut self) -> Result<u8> {
         self.inner.get_board_state()
+    }
+    /// Set the BoardState register
+    fn set_board_state(&mut self, state: u8) -> Result<()> {
+        self.inner.set_board_state(state)
     }
 }
 

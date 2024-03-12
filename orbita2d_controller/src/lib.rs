@@ -495,6 +495,12 @@ impl Orbita2dController {
         self.inner.get_board_state()
     }
 
+    /// Set the BoardState code (to reset error)
+    pub fn set_board_state(&mut self, state: u8) -> Result<()> {
+        debug!(target: &self.log_target(), "set_board_state: {:?}", state);
+        self.inner.set_board_state(state)
+    }
+
     fn log_target(&self) -> String {
         let name = self.inner.name();
         format!("Orbita2d_controller: {name}")
@@ -540,6 +546,8 @@ pub trait Orbita2dMotorController {
     fn set_pid_gains(&mut self, pid_gains: [PID; 2]) -> Result<()>;
     /// Get the BoardState code
     fn get_board_state(&mut self) -> Result<u8>;
+    /// Set the BoardState
+    fn set_board_state(&mut self, state: u8) -> Result<()>;
 }
 
 #[cfg(test)]
