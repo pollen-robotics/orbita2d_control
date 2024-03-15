@@ -362,6 +362,12 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialController {
         }
         Ok(())
     }
+    fn get_board_state(&mut self) -> Result<u8> {
+        Ok(0)
+    }
+    fn set_board_state(&mut self, _state: u8) -> Result<()> {
+        Ok(())
+    }
 }
 
 impl Orbita2dMotorController for Orbita2dFlipskySerialCachedController {
@@ -532,6 +538,16 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialCachedController {
         }
 
         Ok(())
+    }
+
+    /// BoardState => does not exist in Flipsky
+    fn get_board_state(&mut self) -> Result<u8> {
+        self.inner.get_board_state()
+    }
+
+    /// BoardState => does not exist in Flipsky
+    fn set_board_state(&mut self, state: u8) -> Result<()> {
+        self.inner.set_board_state(state)
     }
 }
 
