@@ -555,7 +555,7 @@ mod tests {
     use std::f64::consts::PI;
 
     use super::*;
-    use crate::Orbita2dController;
+    // use crate::Orbita2dController;
     use rand::Rng;
 
     fn init() {
