@@ -485,6 +485,53 @@ fn wrap_to_pi(angle: f64) -> f64{
 #[cfg(test)]
 mod tests {
     use crate::Orbita2dConfig;
+    use crate::poulpe::wrap_to_pi;
+    
+
+    // Custom assert_approx_eq macro to compare floating point values within a tolerance
+    macro_rules! assert_approx_eq {
+        ($left:expr, $right:expr, $tol:expr) => {
+            assert!(($left - $right).abs() < $tol, "{} is not approximately equal to {}, within a tolerance of {}", $left, $right, $tol);
+        };
+    }
+
+    #[test]
+    fn test_wrap_to_pi_positive() {
+        assert_approx_eq!(wrap_to_pi(3.0 * std::f64::consts::PI), -std::f64::consts::PI,1e-5);
+        assert_approx_eq!(wrap_to_pi(4.0 * std::f64::consts::PI), 0.0,1e-5);
+    }
+
+    #[test]
+    fn test_wrap_to_pi_negative() {
+        assert_approx_eq!(wrap_to_pi(-3.0 * std::f64::consts::PI), -std::f64::consts::PI,1e-5);
+        assert_approx_eq!(wrap_to_pi(-4.0 * std::f64::consts::PI), 0.0, 1e-5);
+    }
+
+    #[test]
+    fn test_wrap_to_pi_within_range() {
+        assert_approx_eq!(wrap_to_pi(std::f64::consts::PI-0.001), std::f64::consts::PI-0.001,1e-5);
+        assert_approx_eq!(wrap_to_pi(-std::f64::consts::PI+0.1), -std::f64::consts::PI+0.1,1e-5);
+        assert_approx_eq!(wrap_to_pi(0.0), 0.0,1e-5);
+    }
+
+    #[test]
+    fn test_wrap_to_pi_small_angles() {
+        assert_approx_eq!(wrap_to_pi(std::f64::consts::FRAC_PI_4), std::f64::consts::FRAC_PI_4, 1e-5);
+        assert_approx_eq!(wrap_to_pi(-std::f64::consts::FRAC_PI_4), -std::f64::consts::FRAC_PI_4, 1e-5);
+    }
+
+    #[test]
+    fn test_wrap_to_pi_large_angles() {
+        assert_approx_eq!(wrap_to_pi(100.0 * std::f64::consts::PI), 0.0,1e-5);
+        assert_approx_eq!(wrap_to_pi(-100.0 * std::f64::consts::PI), 0.0,1e-5);
+    }
+
+    #[test]
+    fn test_wrap_to_pi_random_values() {
+        assert_approx_eq!(wrap_to_pi(1.2), 1.2,1e-5);
+        assert_approx_eq!(wrap_to_pi(-5.7), 0.583185307179586,1e-5);
+    }
+
 
     #[test]
     fn parse_config() {
