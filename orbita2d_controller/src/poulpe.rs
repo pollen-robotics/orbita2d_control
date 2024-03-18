@@ -1,5 +1,7 @@
 use std::{thread, time::Duration};
 
+use std::f64::consts::PI;
+
 use cache_cache::Cache;
 use log::{debug, error, info, warn};
 use rustypot::{
@@ -422,38 +424,46 @@ fn find_raw_motor_offsets(
 ) -> Result<[f64; 2]> {
     info!("Finding raw motor offsets");
 
-    controller.disable_torque()?; //FIXME: It seems that the axis sensors do not work if the torque is enabled
-    thread::sleep(Duration::from_millis(100));
+    // controller.disable_torque()?; //FIXME: It seems that the axis sensors do not work if the torque is enabled
+    // thread::sleep(Duration::from_millis(100));
 
     let current_position = controller.inner.get_current_position()?;
-    let current_axis_sensors = controller.inner.get_axis_sensors()?;
+    let mut current_axis_sensors = controller.inner.get_axis_sensors()?;
+
+    // remove motor offsets  
+    current_axis_sensors
+        .iter_mut()
+        .enumerate()
+        .for_each(|(i, val)| {
+            *val = wrap_to_pi(*val - motors_offset[i]);
+	});
 
     let mut current_axis_position = controller
         .kinematics
         .compute_inverse_kinematics(current_axis_sensors);
+ 
     debug!("Current positions: {:?} current_axis_position: {:?} inverted_axis: {:?} motors_ratio: {:?} axis_offsets: {:?}", current_position, current_axis_position, inverted_axis, motors_ratio, motors_offset);
     debug!(
         "AXIS SENSOR: {:?}, AXIS POS: {:?}",
         current_axis_sensors, current_axis_position
     ); //TODO Handle NaN
+ 
     current_axis_position
         .iter_mut()
         .enumerate()
         .for_each(|(i, val)| {
             *val += current_position[i];
         });
-    let raw_zero = controller
-        .kinematics
-        .compute_inverse_kinematics(motors_offset);
-    debug!("Current absolute: {:?}", current_axis_position);
-    current_axis_position
-        .iter_mut()
-        .enumerate()
-        .for_each(|(i, val)| {
-            *val -= raw_zero[i];
-        });
+
     info!("OFFSETS: {:?}", current_axis_position);
+
     Ok(current_axis_position)
+}
+
+// function wrapping an angle in radians to 
+// the range [-pi, pi]
+fn wrap_to_pi(angle: f64) -> f64{
+    (( (angle + PI) % (2.0*PI)) + (2.0*PI)) % (2.0*PI) - PI
 }
 
 #[cfg(test)]
