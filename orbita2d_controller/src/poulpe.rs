@@ -29,6 +29,8 @@ struct Orbita2dPoulpeSerialCachedController {
 
     torque_on: Cache<u8, [bool; 2]>,
     target_position: Cache<u8, [f64; 2]>,
+    velocity_limit: Cache<u8, [f64; 2]>,
+    torque_limit: Cache<u8, [f64; 2]>,
 }
 
 impl Orbita2dController {
@@ -68,6 +70,8 @@ impl Orbita2dController {
                 Box::new(Orbita2dPoulpeSerialCachedController {
                     inner: poulpe_controller,
                     target_position: Cache::keep_last(),
+                    velocity_limit: Cache::keep_last(),
+                    torque_limit: Cache::keep_last(),
                     torque_on: Cache::keep_last(),
                 }),
                 motors_ratio,
@@ -377,6 +381,7 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialCachedController {
 
         Ok(())
     }
+
     fn set_target_position_fb(&mut self, target_position: [f64; 2]) -> Result<Orbita2dFeedback> {
         // let current_target = self.get_target_position()?;
 
@@ -394,24 +399,40 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialCachedController {
     }
 
     fn get_velocity_limit(&mut self) -> Result<[f64; 2]> {
-        self.inner.get_velocity_limit()
+        self.velocity_limit
+            .entry(self.inner.id)
+            .or_try_insert_with(|_| self.inner.get_velocity_limit())
     }
     /// Set the current velocity limit of the motors
     ///
     /// # Arguments
     /// * `velocity_limit` - The velocity limit for each motor (motor_a, motor_b) in rad/s. Max values are typically around 400-600 rads/s.
     fn set_velocity_limit(&mut self, velocity_limit: [f64; 2]) -> Result<()> {
-        self.inner.set_velocity_limit(velocity_limit)
+        let current_vel_limit = self.get_velocity_limit()?;
+
+        if current_vel_limit != velocity_limit {
+            self.inner.set_velocity_limit(velocity_limit)?;
+            self.velocity_limit.insert(self.inner.id, velocity_limit);
+        }
+        Ok(())
     }
 
     /// Get the current "intensity limit" of the motors. Intensity_limit is the output of the velocity loop (input to the current loop)
     fn get_torque_limit(&mut self) -> Result<[f64; 2]> {
-        self.inner.get_torque_limit()
+        self.torque_limit
+            .entry(self.inner.id)
+            .or_try_insert_with(|_| self.inner.get_torque_limit())
     }
 
     /// Set the current "intensity limit" of the motors. Intensity_limit is the output of the velocity loop (input to the current loop)
     fn set_torque_limit(&mut self, torque_limit: [f64; 2]) -> Result<()> {
-        self.inner.set_torque_limit(torque_limit)
+        let current_torque_limit = self.get_torque_limit()?;
+
+        if current_torque_limit != torque_limit {
+            self.inner.set_torque_limit(torque_limit)?;
+            self.torque_limit.insert(self.inner.id, torque_limit);
+        }
+        Ok(())
     }
 
     /// Get the current angle PID
