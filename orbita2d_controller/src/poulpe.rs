@@ -688,7 +688,7 @@ mod tests {
             assert_eq!(config.id, 42);
             assert_eq!(config.motors_offset, [0.0, 0.0]);
             assert_eq!(config.motors_ratio, [1.0, 1.0]);
-            assert_eq!(config.fixed_zero, false);
+            assert_eq!(config.firmware_zero, false);
             assert!(config.orientation_limits.is_none());
             assert!(config.use_cache);
         } else {
