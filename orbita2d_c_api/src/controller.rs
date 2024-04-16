@@ -7,6 +7,12 @@ use std::{ffi::CStr, sync::Mutex};
 static UID: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
 static CONTROLLER: Lazy<SyncMap<u32, Orbita2dController>> = Lazy::new(SyncMap::new);
 
+use env_logger;
+
+fn print_error(e: Box<dyn std::error::Error>) {
+    eprintln!("[ORBITA_2D] {:?}", e);
+}
+
 #[no_mangle]
 pub extern "C" fn orbita2d_controller_with_flipsky_serial(
     serial_port_a: *const libc::c_char,
@@ -54,7 +60,10 @@ pub extern "C" fn orbita2d_controller_with_flipsky_serial(
             CONTROLLER.insert(*uid, c);
             0
         }
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
@@ -65,13 +74,18 @@ pub extern "C" fn orbita2d_controller_from_config(
 ) -> u32 {
     let configfile = unsafe { CStr::from_ptr(configfile) }.to_str().unwrap();
 
+    let _ = env_logger::try_init();
+
     match Orbita2dController::with_config(configfile) {
         Ok(c) => {
             *uid = get_available_uid();
             CONTROLLER.insert(*uid, c);
             0
         }
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
@@ -82,7 +96,10 @@ pub extern "C" fn orbita2d_is_torque_on(uid: u32, is_on: &mut bool) -> u32 {
             *is_on = v;
             0
         }
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
@@ -94,7 +111,10 @@ pub extern "C" fn orbita2d_enable_torque(uid: u32, reset_target: bool) -> u32 {
         .enable_torque(reset_target)
     {
         Ok(_) => 0,
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
@@ -102,7 +122,10 @@ pub extern "C" fn orbita2d_enable_torque(uid: u32, reset_target: bool) -> u32 {
 pub extern "C" fn orbita2d_disable_torque(uid: u32) -> u32 {
     match CONTROLLER.get_mut(&uid).unwrap().disable_torque() {
         Ok(_) => 0,
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
@@ -113,7 +136,10 @@ pub extern "C" fn orbita2d_get_current_orientation(uid: u32, pos: &mut [f64; 2])
             *pos = v;
             0
         }
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
@@ -124,7 +150,10 @@ pub extern "C" fn orbita2d_get_current_velocity(uid: u32, vel: &mut [f64; 2]) ->
             *vel = v;
             0
         }
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
@@ -135,7 +164,10 @@ pub extern "C" fn orbita2d_get_current_torque(uid: u32, torque: &mut [f64; 2]) -
             *torque = v;
             0
         }
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
@@ -146,7 +178,10 @@ pub extern "C" fn orbita2d_get_target_orientation(uid: u32, pos: &mut [f64; 2]) 
             *pos = v;
             0
         }
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
@@ -158,7 +193,10 @@ pub extern "C" fn orbita2d_set_target_orientation(uid: u32, pos: &[f64; 2]) -> u
         .set_target_orientation(*pos)
     {
         Ok(_) => 0,
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
@@ -176,7 +214,10 @@ pub extern "C" fn orbita2d_get_raw_motors_velocity_limit(
             *raw_motors_velocity_limit = v;
             0
         }
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
@@ -191,7 +232,10 @@ pub extern "C" fn orbita2d_set_raw_motors_velocity_limit(
         .set_raw_motors_velocity_limit(*raw_motors_velocity_limit)
     {
         Ok(_) => 0,
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
@@ -209,7 +253,10 @@ pub extern "C" fn orbita2d_get_raw_motors_torque_limit(
             *raw_motors_torque_limit = v;
             0
         }
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
@@ -224,7 +271,10 @@ pub extern "C" fn orbita2d_set_raw_motors_torque_limit(
         .set_raw_motors_torque_limit(*raw_motors_torque_limit)
     {
         Ok(_) => 0,
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
@@ -241,7 +291,10 @@ pub extern "C" fn orbita2d_get_raw_motors_pid_gains(uid: u32, pids: &mut [f64; 6
 
             0
         }
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
@@ -260,7 +313,10 @@ pub extern "C" fn orbita2d_set_raw_motors_pid_gains(uid: u32, pids: &[f64; 6]) -
         },
     ]) {
         Ok(_) => 0,
-        Err(_) => 1,
+        Err(e) => {
+            print_error(e);
+            1
+        }
     }
 }
 
