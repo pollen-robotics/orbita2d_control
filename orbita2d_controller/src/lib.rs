@@ -38,7 +38,7 @@
 //!
 //! ```
 
-use log::{debug, info};
+use log::{debug, info, warn, error};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
@@ -130,6 +130,8 @@ pub struct PoulpeConfig {
     pub orientation_limits: Option<[AngleLimit; 2]>,
     /// Use cache or not
     pub use_cache: bool,
+    /// Hardware zeros already set in the firmware
+    pub firmware_zero: bool,
 }
 
 impl Debug for Orbita2dController {
@@ -172,11 +174,13 @@ impl Orbita2dController {
 
     /// Create a Orbita2d controller with motors implementation as defined in the config file.
     pub fn with_config(configfile: &str) -> Result<Self> {
+        
         let f = std::fs::File::open(configfile)?;
         info!("Loading config file: {}", configfile);
 
         let config: Orbita2dConfig = serde_yaml::from_reader(f)?;
         info!("Config: {:?}", config);
+
 
         match config {
             Orbita2dConfig::FakeMotors(config) => Ok(Self::with_fake_motors(config.inverted_axes)),
@@ -197,6 +201,7 @@ impl Orbita2dController {
                 config.inverted_axes,
                 config.orientation_limits,
                 config.use_cache,
+                config.firmware_zero,
             ),
         }
     }

@@ -42,6 +42,7 @@ impl Orbita2dController {
         inverted_axes: [bool; 2],
         orientation_limits: Option<[AngleLimit; 2]>,
         use_cache: bool,
+        firmware_zero: bool,
     ) -> Result<Self> {
         let mut poulpe_controller = Orbita2dPoulpeSerialController {
             serial_port: Box::new(
@@ -112,24 +113,47 @@ impl Orbita2dController {
         //TODO change the name in the config: motors_offset -> axis_offset (angle offset on the axis, measured with axis_sensors). motors_offset is used for raw motors offset
 
         let mut trials = 0;
-        let offsets = loop {
-            match find_raw_motor_offsets(
-                &mut controller,
-                motors_offset,
-                inverted_axes,
-                motors_ratio,
-            ) {
-                Ok(offsets) => break offsets,
-                Err(e) => {
-                    warn!("Error while finding raw motor offsets: {:?}", e);
-                    thread::sleep(Duration::from_millis(100));
+        let mut offsets = [0.0, 0.0];
+        if firmware_zero {
+            // fix for the moment
+            offsets = loop {
+                match find_additional_motor_offsets(
+                    &mut controller,
+                    motors_offset,
+                    inverted_axes,
+                    motors_ratio,
+                ) {
+                    Ok(offsets) => break offsets,
+                    Err(e) => {
+                        warn!("Error while finding additional motor offsets: {:?}", e);
+                        thread::sleep(Duration::from_millis(100));
+                    }
                 }
-            }
-            trials += 1;
-            if trials > 10 {
-                return Err("Error while finding raw motor offsets".into());
-            }
-        };
+                trials += 1;
+                if trials > 10 {
+                    return Err("Error while finding additional motor offsets".into());
+                }
+            };
+        } else {
+            offsets = loop {
+                match find_raw_motor_offsets(
+                    &mut controller,
+                    motors_offset,
+                    inverted_axes,
+                    motors_ratio,
+                ) {
+                    Ok(offsets) => break offsets,
+                    Err(e) => {
+                        warn!("Error while finding raw motor offsets: {:?}", e);
+                        thread::sleep(Duration::from_millis(100));
+                    }
+                }
+                trials += 1;
+                if trials > 10 {
+                    return Err("Error while finding raw motor offsets".into());
+                }
+            };
+        }
         controller.motors_offset = offsets;
 
         Ok(controller)
@@ -462,7 +486,7 @@ fn find_raw_motor_offsets(
     info!("Finding raw motor offsets");
 
     // controller.disable_torque()?; //FIXME: It seems that the axis sensors do not work if the torque is enabled
-    // thread::sleep(Duration::from_millis(100));
+    thread::sleep(Duration::from_millis(100));
 
     let current_position = controller.inner.get_current_position()?;
     let mut current_axis_sensors = controller.inner.get_axis_sensors()?;
@@ -495,6 +519,59 @@ fn find_raw_motor_offsets(
     info!("OFFSETS: {:?}", current_axis_position);
 
     Ok(current_axis_position)
+}
+
+// orbita2d already includes the motor offsets necessary to reach the zero position of the obrbita2d
+// this function calculates the remaining offsets necessary to reach the zero position related to the robot's arm kinematics
+fn find_additional_motor_offsets(
+    controller: &mut Orbita2dController,
+    motors_offset: [f64; 2],
+    inverted_axis: [bool; 2],
+    motors_ratio: [f64; 2],
+) -> Result<[f64; 2]> {
+    info!("Finding additional motor offsets");
+
+    // controller.disable_torque()?; //FIXME: It seems that the axis sensors do not work if the torque is enabled
+    thread::sleep(Duration::from_millis(100));
+
+    // the simplest way of finding these offsets would be to 
+    // let motor_position_offset = ik(motors_offset)
+    // but this solution does not behave well as it can lead to certain joints 
+    // making a full turn at the init
+
+    // instead of this simple solution we will do it in multiple steps:
+    // first calcualte the current position of the orbita2d's axis (with zeros offsets removed in firmeware)
+    let current_position = controller.inner.get_current_position()?;
+    let current_axis_position = controller
+        .kinematics
+        .compute_forward_kinematics(current_position);
+
+    // then substract the motor offsets (from the config file) from the current position
+    // and wrap the values to [-pi, pi]
+    let mut axis_sensor_offsets = motors_offset;
+    axis_sensor_offsets
+        .iter_mut()
+        .enumerate()
+        .for_each(|(i, val)| {
+            *val = wrap_to_pi(-*val - current_axis_position[i]);
+        });
+    // calculate the inverse kinematics of this new axis position with new zeros
+    let mut motor_position_offset = controller
+        .kinematics
+        .compute_inverse_kinematics(axis_sensor_offsets);
+    // and calcualte the new offsets by adding the current position
+    motor_position_offset
+        .iter_mut()
+        .enumerate()
+        .for_each(|(i, val)| {
+            *val = current_position[i] + *val;
+        });
+
+    info!("OFFSETS: {:?}", motor_position_offset);
+
+    // IMPORTANT: 
+    // this solution will lose the absolute position of the motors that was reached at the init
+    Ok(motor_position_offset)
 }
 
 // function wrapping an angle in radians to
@@ -587,6 +664,7 @@ mod tests {
         let s = "!Poulpe
         serial_port: /dev/ttyACM0
         id: 42
+        firmware_zero: false
         motors_offset:
         - 0.0
         - 0.0
@@ -610,6 +688,7 @@ mod tests {
             assert_eq!(config.id, 42);
             assert_eq!(config.motors_offset, [0.0, 0.0]);
             assert_eq!(config.motors_ratio, [1.0, 1.0]);
+            assert_eq!(config.fixed_zero, false);
             assert!(config.orientation_limits.is_none());
             assert!(config.use_cache);
         } else {
