@@ -7,8 +7,6 @@ use std::{ffi::CStr, sync::Mutex};
 static UID: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
 static CONTROLLER: Lazy<SyncMap<u32, Orbita2dController>> = Lazy::new(SyncMap::new);
 
-use env_logger;
-
 fn print_error(e: Box<dyn std::error::Error>) {
     eprintln!("[ORBITA_2D] {:?}", e);
 }
