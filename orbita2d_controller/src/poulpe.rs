@@ -115,7 +115,8 @@ impl Orbita2dController {
         let mut trials = 0;
         let mut offsets = [0.0, 0.0];
         match firmware_zero {
-            Some(true) =>{ // if the firmware_zero is set to true in the yaml file
+            Some(true) => {
+                // if the firmware_zero is set to true in the yaml file
                 // fix for the moment
                 offsets = loop {
                     match find_additional_motor_offsets(
@@ -136,25 +137,26 @@ impl Orbita2dController {
                     }
                 };
             }
-            _ =>{ // if firmware_zero is not set or set to false in the yaml
-            offsets = loop {
-                match find_raw_motor_offsets(
-                    &mut controller,
-                    motors_offset,
-                    inverted_axes,
-                    motors_ratio,
-                ) {
-                    Ok(offsets) => break offsets,
-                    Err(e) => {
-                        warn!("Error while finding raw motor offsets: {:?}", e);
-                        thread::sleep(Duration::from_millis(100));
+            _ => {
+                // if firmware_zero is not set or set to false in the yaml
+                offsets = loop {
+                    match find_raw_motor_offsets(
+                        &mut controller,
+                        motors_offset,
+                        inverted_axes,
+                        motors_ratio,
+                    ) {
+                        Ok(offsets) => break offsets,
+                        Err(e) => {
+                            warn!("Error while finding raw motor offsets: {:?}", e);
+                            thread::sleep(Duration::from_millis(100));
+                        }
+                    }
+                    trials += 1;
+                    if trials > 10 {
+                        return Err("Error while finding raw motor offsets".into());
                     }
                 }
-                trials += 1;
-                if trials > 10 {
-                    return Err("Error while finding raw motor offsets".into());
-                }
-            }
             }
         };
         controller.motors_offset = offsets;
@@ -537,9 +539,9 @@ fn find_additional_motor_offsets(
     // controller.disable_torque()?; //FIXME: It seems that the axis sensors do not work if the torque is enabled
     thread::sleep(Duration::from_millis(100));
 
-    // the simplest way of finding these offsets would be to 
+    // the simplest way of finding these offsets would be to
     // let motor_position_offset = ik(motors_offset)
-    // but this solution does not behave well as it can lead to certain joints 
+    // but this solution does not behave well as it can lead to certain joints
     // making a full turn at the init
 
     // instead of this simple solution we will do it in multiple steps:
@@ -572,7 +574,7 @@ fn find_additional_motor_offsets(
 
     info!("OFFSETS: {:?}", motor_position_offset);
 
-    // IMPORTANT: 
+    // IMPORTANT:
     // this solution will lose the absolute position of the motors that was reached at the init
     Ok(motor_position_offset)
 }

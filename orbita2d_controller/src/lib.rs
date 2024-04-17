@@ -38,7 +38,7 @@
 //!
 //! ```
 
-use log::{debug, info, warn, error};
+use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
@@ -174,13 +174,11 @@ impl Orbita2dController {
 
     /// Create a Orbita2d controller with motors implementation as defined in the config file.
     pub fn with_config(configfile: &str) -> Result<Self> {
-        
         let f = std::fs::File::open(configfile)?;
         info!("Loading config file: {}", configfile);
 
-        let config: Orbita2dConfig = serde_yaml::from_reader(f)?;   
+        let config: Orbita2dConfig = serde_yaml::from_reader(f)?;
         info!("Config: {:?}", config);
-
 
         match config {
             Orbita2dConfig::FakeMotors(config) => Ok(Self::with_fake_motors(config.inverted_axes)),
