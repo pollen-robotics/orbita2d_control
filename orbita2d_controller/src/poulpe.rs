@@ -113,12 +113,12 @@ impl Orbita2dController {
         //TODO change the name in the config: motors_offset -> axis_offset (angle offset on the axis, measured with axis_sensors). motors_offset is used for raw motors offset
 
         let mut trials = 0;
-        let mut offsets = [0.0, 0.0];
+        controller.motors_offset = [0.0, 0.0];
         match firmware_zero {
             Some(true) => {
                 // if the firmware_zero is set to true in the yaml file
                 // fix for the moment
-                offsets = loop {
+                controller.motors_offset = loop {
                     match find_additional_motor_offsets(
                         &mut controller,
                         motors_offset,
@@ -139,7 +139,7 @@ impl Orbita2dController {
             }
             _ => {
                 // if firmware_zero is not set or set to false in the yaml
-                offsets = loop {
+                controller.motors_offset = loop {
                     match find_raw_motor_offsets(
                         &mut controller,
                         motors_offset,
@@ -159,7 +159,6 @@ impl Orbita2dController {
                 }
             }
         };
-        controller.motors_offset = offsets;
 
         Ok(controller)
     }
@@ -531,8 +530,8 @@ fn find_raw_motor_offsets(
 fn find_additional_motor_offsets(
     controller: &mut Orbita2dController,
     motors_offset: [f64; 2],
-    inverted_axis: [bool; 2],
-    motors_ratio: [f64; 2],
+    _inverted_axis: [bool; 2],
+    _motors_ratio: [f64; 2],
 ) -> Result<[f64; 2]> {
     info!("Finding additional motor offsets");
 
@@ -569,7 +568,7 @@ fn find_additional_motor_offsets(
         .iter_mut()
         .enumerate()
         .for_each(|(i, val)| {
-            *val = current_position[i] + *val;
+            *val += current_position[i];
         });
 
     info!("OFFSETS: {:?}", motor_position_offset);
@@ -699,6 +698,8 @@ mod tests {
             panic!("Wrong config type");
         }
     }
+
+    #[test]
     fn parse_config() {
         let s = "!Poulpe
         serial_port: /dev/ttyACM0
