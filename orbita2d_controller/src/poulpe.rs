@@ -34,6 +34,7 @@ struct Orbita2dPoulpeSerialCachedController {
 }
 
 impl Orbita2dController {
+    #[allow(clippy::too_many_arguments)]
     pub fn with_poulpe_serial(
         serial_port: &str,
         id: u8,
