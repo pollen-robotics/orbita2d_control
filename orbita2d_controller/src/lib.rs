@@ -47,6 +47,7 @@ pub use flipsky_serial::FlipskyConfig;
 use orbita2d_kinematics::Orbita2dKinematicsModel;
 
 use motor_toolbox_rs::{Result, PID};
+
 /// Result generic wrapper using `std::error::Error` trait
 // pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 mod coherency;
@@ -130,6 +131,8 @@ pub struct PoulpeConfig {
     pub orientation_limits: Option<[AngleLimit; 2]>,
     /// Use cache or not
     pub use_cache: bool,
+    /// Hardware zeros already set in the firmware
+    pub firmware_zero: Option<bool>,
 }
 
 impl Debug for Orbita2dController {
@@ -197,6 +200,7 @@ impl Orbita2dController {
                 config.inverted_axes,
                 config.orientation_limits,
                 config.use_cache,
+                config.firmware_zero,
             ),
         }
     }
