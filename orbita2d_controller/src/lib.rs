@@ -131,7 +131,7 @@ pub struct PoulpeConfig {
     /// Use cache or not
     pub use_cache: bool,
     /// Hardware zeros already set in the firmware
-    pub firmware_zero: bool,
+    pub firmware_zero: Option<bool>,
 }
 
 impl Debug for Orbita2dController {
@@ -178,7 +178,7 @@ impl Orbita2dController {
         let f = std::fs::File::open(configfile)?;
         info!("Loading config file: {}", configfile);
 
-        let config: Orbita2dConfig = serde_yaml::from_reader(f)?;
+        let config: Orbita2dConfig = serde_yaml::from_reader(f)?;   
         info!("Config: {:?}", config);
 
 

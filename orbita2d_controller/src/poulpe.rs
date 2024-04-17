@@ -42,7 +42,7 @@ impl Orbita2dController {
         inverted_axes: [bool; 2],
         orientation_limits: Option<[AngleLimit; 2]>,
         use_cache: bool,
-        firmware_zero: bool,
+        firmware_zero: Option<bool>,
     ) -> Result<Self> {
         let mut poulpe_controller = Orbita2dPoulpeSerialController {
             serial_port: Box::new(
@@ -114,27 +114,29 @@ impl Orbita2dController {
 
         let mut trials = 0;
         let mut offsets = [0.0, 0.0];
-        if firmware_zero {
-            // fix for the moment
-            offsets = loop {
-                match find_additional_motor_offsets(
-                    &mut controller,
-                    motors_offset,
-                    inverted_axes,
-                    motors_ratio,
-                ) {
-                    Ok(offsets) => break offsets,
-                    Err(e) => {
-                        warn!("Error while finding additional motor offsets: {:?}", e);
-                        thread::sleep(Duration::from_millis(100));
+        match firmware_zero {
+            Some(true) =>{ // if the firmware_zero is set to true in the yaml file
+                // fix for the moment
+                offsets = loop {
+                    match find_additional_motor_offsets(
+                        &mut controller,
+                        motors_offset,
+                        inverted_axes,
+                        motors_ratio,
+                    ) {
+                        Ok(offsets) => break offsets,
+                        Err(e) => {
+                            warn!("Error while finding additional motor offsets: {:?}", e);
+                            thread::sleep(Duration::from_millis(100));
+                        }
                     }
-                }
-                trials += 1;
-                if trials > 10 {
-                    return Err("Error while finding additional motor offsets".into());
-                }
-            };
-        } else {
+                    trials += 1;
+                    if trials > 10 {
+                        return Err("Error while finding additional motor offsets".into());
+                    }
+                };
+            }
+            _ =>{ // if firmware_zero is not set or set to false in the yaml
             offsets = loop {
                 match find_raw_motor_offsets(
                     &mut controller,
@@ -152,8 +154,9 @@ impl Orbita2dController {
                 if trials > 10 {
                     return Err("Error while finding raw motor offsets".into());
                 }
-            };
-        }
+            }
+            }
+        };
         controller.motors_offset = offsets;
 
         Ok(controller)
@@ -660,6 +663,40 @@ mod tests {
     }
 
     #[test]
+    fn parse_config_no_firmware_zero() {
+        let s = "!Poulpe
+        serial_port: /dev/ttyACM0
+        id: 42
+        motors_offset:
+        - 0.0
+        - 0.0
+        motors_ratio:
+        - 1.0
+        - 1.0
+        inverted_axes:
+        - false
+        - false
+        orientation_limits: null
+        use_cache: true
+        ";
+
+        let config: Result<Orbita2dConfig, _> = serde_yaml::from_str(s);
+        assert!(config.is_ok());
+
+        let config = config.unwrap();
+
+        if let Orbita2dConfig::Poulpe(config) = config {
+            assert_eq!(config.serial_port, "/dev/ttyACM0");
+            assert_eq!(config.id, 42);
+            assert_eq!(config.motors_offset, [0.0, 0.0]);
+            assert_eq!(config.motors_ratio, [1.0, 1.0]);
+            assert!(config.firmware_zero.is_none());
+            assert!(config.orientation_limits.is_none());
+            assert!(config.use_cache);
+        } else {
+            panic!("Wrong config type");
+        }
+    }
     fn parse_config() {
         let s = "!Poulpe
         serial_port: /dev/ttyACM0
@@ -688,7 +725,7 @@ mod tests {
             assert_eq!(config.id, 42);
             assert_eq!(config.motors_offset, [0.0, 0.0]);
             assert_eq!(config.motors_ratio, [1.0, 1.0]);
-            assert_eq!(config.firmware_zero, false);
+            assert_eq!(config.firmware_zero, Some(false));
             assert!(config.orientation_limits.is_none());
             assert!(config.use_cache);
         } else {
