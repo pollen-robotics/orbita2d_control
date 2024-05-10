@@ -13,6 +13,7 @@
       </state_interface>
 
       <command_interface name="position"/>
+
     </joint>
   </xacro:macro>
 </robot>
