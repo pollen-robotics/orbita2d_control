@@ -31,23 +31,23 @@ impl Default for FakeMotors {
             torque_on: [false, false],
 
             current_position: [0.0, 0.0],
-            current_velocity: [NAN, NAN],
-            current_torque: [NAN, NAN],
+            current_velocity: [f64::NAN, f64::NAN],
+            current_torque: [f64::NAN, f64::NAN],
 
             target_position: [0.0, 0.0],
 
-            velocity_limit: [INFINITY, INFINITY],
-            torque_limit: [INFINITY, INFINITY],
+            velocity_limit: [f64::INFINITY, f64::INFINITY],
+            torque_limit: [f64::INFINITY, f64::INFINITY],
             pid_gains: [
                 PID {
-                    p: NAN,
-                    i: NAN,
-                    d: NAN,
+                    p: f64::NAN,
+                    i: f64::NAN,
+                    d: f64::NAN,
                 },
                 PID {
-                    p: NAN,
-                    i: NAN,
-                    d: NAN,
+                    p: f64::NAN,
+                    i: f64::NAN,
+                    d: f64::NAN,
                 },
             ],
         }
