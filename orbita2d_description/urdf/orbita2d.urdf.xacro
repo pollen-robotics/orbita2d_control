@@ -18,10 +18,10 @@
       <axis xyz="1 0 0"/>
     </xacro:if>
     <xacro:if value="${joint == 'pitch'}">
-      <axis xyz="0 1 0"/>
+      <axis xyz="0 0 1"/>
     </xacro:if>
     <xacro:if value="${joint == 'yaw'}">
-      <axis xyz="0 0 1"/>
+      <axis xyz="0 1 0"/>
     </xacro:if>
   </xacro:macro>
 
@@ -33,84 +33,95 @@
     link                      (joint)
 
     ${parent}                 (${name}_joint1)
-      ${name}_dummy_link      (${name}_joint2)
+      ${name}_first_link      (${name}_joint2)
         ${name}_link          (${name}_ball_joint)
           ${name}_ball_link
     -->
 
-    <link name="${name}_dummy_link">
-      <xacro:inertial_cuboid mass="${mass*0.01}" xyz="0 0 0"  rpy="0 0 0" x_length="${radius*2}" y_length="${radius*2}" z_length="${length}"/>
+
+
+    <!-- used to "place" the joint with the correct axis. For some reason rotation of the inertia patrix does not work... -->
+    <link name="${name}_dummy_link1">
     </link>
 
-    <joint name="${name}_${joint1}" type="revolute">
+    <joint name="${name}_dummy_1" type="fixed">
       <origin xyz="${xyz}" rpy="${rpy}"/>
       <parent link="${parent}"/>
-      <child link="${name}_dummy_link"/>
+      <child link="${name}_dummy_link1"/>
+    </joint>
+
+    <link name="${name}_dummy_link2">
+    </link>
+
+    <joint name="${name}_dummy_2" type="fixed">
+      <origin xyz="0 0 0" rpy="1.5707963267948966 0 0"/>
+      <parent link="${name}_dummy_link1"/>
+      <child link="${name}_dummy_link2"/>
+    </joint>
+
+
+
+
+    <link name="${name}_first_link">
+      <visual>
+      	<origin xyz="0 0 0" rpy="0 0 0"/>
+      	<geometry>
+	  <mesh filename="package://orbita2d_description/meshes/2D_sphere_visual.dae" />
+	  <!-- <mesh filename="package://orbita2d_description/meshes/Orbita2D_Link.dae" /> -->
+      	</geometry>
+
+      </visual>
+
+      <inertial>
+      	<!-- <origin xyz="0.0 0 0" rpy="1.5707963267948966 0 0"/> -->  <!-- rotation does not work? -->
+      	<origin xyz="0.000096 -0.000015 -0.01777" rpy="0 0 0"/>
+	<mass value="0.487"/>
+	 <inertia ixx="0.000577881945" ixy="-8.085000000000001e-7" ixz="-6.962790000000001e-7"
+		  iyx="-8.085000000000001e-7" iyy="0.000573075516" iyz="2.44386e-7"
+		  izx="-6.962790000000001e-7" izy="2.44386e-7" izz="0.000243343676"/>
+      </inertial>
+
+    </link>
+
+    <!-- First joint  -->
+    <joint name="${name}_${joint1}" type="revolute">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <!-- <parent link="${parent}"/> -->
+      <parent link="${name}_dummy_link2"/>
+      <child link="${name}_first_link"/>
       <xacro:joint2axis joint="${joint1}"/>
       <limit lower="${joint1_min_angle}" upper="${joint1_max_angle}" effort="1000.0" velocity="100.0"/>
       <safety_controller k_velocity="500" k_position="500" soft_lower_limit="-3.1415" soft_upper_limit="3.1415" />
       <dynamics damping="${damping}" friction="${friction}"/>
     </joint>
 
-    <link name="${name}_link">
-      <collision>
-      	<origin xyz="0 0 ${-length/2}" rpy="0 0 0"/>
-      	<geometry>
-          <!-- <cylinder length="${length}" radius="${radius}"/> -->
-	  <box size="${radius*2.5} ${radius*2.0} ${length}"/>
-      	</geometry>
-      </collision>
-      <visual>
-      	<origin xyz="0 0 ${-length/2}" rpy="0 0 0"/>
-      	<geometry>
-          <!-- <cylinder length="${length}" radius="${radius}"/> -->
-	  <box size="${radius*2.5} ${radius*2.0} ${length}"/>
-      	</geometry>
-      	<!-- <material name= "orbita2dmetal"/> -->
-	<xacro:orbita2dmetal/>
 
-      </visual>
 
-      <xacro:inertial_cuboid mass="${mass*0.49}" xyz="0 0 ${-length/2}"  rpy="0 0 0" x_length="${radius*2}" y_length="${radius*2}" z_length="${length}"/>
+    <!-- Used to get back to the correct orientation -->
+    <link name="${name}_dummy_link3">
     </link>
 
+    <joint name="${name}_dummy_3" type="fixed">
+      <origin xyz="0 0 0" rpy="-1.5707963267948966 0 0"/>
+      <parent link="${name}_first_link"/>
+      <child link="${name}_dummy_link3"/>
+    </joint>
+
+
+
+    <!-- Output link -->
+    <link name="${name}_ball_link">
+    </link>
+
+
     <joint name="${name}_${joint2}" type="revolute">
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <parent link="${name}_dummy_link"/>
-      <child link="${name}_link"/>
+      <origin xyz="0 0 0" rpy=" 0 0 0"/>
+      <parent link="${name}_dummy_link3"/>
+      <child link="${name}_ball_link"/>
       <xacro:joint2axis joint="${joint2}"/>
       <limit lower="${joint2_min_angle}" upper="${joint2_max_angle}" effort="1000.0" velocity="100.0"/>
       <safety_controller k_velocity="500" k_position="500" soft_lower_limit="-3.1415" soft_upper_limit="3.1415" />
       <dynamics damping="${damping}" friction="${friction}"/>
-    </joint>
-
-    <gazebo reference="${name}_link">
-      <material>Gazebo/Orange</material>
-    </gazebo>
-
-    <link name="${name}_ball_link">
-      <visual>
-      	<origin xyz="0 0 0" rpy="0 0 0"/>
-      	<geometry>
-          <sphere radius="${radius*1.2}"/>
-      	</geometry>
-      	<!-- <material name="orbita2dgrey"/> -->
-	<xacro:orbita2dgrey/>
-
-      </visual>
-      <collision>
-      	<origin xyz="0 0 0" rpy="0 0 0"/>
-      	<geometry>
-          <sphere radius="${radius*1.2}"/>
-      	</geometry>
-      </collision>
-      <xacro:inertial_sphere mass="${mass*0.5}" diameter="${2*radius*1.2}"/>
-    </link>
-
-    <joint name="${name}_ball_joint" type="fixed">
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <parent link="${name}_link"/>
-      <child link="${name}_ball_link"/>
     </joint>
 
 
