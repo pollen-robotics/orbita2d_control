@@ -1,5 +1,3 @@
-use std::f64::{INFINITY, NAN};
-
 use serde::{Deserialize, Serialize};
 
 use crate::{Orbita2dController, Orbita2dFeedback, Orbita2dMotorController, PID};
