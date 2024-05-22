@@ -55,6 +55,9 @@ mod fake_motor;
 mod flipsky_serial;
 mod poulpe;
 
+mod poulpe_ethercat;
+use poulpe_ethercat::PoulpeEthercatConfig;
+
 // #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 // /// PID gains wrapper
 // pub struct PID {
@@ -111,6 +114,7 @@ pub enum Orbita2dConfig {
     FakeMotors(FakeConfig),
     Flipsky(FlipskyConfig),
     Poulpe(PoulpeConfig),
+    PoulpeEthercat(PoulpeEthercatConfig)
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -199,6 +203,15 @@ impl Orbita2dController {
                 config.inverted_axes,
                 config.orientation_limits,
                 config.use_cache,
+                config.firmware_zero,
+            ),
+            Orbita2dConfig::PoulpeEthercat(config) => Self::with_poulpe_ethercat(
+                &config.url,
+                config.id as u16,
+                config.motors_offset,
+                config.motors_ratio,
+                config.inverted_axes,
+                config.orientation_limits,
                 config.firmware_zero,
             ),
         }

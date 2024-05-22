@@ -9,7 +9,8 @@ use clap::Parser;
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// tty
-    #[arg(short, long, default_value = "config/dxl_poulpe2d.yaml")]
+    // #[arg(default_value = "config/dxl_poulpe2d.yaml")]
+    #[arg( default_value = "config/ethercat_poulpe.yaml")]
     configfile: String,
 }
 
@@ -53,6 +54,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     thread::sleep(Duration::from_millis(10));
     let pid = controller.get_raw_motors_pid_gains()?;
     log::info!("Pid: {:?}", pid);
+
+
+    // set velocity and torque limits
+    let res = controller.set_raw_motors_velocity_limit([1.0, 1.0]);
+    match res {
+        Ok(_) => log::info!("Velocity limit set"),
+        Err(e) => log::error!("Error: {}", e),
+    }
+    let res = controller.set_raw_motors_torque_limit([1.0, 1.0]);
+    match res {
+        Ok(_) => log::info!("Torque limit set"),
+        Err(e) => log::error!("Error: {}", e),
+    }
 
     let _ = controller.enable_torque(true);
     thread::sleep(Duration::from_millis(100));
