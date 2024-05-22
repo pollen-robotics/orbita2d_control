@@ -47,6 +47,7 @@ pub use flipsky_serial::FlipskyConfig;
 use orbita2d_kinematics::Orbita2dKinematicsModel;
 
 use motor_toolbox_rs::{Result, PID};
+
 /// Result generic wrapper using `std::error::Error` trait
 // pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 mod coherency;

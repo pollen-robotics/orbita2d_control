@@ -25,7 +25,7 @@
   <xacro:property name="arm_offset_x" value="-0.0479"/>
   <xacro:property name="arm_offset_y" value="-0.1913"/>
   <xacro:property name="arm_offset_z" value="0.025"/>
-  <xacro:property name="arm_offset_yaw" value="0.2617993877991494"/>
+  <xacro:property name="arm_offset_yaw" value="0.2617993877991494"/> <!-- 15 degrees -->
 
 
   <xacro:property name="reflect" value="1"/>

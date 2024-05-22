@@ -11,6 +11,7 @@ once_cell = "1.18.0"
 orbita2d_controller = { version = "0.1.0", path = "../orbita2d_controller" }
 orbita2d_kinematics = { version = "0.1.0", path = "../orbita2d_kinematics" }
 motor_toolbox_rs = { git = "https://github.com/pollen-robotics/motor_toolbox_rs", branch = "support-poulpe" }
+env_logger = "0.10.0"
 
 [build-dependencies]
 cbindgen = "0.24.5"
