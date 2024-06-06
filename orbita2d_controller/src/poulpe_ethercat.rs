@@ -7,7 +7,7 @@ use log::{debug, error, info, warn};
 use crate::{AngleLimit, Orbita2dController, Orbita2dFeedback, Orbita2dMotorController};
 use motor_toolbox_rs::{Result, PID};
 
-use poulpe_ethercat_multiplexer::client::PoulpeRemoteClient;
+use poulpe_ethercat_grpc::client::PoulpeRemoteClient;
 
 use serde::{Deserialize, Serialize};
 
@@ -46,8 +46,15 @@ impl Orbita2dController {
         orientation_limits: Option<[AngleLimit; 2]>,
         firmware_zero: Option<bool>,
     ) -> Result<Self> {
+        let io = match PoulpeRemoteClient::connect(url.parse()?, vec![id], Duration::from_millis(5)){
+            Ok(io) => io,
+            Err(e) => {
+                error!("Error while connecting to the PoulpeRemoteClient: {:?}", e);
+                return Err("Error while connecting to the PoulpeRemoteClient".into());
+            }
+        };
         let mut poulpe_controller = Orbita2dPoulpeEthercatController {
-            io: PoulpeRemoteClient::connect(url.parse()?, vec![id], Duration::from_millis(5)),
+            io,
             id,
         };
 
