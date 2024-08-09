@@ -46,7 +46,7 @@ impl Orbita2dController {
         orientation_limits: Option<[AngleLimit; 2]>,
         firmware_zero: Option<bool>,
     ) -> Result<Self> {
-        let io = match PoulpeRemoteClient::connect(url.parse()?, vec![id], Duration::from_secs_f32(0.001)){
+        let io = match PoulpeRemoteClient::connect(url.parse()?, vec![id], Duration::from_secs_f32(0.002)){
             Ok(io) => io,
             Err(e) => {
                 error!("Error while connecting to the PoulpeRemoteClient: {:?}", e);
