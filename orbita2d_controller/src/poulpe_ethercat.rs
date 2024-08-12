@@ -46,13 +46,18 @@ impl Orbita2dController {
         orientation_limits: Option<[AngleLimit; 2]>,
         firmware_zero: Option<bool>,
     ) -> Result<Self> {
-        let io = match PoulpeRemoteClient::connect(url.parse()?, vec![id], Duration::from_secs_f32(0.002)){
+        let mut io = match PoulpeRemoteClient::connect(url.parse()?, vec![id], Duration::from_secs_f32(0.002)){
             Ok(io) => io,
             Err(e) => {
                 error!("Error while connecting to the PoulpeRemoteClient: {:?}", e);
                 return Err("Error while connecting to the PoulpeRemoteClient".into());
             }
         };
+
+        // set the initial velocity and torque limit to 100%
+        io.set_velocity_limit(id, [1.0;2].to_vec());
+        io.set_torque_limit(id, [1.0;2].to_vec());
+
         let mut poulpe_controller = Orbita2dPoulpeEthercatController {
             io,
             id,
@@ -206,7 +211,10 @@ impl Orbita2dMotorController for Orbita2dPoulpeEthercatController {
     }
 
     fn get_velocity_limit(&mut self) -> Result<[f64; 2]> {
-        Ok([1.0, 1.0])
+        match self.io.get_velocity_limit(self.id) {
+            Ok(limit) => Ok([limit[0] as f64, limit[1] as f64]),
+            Err(_) => Err("Error while getting velocity limit".into()),
+        }
     }
 
     fn set_velocity_limit(&mut self, velocity_limit: [f64; 2]) -> Result<()> {
@@ -219,7 +227,10 @@ impl Orbita2dMotorController for Orbita2dPoulpeEthercatController {
     }
 
     fn get_torque_limit(&mut self) -> Result<[f64; 2]> {
-        Ok([1.0, 1.0])
+        match self.io.get_torque_limit(self.id) {
+            Ok(limit) => Ok([limit[0] as f64, limit[1] as f64]),
+            Err(_) => Err("Error while getting torque limit".into()),
+        }
     }
 
     fn set_torque_limit(&mut self, torque_limit: [f64; 2]) -> Result<()> {
