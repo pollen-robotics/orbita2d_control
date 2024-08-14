@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <string>
+#include <cstdlib>
 
 #include "rclcpp/clock.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -278,7 +279,11 @@ Orbita2dSystem::export_state_interfaces()
       joint.name, hardware_interface::HW_IF_EFFORT, &hw_states_effort_[i]));
   }
 
-  for (std::size_t i = 0; i < 3; i++) 
+  // motor index (not corresponding to the GPIO index)
+  size_t motor_index = 0;
+
+  // be careful GPIO index != motor or actuator index
+  for (std::size_t i = 0; i < info_.gpios.size(); i++) 
   {
     auto gpio = info_.gpios[i];
 
@@ -292,17 +297,20 @@ Orbita2dSystem::export_state_interfaces()
       );
     } else if (gpio.name.find("raw_motor") != std::string::npos) {
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-        gpio.name, "temperature", &hw_states_temperature_[i]));
+        gpio.name, "temperature", &hw_states_temperature_[motor_index]));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-        gpio.name, "torque_limit", &hw_states_torque_limit_[i]));
+        gpio.name, "torque_limit", &hw_states_torque_limit_[motor_index]));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-        gpio.name, "speed_limit", &hw_states_speed_limit_[i]));
+        gpio.name, "speed_limit", &hw_states_speed_limit_[motor_index]));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-        gpio.name, "p_gain", &hw_states_p_gain_[i]));
+        gpio.name, "p_gain", &hw_states_p_gain_[motor_index]));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-        gpio.name, "i_gain", &hw_states_i_gain_[i]));
+        gpio.name, "i_gain", &hw_states_i_gain_[motor_index]));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-        gpio.name, "d_gain", &hw_states_d_gain_[i]));
+        gpio.name, "d_gain", &hw_states_d_gain_[motor_index]));
+
+      // next motor   
+      motor_index++;
 
       RCLCPP_INFO(
         rclcpp::get_logger("Orbita2dSystem"),
@@ -314,6 +322,14 @@ Orbita2dSystem::export_state_interfaces()
         "Unkwon state interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str()
       );
     }
+  }
+
+  if (motor_index != 2){
+    RCLCPP_ERROR(
+      rclcpp::get_logger("Orbita2dSystem"),
+      "Orbita3d HWI: Number of motors not correct: expected 2 found %d! Stopping operation!", motor_index
+      );
+      std::abort();
   }
 
   return state_interfaces;
@@ -332,7 +348,11 @@ Orbita2dSystem::export_command_interfaces()
       joint.name, hardware_interface::HW_IF_POSITION, &hw_commands_position_[i]));
   }
 
-  for (std::size_t i = 0; i < 3; i++)
+  // motor index (not corresponding to the GPIO index)
+  size_t motor_index = 0;
+
+  // be careful GPIO index != motor or actuator index
+  for (std::size_t i = 0; i < info_.gpios.size(); i++)
   {
     auto gpio = info_.gpios[i];
 
@@ -346,16 +366,19 @@ Orbita2dSystem::export_command_interfaces()
 
     } else if (gpio.name.find("raw_motor") != std::string::npos) {
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        gpio.name, "speed_limit", &hw_commands_speed_limit_[i]));
+        gpio.name, "speed_limit", &hw_commands_speed_limit_[motor_index]));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        gpio.name, "torque_limit", &hw_commands_torque_limit_[i]));
+        gpio.name, "torque_limit", &hw_commands_torque_limit_[motor_index]));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        gpio.name, "p_gain", &hw_commands_p_gain_[i]));
+        gpio.name, "p_gain", &hw_commands_p_gain_[motor_index]));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        gpio.name, "i_gain", &hw_commands_i_gain_[i]));
+        gpio.name, "i_gain", &hw_commands_i_gain_[motor_index]));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        gpio.name, "d_gain", &hw_commands_d_gain_[i]));
+        gpio.name, "d_gain", &hw_commands_d_gain_[motor_index]));
 
+      // next motor   
+      motor_index++;
+      
       RCLCPP_INFO(
         rclcpp::get_logger("Orbita2dSystem"),
         "export command interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str()

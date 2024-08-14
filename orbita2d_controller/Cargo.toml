@@ -20,3 +20,4 @@ serde = { version = "1.0.171", features = ["derive"] }
 log = { version = "0.4.20", features = ["max_level_debug", "release_max_level_warn"] }
 env_logger = "0.9.0"
 timeit = "0.1.2"
+poulpe_ethercat_grpc = { path = "/home/reachy/dev/poulpe_ethercat_controller/poulpe_ethercat_grpc" }

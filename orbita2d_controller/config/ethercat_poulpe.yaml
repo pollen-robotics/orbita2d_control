@@ -1,0 +1,14 @@
+!PoulpeEthercat
+url: http://127.0.0.1:50098
+id: 1
+firmware_zero: true
+motors_offset:
+  - 0 
+  - 0 
+motors_ratio:
+  - 1.0
+  - 1.0
+inverted_axes:
+  - false
+  - false
+orientation_limits: null

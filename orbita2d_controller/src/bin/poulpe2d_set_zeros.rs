@@ -9,18 +9,18 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// tty
-    #[arg(short, long, default_value = "config/dxl_poulpe2d.yaml")]
-    configfile: String,
+    #[arg(default_value="config/dxl_poulpe2d.yaml")]
+    configfile: Option<String>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
     let args = Args::parse();
 
-    log::info!("Config file: {}", args.configfile);
+    let configfile = args.configfile.unwrap();
+    log::info!("Config file: {}", configfile);
 
-    let mut controller = Orbita2dController::with_config(&args.configfile)?;
+    let mut controller = Orbita2dController::with_config(&configfile)?;
 
     let res = controller.is_torque_on();
     match res {
