@@ -9,7 +9,7 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    #[arg(default_value="config/dxl_poulpe2d.yaml")]
+    #[arg(short, long, default_value = "config/dxl_poulpe2d.yaml")]
     configfile: Option<String>,
 }
 
