@@ -11,8 +11,8 @@ use rustypot::{
 use serialport::TTYPort;
 
 use crate::{AngleLimit, Orbita2dController, Orbita2dFeedback, Orbita2dMotorController};
+use motor_toolbox_rs::MissingResisterErrror;
 use motor_toolbox_rs::{Result, PID};
-
 /// Orbita serial controller
 struct Orbita2dPoulpeSerialController {
     serial_port: Box<TTYPort>,
