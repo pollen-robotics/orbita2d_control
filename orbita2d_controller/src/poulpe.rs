@@ -217,13 +217,21 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
     }
 
     fn get_current_velocity(&mut self) -> Result<[f64; 2]> {
-        orbita2d_poulpe::read_current_velocity(&self.io, self.serial_port.as_mut(), self.id)
-            .map(|val| [val.motor_a as f64, val.motor_b as f64])
+        // orbita2d_poulpe::read_current_velocity(&self.io, self.serial_port.as_mut(), self.id)
+        //     .map(|val| [val.motor_a as f64, val.motor_b as f64])
+        // Ok([f64::NAN, f64::NAN])
+        Err(Box::new(MissingResisterErrror(
+            "current_velocity".to_string(),
+        )))
     }
 
     fn get_current_torque(&mut self) -> Result<[f64; 2]> {
-        orbita2d_poulpe::read_current_torque(&self.io, self.serial_port.as_mut(), self.id)
-            .map(|val| [val.motor_a as f64, val.motor_b as f64])
+        // orbita2d_poulpe::read_current_torque(&self.io, self.serial_port.as_mut(), self.id)
+        //     .map(|val| [val.motor_a as f64, val.motor_b as f64])
+        // Ok([f64::NAN, f64::NAN])
+        Err(Box::new(MissingResisterErrror(
+            "current_torque".to_string(),
+        )))
     }
 
     fn get_target_position(&mut self) -> Result<[f64; 2]> {
@@ -277,74 +285,90 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
     }
 
     fn get_velocity_limit(&mut self) -> Result<[f64; 2]> {
-        orbita2d_poulpe::read_velocity_limit(&self.io, self.serial_port.as_mut(), self.id)
-            .map(|val| [val.motor_a as f64, val.motor_b as f64])
+        // orbita2d_poulpe::read_velocity_limit(&self.io, self.serial_port.as_mut(), self.id)
+        //     .map(|val| [val.motor_a as f64, val.motor_b as f64])
+        // Ok([f64::NAN, f64::NAN])
+        Err(Box::new(MissingResisterErrror(
+            "velocity_limit".to_string(),
+        )))
     }
 
     fn set_velocity_limit(&mut self, _velocity_limit: [f64; 2]) -> Result<()> {
-        orbita2d_poulpe::write_velocity_limit(
-            &self.io,
-            self.serial_port.as_mut(),
-            self.id,
-            MotorValue {
-                motor_a: _velocity_limit[0] as f32,
-                motor_b: _velocity_limit[1] as f32,
-            },
-        )
+        // orbita2d_poulpe::write_velocity_limit(
+        //     &self.io,
+        //     self.serial_port.as_mut(),
+        //     self.id,
+        //     MotorValue {
+        //         motor_a: _velocity_limit[0] as f32,
+        //         motor_b: _velocity_limit[1] as f32,
+        //     },
+        // )
+        // Ok()
+        Err(Box::new(MissingResisterErrror(
+            "velocity_limit".to_string(),
+        )))
     }
 
     fn get_torque_limit(&mut self) -> Result<[f64; 2]> {
-        orbita2d_poulpe::read_torque_flux_limit(&self.io, self.serial_port.as_mut(), self.id)
-            .map(|val| [val.motor_a as f64, val.motor_b as f64])
+        // orbita2d_poulpe::read_torque_flux_limit(&self.io, self.serial_port.as_mut(), self.id)
+        //     .map(|val| [val.motor_a as f64, val.motor_b as f64])
+        // Ok([f64::NAN, f64::NAN])
+        Err(Box::new(MissingResisterErrror("torque_limit".to_string())))
     }
 
     fn set_torque_limit(&mut self, _torque_limit: [f64; 2]) -> Result<()> {
-        orbita2d_poulpe::write_torque_flux_limit(
-            &self.io,
-            self.serial_port.as_mut(),
-            self.id,
-            MotorValue {
-                motor_a: _torque_limit[0] as f32,
-                motor_b: _torque_limit[1] as f32,
-            },
-        )
+        // orbita2d_poulpe::write_torque_flux_limit(
+        //     &self.io,
+        //     self.serial_port.as_mut(),
+        //     self.id,
+        //     MotorValue {
+        //         motor_a: _torque_limit[0] as f32,
+        //         motor_b: _torque_limit[1] as f32,
+        //     },
+        // )
+        // Ok()
+        Err(Box::new(MissingResisterErrror("torque_limit".to_string())))
     }
 
     fn get_pid_gains(&mut self) -> Result<[PID; 2]> {
-        orbita2d_poulpe::read_position_pid(&self.io, self.serial_port.as_mut(), self.id).map(
-            |thetas| {
-                [
-                    PID {
-                        p: thetas.motor_a.p as f64,
-                        i: thetas.motor_a.i as f64,
-                        d: 0.0,
-                    },
-                    PID {
-                        p: thetas.motor_b.p as f64,
-                        i: thetas.motor_b.i as f64,
-                        d: 0.0,
-                    },
-                ]
-            },
-        )
+        // orbita2d_poulpe::read_position_pid(&self.io, self.serial_port.as_mut(), self.id).map(
+        //     |thetas| {
+        //         [
+        //             PID {
+        //                 p: thetas.motor_a.p as f64,
+        //                 i: thetas.motor_a.i as f64,
+        //                 d: 0.0,
+        //             },
+        //             PID {
+        //                 p: thetas.motor_b.p as f64,
+        //                 i: thetas.motor_b.i as f64,
+        //                 d: 0.0,
+        //             },
+        //         ]
+        //     },
+        // )
+        Err(Box::new(MissingResisterErrror("pid_gains".to_string())))
     }
 
     fn set_pid_gains(&mut self, _pid_gains: [PID; 2]) -> Result<()> {
-        orbita2d_poulpe::write_position_pid(
-            &self.io,
-            self.serial_port.as_mut(),
-            self.id,
-            MotorValue {
-                motor_a: orbita2d_poulpe::Pid {
-                    p: _pid_gains[0].p as i16,
-                    i: _pid_gains[0].i as i16,
-                },
-                motor_b: orbita2d_poulpe::Pid {
-                    p: _pid_gains[1].p as i16,
-                    i: _pid_gains[1].i as i16,
-                },
-            },
-        )
+        // orbita2d_poulpe::write_position_pid(
+        //     &self.io,
+        //     self.serial_port.as_mut(),
+        //     self.id,
+        //     MotorValue {
+        //         motor_a: orbita2d_poulpe::Pid {
+        //             p: _pid_gains[0].p as i16,
+        //             i: _pid_gains[0].i as i16,
+        //         },
+        //         motor_b: orbita2d_poulpe::Pid {
+        //             p: _pid_gains[1].p as i16,
+        //             i: _pid_gains[1].i as i16,
+        //         },
+        //     },
+        // )
+
+        // Ok()
+        Err(Box::new(MissingResisterErrror("pid_gains".to_string())))
     }
 
     fn get_board_state(&mut self) -> Result<u8> {
