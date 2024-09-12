@@ -46,7 +46,11 @@ impl Orbita2dController {
         orientation_limits: Option<[AngleLimit; 2]>,
         firmware_zero: Option<bool>,
     ) -> Result<Self> {
-        let mut io = match PoulpeRemoteClient::connect(url.parse()?, vec![id], Duration::from_secs_f32(0.002)){
+        let mut io = match PoulpeRemoteClient::connect(
+            url.parse()?,
+            vec![id],
+            Duration::from_secs_f32(0.002),
+        ) {
             Ok(io) => io,
             Err(e) => {
                 error!("Error while connecting to the PoulpeRemoteClient: {:?}", e);
@@ -55,13 +59,10 @@ impl Orbita2dController {
         };
 
         // set the initial velocity and torque limit to 100%
-        io.set_velocity_limit(id, [1.0;2].to_vec());
-        io.set_torque_limit(id, [1.0;2].to_vec());
+        io.set_velocity_limit(id, [1.0; 2].to_vec());
+        io.set_torque_limit(id, [1.0; 2].to_vec());
 
-        let mut poulpe_controller = Orbita2dPoulpeEthercatController {
-            io,
-            id,
-        };
+        let mut poulpe_controller = Orbita2dPoulpeEthercatController { io, id };
 
         info!(
             "Orbita2d PoulpeEthercatController:\n\t - url: {:?}\n\t - id: {:?}",

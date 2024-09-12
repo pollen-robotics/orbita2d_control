@@ -38,7 +38,7 @@
 //!
 //! ```
 
-use log::{debug, info};
+use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
@@ -115,7 +115,7 @@ pub enum Orbita2dConfig {
     FakeMotors(FakeConfig),
     Flipsky(FlipskyConfig),
     Poulpe(PoulpeConfig),
-    PoulpeEthercat(PoulpeEthercatConfig)
+    PoulpeEthercat(PoulpeEthercatConfig),
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -179,7 +179,13 @@ impl Orbita2dController {
 
     /// Create a Orbita2d controller with motors implementation as defined in the config file.
     pub fn with_config(configfile: &str) -> Result<Self> {
-        let f = std::fs::File::open(configfile)?;
+        let f = match std::fs::File::open(configfile) {
+            Ok(f) => f,
+            Err(e) => {
+                error!("Error opening config file: {}", configfile);
+                return Err(Box::new(e));
+            }
+        };
         info!("Loading config file: {}", configfile);
 
         let config: Orbita2dConfig = serde_yaml::from_reader(f)?;
