@@ -4,8 +4,8 @@ use std::f64::consts::PI;
 
 use log::{debug, error, info, warn};
 
-use crate::{AngleLimit, Orbita2dController, Orbita2dFeedback, Orbita2dMotorController};
-use motor_toolbox_rs::{Result, PID};
+use crate::{Orbita2dController, Orbita2dFeedback, Orbita2dMotorController};
+use motor_toolbox_rs::{Limit, MotorsController, Result, PID};
 
 use poulpe_ethercat_grpc::client::PoulpeRemoteClient;
 
@@ -25,7 +25,7 @@ pub struct PoulpeEthercatConfig {
     /// Motors axes inverted [motor_a, motor_b]
     pub inverted_axes: [bool; 2],
     /// Orientation limits [motor_a, motor_b] (expressed in the corrected motor reference frame - after offset and inversion)
-    pub orientation_limits: Option<[AngleLimit; 2]>,
+    pub orientation_limits: Option<[Limit; 2]>,
     /// Hardware zeros already set in the firmware
     pub firmware_zero: Option<bool>,
 }
@@ -43,10 +43,14 @@ impl Orbita2dController {
         motors_offset: [f64; 2],
         motors_ratio: [f64; 2],
         inverted_axes: [bool; 2],
-        orientation_limits: Option<[AngleLimit; 2]>,
+        orientation_limits: Option<[Limit; 2]>,
         firmware_zero: Option<bool>,
     ) -> Result<Self> {
-        let mut io = match PoulpeRemoteClient::connect(url.parse()?, vec![id], Duration::from_secs_f32(0.002)){
+        let mut io = match PoulpeRemoteClient::connect(
+            url.parse()?,
+            vec![id],
+            Duration::from_secs_f32(0.002),
+        ) {
             Ok(io) => io,
             Err(e) => {
                 error!("Error while connecting to the PoulpeRemoteClient: {:?}", e);
@@ -55,13 +59,10 @@ impl Orbita2dController {
         };
 
         // set the initial velocity and torque limit to 100%
-        io.set_velocity_limit(id, [1.0;2].to_vec());
-        io.set_torque_limit(id, [1.0;2].to_vec());
+        io.set_velocity_limit(id, [1.0; 2].to_vec());
+        io.set_torque_limit(id, [1.0; 2].to_vec());
 
-        let mut poulpe_controller = Orbita2dPoulpeEthercatController {
-            io,
-            id,
-        };
+        let mut poulpe_controller = Orbita2dPoulpeEthercatController { io, id };
 
         info!(
             "Orbita2d PoulpeEthercatController:\n\t - url: {:?}\n\t - id: {:?}",
@@ -129,8 +130,9 @@ impl Orbita2dController {
 }
 
 impl Orbita2dMotorController for Orbita2dPoulpeEthercatController {
-    fn name(&self) -> &'static str {
-        "PoulpeEthercatController"
+    // impl MotorsController<2> for Orbita2dPoulpeEthercatController {
+    fn name(&self) -> String {
+        "PoulpeEthercatController (Orbita2d)".to_string()
     }
 
     fn is_torque_on(&mut self) -> Result<[bool; 2]> {
