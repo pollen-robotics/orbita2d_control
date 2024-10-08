@@ -9,9 +9,10 @@ use std::{ffi::CStr, sync::Mutex};
 
 static UID: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
 static CONTROLLER: Lazy<SyncMap<u32, Orbita2dController>> = Lazy::new(SyncMap::new);
-
+use log::debug;
 fn print_error(e: Box<dyn std::error::Error>) {
-    eprintln!("[ORBITA_2D] {:?}", e);
+    // eprintln!("[ORBITA_2D] {:?}", e);
+    log::debug!("[ORBITA_2D] Error: {:?}", e);
 }
 
 #[no_mangle]
