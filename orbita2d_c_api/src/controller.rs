@@ -1,7 +1,10 @@
 use crate::sync_map::SyncMap;
+use motor_toolbox_rs::Limit;
 use motor_toolbox_rs::PID;
+
 use once_cell::sync::Lazy;
-use orbita2d_controller::{AngleLimit, Orbita2dController};
+use orbita2d_controller::Orbita2dController;
+
 use std::{ffi::CStr, sync::Mutex};
 
 static UID: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
@@ -34,14 +37,8 @@ pub extern "C" fn orbita2d_controller_with_flipsky_serial(
     let serial_port_b = unsafe { CStr::from_ptr(serial_port_b) }.to_str().unwrap();
 
     let orientation_limits = Some([
-        AngleLimit {
-            min: lower_limit_a,
-            max: upper_limit_a,
-        },
-        AngleLimit {
-            min: lower_limit_b,
-            max: upper_limit_b,
-        },
+        Limit::new(lower_limit_a, upper_limit_a),
+        Limit::new(lower_limit_b, upper_limit_b),
     ]);
 
     match Orbita2dController::with_flipsky_serial(
