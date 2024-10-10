@@ -10,8 +10,8 @@ use rustypot::{
 };
 use serialport::TTYPort;
 
-use crate::{AngleLimit, Orbita2dController, Orbita2dFeedback, Orbita2dMotorController};
-use motor_toolbox_rs::{Result, PID};
+use crate::{Orbita2dController, Orbita2dFeedback, Orbita2dMotorController};
+use motor_toolbox_rs::{Limit, Result, PID};
 
 /// Orbita serial controller
 struct Orbita2dPoulpeSerialController {
@@ -41,7 +41,7 @@ impl Orbita2dController {
         motors_offset: [f64; 2],
         motors_ratio: [f64; 2],
         inverted_axes: [bool; 2],
-        orientation_limits: Option<[AngleLimit; 2]>,
+        orientation_limits: Option<[Limit; 2]>,
         use_cache: bool,
         firmware_zero: Option<bool>,
     ) -> Result<Self> {
@@ -190,8 +190,8 @@ impl Orbita2dController {
 // }
 
 impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
-    fn name(&self) -> &'static str {
-        "PoulpeSerialController"
+    fn name(&self) -> String {
+        "PoulpeSerialController".to_string()
     }
 
     fn is_torque_on(&mut self) -> Result<[bool; 2]> {
@@ -357,8 +357,8 @@ impl Orbita2dMotorController for Orbita2dPoulpeSerialController {
 }
 
 impl Orbita2dMotorController for Orbita2dPoulpeSerialCachedController {
-    fn name(&self) -> &'static str {
-        "PoulpeSerialCachedController"
+    fn name(&self) -> String {
+        "PoulpeSerialCachedController".to_string()
     }
 
     fn is_torque_on(&mut self) -> Result<[bool; 2]> {

@@ -1,6 +1,6 @@
-use crate::{
-    AngleLimit, Orbita2dController, Orbita2dFeedback, Orbita2dMotorController, Result, PID,
-};
+use crate::{Orbita2dController, Orbita2dFeedback, Orbita2dMotorController};
+use motor_toolbox_rs::{Limit, Result, PID};
+
 use cache_cache::Cache;
 use log::info;
 use std::time::Duration;
@@ -44,7 +44,7 @@ pub struct FlipskyConfig {
     /// Motors axes inverted [motor_a, motor_b]
     pub inverted_axes: [bool; 2],
     /// Orientation limits [motor_a, motor_b] (expressed in the corrected motor reference frame - after offset and inversion)
-    pub orientation_limits: Option<[AngleLimit; 2]>,
+    pub orientation_limits: Option<[Limit; 2]>,
     /// Use cache or not
     pub use_cache: bool,
 }
@@ -74,7 +74,7 @@ impl Orbita2dController {
     /// * `motors_ratio` - An array of the ratio for each motor (motor_a, motor)b.
     /// * `motors_offset` - An array of the offset for each motor (motor_a, motor_b).
     /// * `motor_axes_inverted` - An array of boolean to invert the direction of each motor (motor_a, motor_b).
-    /// * `orientation_limits` - An option array of the `AngleLimit` for each motor (motor_a, motor_b). The limits is expressed in the corrected motor reference frame (after offset and inversion)
+    /// * `orientation_limits` - An option array of the `Limit` for each motor (motor_a, motor_b). The limits is expressed in the corrected motor reference frame (after offset and inversion)
     /// * `use_cache` - A boolean to enable/disable cache.
     pub fn with_flipsky_serial(
         serial_port_names: (&str, &str),
@@ -82,7 +82,7 @@ impl Orbita2dController {
         motors_offset: [f64; 2],
         motors_ratio: [f64; 2],
         inverted_axes: [bool; 2],
-        orientation_limits: Option<[AngleLimit; 2]>,
+        orientation_limits: Option<[Limit; 2]>,
         use_cache: bool,
     ) -> Result<Self> {
         let serial_controller = Orbita2dFlipskySerialController {
@@ -127,8 +127,8 @@ impl Orbita2dController {
 }
 
 impl Orbita2dMotorController for Orbita2dFlipskySerialController {
-    fn name(&self) -> &'static str {
-        "FlipskySerialController"
+    fn name(&self) -> String {
+        "FlipskySerialController (Orbita2d)".to_string()
     }
 
     fn is_torque_on(&mut self) -> Result<[bool; 2]> {
@@ -371,8 +371,8 @@ impl Orbita2dMotorController for Orbita2dFlipskySerialController {
 }
 
 impl Orbita2dMotorController for Orbita2dFlipskySerialCachedController {
-    fn name(&self) -> &'static str {
-        "FlipskySerialCachedController"
+    fn name(&self) -> String {
+        "FlipskySerialCachedController (Orbita2d)".to_string()
     }
 
     fn is_torque_on(&mut self) -> Result<[bool; 2]> {
