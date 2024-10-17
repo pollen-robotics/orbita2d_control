@@ -35,24 +35,23 @@ forward_position_controller:
 forward_torque_controller:
   ros__parameters:
     joints:
-      - shoulder_pitch
-      - shoulder_roll
+      - shoulder
     interface_name: torque
     use_sim_time: false
 
 forward_torque_limit_controller:
   ros__parameters:
     joints:
-      - shoulder_pitch
-      - shoulder_roll
+      - shoulder_raw_motor_1
+      - shoulder_raw_motor_1
     interface_name: torque_limit
     use_sim_time: false
 
 forward_speed_limit_controller:
   ros__parameters:
     joints:
-      - shoulder_pitch
-      - shoulder_roll
+      - shoulder_raw_motor_1
+      - shoulder_raw_motor_1
     interface_name: speed_limit
     use_sim_time: false
 
@@ -60,6 +59,6 @@ forward_speed_limit_controller:
 forward_pid_controller:
   ros__parameters:
     joints:
-      - shoulder_pitch
-      - shoulder_roll
+      - shoulder_raw_motor_1
+      - shoulder_raw_motor_1
     use_sim_time: false
