@@ -491,6 +491,14 @@ namespace orbita2d_system_hwi
 
     //   );
 
+
+    // check if turn on and if yes make sure to reset the target to the current position
+    if ( (hw_commands_torque_ != 0)  && (hw_commands_torque_ != hw_states_torque_))
+    {
+      hw_commands_position_[0] = hw_states_position_[0];
+      hw_commands_position_[1] = hw_states_position_[1];
+    }
+
     if (orbita2d_set_target_orientation(this->uid, &hw_commands_position_) != 0)
     {
       // ret=hardware_interface::return_type::ERROR;
