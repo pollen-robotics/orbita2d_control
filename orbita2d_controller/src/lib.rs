@@ -314,24 +314,25 @@ impl Orbita2dController {
         let torque = self.inner.get_current_torque()?;
         debug!(target: &self.log_target(), "get_current_torque: {:?}", torque);
 
-        let oriented_torque = self.kinematics.compute_output_torque(torque);
-        debug!(target: &self.log_target(), "get_current_torque (with kinematics): {:?}", oriented_torque);
+        // let oriented_torque = self.kinematics.compute_output_torque(torque);
+        // debug!(target: &self.log_target(), "get_current_torque (with kinematics): {:?}", oriented_torque);
 
-        let oriented_torque = [
-            if self.inverted_axes[0] {
-                -oriented_torque[0]
-            } else {
-                oriented_torque[0]
-            },
-            if self.inverted_axes[1] {
-                -oriented_torque[1]
-            } else {
-                oriented_torque[1]
-            },
-        ];
-        debug!(target: &self.log_target(), "get_current_torque (with inverted axes): {:?}", oriented_torque);
+        // let oriented_torque = [
+        //     if self.inverted_axes[0] {
+        //         -oriented_torque[0]
+        //     } else {
+        //         oriented_torque[0]
+        //     },
+        //     if self.inverted_axes[1] {
+        //         -oriented_torque[1]
+        //     } else {
+        //         oriented_torque[1]
+        //     },
+        // ];
+        // debug!(target: &self.log_target(), "get_current_torque (with inverted axes): {:?}", oriented_torque);
 
-        Ok(oriented_torque)
+        // Ok(oriented_torque)
+        Ok(torque)
     }
 
     /// Get the desired orientation [ring, center] (in radians)
