@@ -9,6 +9,6 @@ if len(sys.argv) != 2:
 
 df = pd.read_csv(sys.argv[1])
 
-df.plot(x='timestamp', y=['present_roll','present_pitch','present_yaw'])
+df.plot(x='timestamp', y=['present_axis0','present_axis1'])
 
 plt.show()

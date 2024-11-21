@@ -1,4 +1,4 @@
-timestamp,torque_on,target_axe0,target_axe1,velocity_limit_A,velocity_limit_B,torque_limit_A,torque_limit_B
+timestamp,torque_on,target_axis0,target_axis1,velocity_limit_A,velocity_limit_B,torque_limit_A,torque_limit_B
 0.0,true,0.0,0.0,1.0,1.0,0.5,0.5
 0.5,true,0.0,0.1,1.0,1.0,0.5,0.5
 1.0,true,0.0,0.0,1.0,1.0,0.5,0.5

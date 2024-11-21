@@ -34,8 +34,8 @@ struct Args {
 struct Input {
     timestamp: f64,
     torque_on: bool,
-    target_axe0: f64,
-    target_axe1: f64,
+    target_axis0: f64,
+    target_axis1: f64,
     velocity_limit_A: f64,
     velocity_limit_B: f64,
     torque_limit_A: f64,
@@ -46,14 +46,14 @@ struct Input {
 struct Output {
     timestamp: f64,
     torque_on: bool,
-    present_axe0: f64,
-    present_axe1: f64,
-    present_velocity_axe0: f64,
-    present_velocity_axe1: f64,
-    present_torque_axe0: f64,
-    present_torque_axe1: f64,
-    axis_senror_axe0: f64,
-    axis_senror_axe1: f64,
+    present_axis0: f64,
+    present_axis1: f64,
+    present_velocity_axis0: f64,
+    present_velocity_axis1: f64,
+    present_torque_axis0: f64,
+    present_torque_axis1: f64,
+    axis_senror_axis0: f64,
+    axis_senror_axis1: f64,
     board_state: u8,
 }
 
@@ -121,14 +121,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         output_csv.serialize(Output {
             timestamp: t,
             torque_on: torque,
-            present_axe0: curr_ori[0],
-            present_axe1: curr_ori[1],
-            present_velocity_axe0: curr_vel[0],
-            present_velocity_axe1: curr_vel[1],
-            present_torque_axe0: curr_torque[0],
-            present_torque_axe1: curr_torque[1],
-            axis_senror_axe0: curr_axis[0],
-            axis_senror_axe1: curr_axis[1],
+            present_axis0: curr_ori[0],
+            present_axis1: curr_ori[1],
+            present_velocity_axis0: curr_vel[0],
+            present_velocity_axis1: curr_vel[1],
+            present_torque_axis0: curr_torque[0],
+            present_torque_axis1: curr_torque[1],
+            axis_senror_axis0: curr_axis[0],
+            axis_senror_axis1: curr_axis[1],
             board_state: curr_state,
         })?;
         output_csv.flush()?;
@@ -143,7 +143,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             controller.disable_torque()?;
         }
         controller
-            .set_target_orientation([input_csv_data.target_axe0, input_csv_data.target_axe1])?;
+            .set_target_orientation([input_csv_data.target_axis0, input_csv_data.target_axis1])?;
 
         controller.set_raw_motors_velocity_limit([
             input_csv_data.velocity_limit_A,
@@ -165,29 +165,29 @@ fn main() -> Result<(), Box<dyn Error>> {
             rec.log("target/board_state", &rerun::Scalar::new(curr_state as f64))?;
 
             rec.log(
-                "position/target/axe0",
-                &rerun::Scalar::new(input_csv_data.target_axe0),
+                "position/target/axis0",
+                &rerun::Scalar::new(input_csv_data.target_axis0),
             )?;
             rec.log(
-                "position/target/axe1",
-                &rerun::Scalar::new(input_csv_data.target_axe1),
+                "position/target/axis1",
+                &rerun::Scalar::new(input_csv_data.target_axis1),
             )?;
 
-            rec.log("position/present/axe0", &rerun::Scalar::new(curr_ori[0]))?;
-            rec.log("position/present/axe1", &rerun::Scalar::new(curr_ori[1]))?;
+            rec.log("position/present/axis0", &rerun::Scalar::new(curr_ori[0]))?;
+            rec.log("position/present/axis1", &rerun::Scalar::new(curr_ori[1]))?;
 
-            rec.log("velocity/present/axe0", &rerun::Scalar::new(curr_vel[0]))?;
-            rec.log("velocity/present/axe1", &rerun::Scalar::new(curr_vel[1]))?;
+            rec.log("velocity/present/axis0", &rerun::Scalar::new(curr_vel[0]))?;
+            rec.log("velocity/present/axis1", &rerun::Scalar::new(curr_vel[1]))?;
 
-            rec.log("torque/present/axe0", &rerun::Scalar::new(curr_torque[0]))?;
-            rec.log("torque/present/axe1", &rerun::Scalar::new(curr_torque[1]))?;
+            rec.log("torque/present/axis0", &rerun::Scalar::new(curr_torque[0]))?;
+            rec.log("torque/present/axis1", &rerun::Scalar::new(curr_torque[1]))?;
 
             rec.log(
-                "position/axis_sensor/axe0",
+                "position/axis_sensor/axis0",
                 &rerun::Scalar::new(curr_axis[0]),
             )?;
             rec.log(
-                "position/axis_sensor/axe1",
+                "position/axis_sensor/axis1",
                 &rerun::Scalar::new(curr_axis[1]),
             )?;
 
