@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{Orbita2dController, Orbita2dFeedback, Orbita2dMotorController, PID};
+use crate::{Orbita2dController, Orbita2dFeedback, Orbita2dMotorController};
+use motor_toolbox_rs::{Limit, Result, PID};
 
 /// Fake motors implementation, only used for testing
 struct FakeMotors {
@@ -12,6 +13,8 @@ struct FakeMotors {
 
     target_position: [f64; 2],
 
+    orientation_limits: Option<[Limit; 2]>,
+
     velocity_limit: [f64; 2],
     torque_limit: [f64; 2],
     pid_gains: [PID; 2],
@@ -21,6 +24,9 @@ struct FakeMotors {
 pub struct FakeConfig {
     /// Inverted axes [ring, center]
     pub inverted_axes: [bool; 2],
+    pub motors_ratio: [f64; 2],
+    pub motors_offset: [f64; 2],
+    pub orientation_limits: Option<[Limit; 2]>,
 }
 
 impl Default for FakeMotors {
@@ -33,7 +39,7 @@ impl Default for FakeMotors {
             current_torque: [f64::NAN, f64::NAN],
 
             target_position: [0.0, 0.0],
-
+            orientation_limits: None,
             velocity_limit: [f64::INFINITY, f64::INFINITY],
             torque_limit: [f64::INFINITY, f64::INFINITY],
             pid_gains: [
@@ -61,20 +67,20 @@ impl Orbita2dController {
     /// More precisely, the motors current position directly teleports to the target when the torque is on.
     ///
     /// Other registers such as velocity, torque, limits, pid gains are not supported in this version.
-    pub fn with_fake_motors(motors_axes_inverted: [bool; 2]) -> Self {
+    pub fn with_fake_motors(motors_axes_inverted: [bool; 2], limits: Option<[Limit; 2]>) -> Self {
         Self::new(
             Box::<FakeMotors>::default(),
             [1.0, 1.0],
             [0.0, 0.0],
             motors_axes_inverted,
-            None,
+            limits,
         )
     }
 }
 
 impl Orbita2dMotorController for FakeMotors {
-    fn name(&self) -> &'static str {
-        "FakeMotors"
+    fn name(&self) -> String {
+        "FakeMotors (Orbita2d)".to_string()
     }
 
     fn is_torque_on(&mut self) -> crate::Result<[bool; 2]> {
@@ -98,7 +104,7 @@ impl Orbita2dMotorController for FakeMotors {
     }
 
     fn get_axis_sensors(&mut self) -> crate::Result<[f64; 2]> {
-        Ok([0.0, 0.0]) //TODO
+        Ok(self.current_position)
     }
 
     fn get_current_velocity(&mut self) -> crate::Result<[f64; 2]> {
@@ -187,6 +193,15 @@ mod tests {
         inverted_axes:
             - false
             - false
+        motors_ratio:
+            - 1.0
+            - 1.0
+        motors_offset:
+            - 0.0
+            - 0.0
+        orientation_limits:
+            - {min: 0.0, max: 1.0}
+            - {min: 0.0, max: 1.0}
         ";
 
         let config: Result<Orbita2dConfig, _> = serde_yaml::from_str(s);
