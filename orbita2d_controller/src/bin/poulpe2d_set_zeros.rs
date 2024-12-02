@@ -52,11 +52,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let avg1 = axis1.iter().sum::<f64>() / 10.0;
     let avg2 = axis2.iter().sum::<f64>() / 10.0;
 
-    println!("Zeros to write to the yaml config");
-    println!();
-    println!("motors_offset:");
-    println!(" - {}", avg1);
-    println!(" - {}", avg2);
+    //println!("Zeros to write to the yaml config");
+    //println!();
+    println!("ZEROS:");
+    println!(" - AXIS 1: {}", avg1);
+    println!(" - AXIS 2: {}", avg2);
 
     Ok(())
 }
