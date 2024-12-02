@@ -17,7 +17,7 @@
 //!
 //! ## Communication
 //! - [x] Flipsky Serial communication
-//! - [ ] EtherCAT communication
+//! - [x] EtherCAT communication
 //!
 //! ## Usage
 //! ```no_run
@@ -511,6 +511,26 @@ impl Orbita2dController {
         self.inner.set_pid_gains(pid_gains)
     }
 
+    /// Get the current reading (mA) of each raw motor [motor_a, motor_b]
+    /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
+    pub fn get_raw_motors_current(&mut self) -> Result<[f64; 2]> {
+        debug!(target: &self.log_target(), "get_raw_motors_current");
+        self.inner.get_current_torque()
+    }
+
+    /// Get the velocity (rad/s) of each raw motor [motor_a, motor_b]
+    /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
+    pub fn get_raw_motors_velocity(&mut self) -> Result<[f64; 2]> {
+        debug!(target: &self.log_target(), "get_raw_motors_velocity");
+        self.inner.get_current_velocity()
+    }
+
+    /// Get the temperature (°C) of each raw motor [motor_a, motor_b]
+    pub fn get_raw_motors_temperature(&mut self) -> Result<[f64; 2]> {
+        debug!(target: &self.log_target(), "get_raw_motors_temperature");
+        self.inner.get_current_temperature()
+    }
+
     pub fn get_axis_sensors(&mut self) -> Result<[f64; 2]> {
         debug!(target: &self.log_target(), "get_axis_sensors");
         self.inner.get_axis_sensors()
@@ -551,7 +571,7 @@ pub trait Orbita2dMotorController {
     fn get_axis_sensors(&mut self) -> Result<[f64; 2]>;
     /// Read the current velocity (in radians/s) of each motor [motor_a, motor_b]
     fn get_current_velocity(&mut self) -> Result<[f64; 2]>;
-    /// Read the current torque (in Nm) of each motor [motor_a, motor_b]
+    /// Read the current torque (in fact, the current in mA) of each motor [motor_a, motor_b]
     fn get_current_torque(&mut self) -> Result<[f64; 2]>;
     /// Read the target position (in radians) of each motor [motor_a, motor_b]
     fn get_target_position(&mut self) -> Result<[f64; 2]>;
@@ -575,6 +595,10 @@ pub trait Orbita2dMotorController {
     fn get_board_state(&mut self) -> Result<u8>;
     /// Set the BoardState
     fn set_board_state(&mut self, state: u8) -> Result<()>;
+    // Get the motors temperature
+    fn get_current_temperature(&mut self) -> Result<[f64; 2]> {
+        Err("get_current_temperature not implemented yet".into())
+    }
 }
 
 #[cfg(test)]

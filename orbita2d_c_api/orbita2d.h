@@ -56,6 +56,10 @@ uint32_t orbita2d_get_raw_motors_pid_gains(uint32_t uid, double (*pids)[6]);
 
 uint32_t orbita2d_set_raw_motors_pid_gains(uint32_t uid, const double (*pids)[6]);
 
+int32_t orbita2d_get_board_state(uint32_t uid, uint8_t *state);
+
+int32_t orbita2d_set_board_state(uint32_t uid, const uint8_t *state);
+
 int32_t orbita2d_forward_position(double ratio_a,
                                   double ratio_b,
                                   double angle_a,
