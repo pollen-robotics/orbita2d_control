@@ -47,7 +47,7 @@ pub use flipsky_serial::FlipskyConfig;
 use orbita2d_kinematics::Orbita2dKinematicsModel;
 
 pub use motor_toolbox_rs::Limit;
-use motor_toolbox_rs::{FakeMotorsController, MotorsController, Result, PID};
+use motor_toolbox_rs::{Result, PID};
 
 /// Result generic wrapper using `std::error::Error` trait
 // pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -528,7 +528,7 @@ impl Orbita2dController {
     /// Get the temperature (°C) of each raw motor [motor_a, motor_b]
     pub fn get_raw_motors_temperature(&mut self) -> Result<[f64; 2]> {
         debug!(target: &self.log_target(), "get_raw_motors_temperature");
-        self.inner.get_current_temperature()
+        self.inner.get_motors_temperature()
     }
 
     pub fn get_axis_sensors(&mut self) -> Result<[f64; 2]> {
@@ -596,8 +596,8 @@ pub trait Orbita2dMotorController {
     /// Set the BoardState
     fn set_board_state(&mut self, state: u8) -> Result<()>;
     // Get the motors temperature
-    fn get_current_temperature(&mut self) -> Result<[f64; 2]> {
-        Err("get_current_temperature not implemented yet".into())
+    fn get_motors_temperature(&mut self) -> Result<[f64; 2]> {
+        Err("get_motors_temperature not implemented yet".into())
     }
 }
 

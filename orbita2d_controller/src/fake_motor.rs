@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{Orbita2dController, Orbita2dFeedback, Orbita2dMotorController};
-use motor_toolbox_rs::{Limit, Result, PID};
-
+use motor_toolbox_rs::{Limit, PID};
+#[allow(dead_code)]
 /// Fake motors implementation, only used for testing
 struct FakeMotors {
     torque_on: [bool; 2],

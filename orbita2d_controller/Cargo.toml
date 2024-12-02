@@ -9,7 +9,7 @@ edition = "2021"
 orbita2d_kinematics = { version = "0.1.0", path = "../orbita2d_kinematics" }
 cache_cache = "0.1.0"
 rustypot = { git = "https://github.com/pollen-robotics/rustypot" }
-motor_toolbox_rs = { git = "https://github.com/pollen-robotics/motor_toolbox_rs", branch = "31-orbita2d-compatibility" }
+motor_toolbox_rs = { git = "https://github.com/pollen-robotics/motor_toolbox_rs", branch = "develop" }
 serialport = "4.2.1"
 clap = "4.3.8"
 rand = "0.8.5"

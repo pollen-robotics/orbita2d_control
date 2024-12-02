@@ -317,6 +317,40 @@ pub extern "C" fn orbita2d_set_raw_motors_pid_gains(uid: u32, pids: &[f64; 6]) -
 }
 
 #[no_mangle]
+pub extern "C" fn orbita2d_get_raw_motors_current(
+    uid: u32,
+    raw_motors_current: &mut [f64; 2],
+) -> u32 {
+    match CONTROLLER.get_mut(&uid).unwrap().get_raw_motors_current() {
+        Ok(c) => {
+            *raw_motors_current = c;
+            0
+        }
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn orbita2d_get_raw_motors_velocity(
+    uid: u32,
+    raw_motors_velocity: &mut [f64; 2],
+) -> u32 {
+    match CONTROLLER.get_mut(&uid).unwrap().get_raw_motors_velocity() {
+        Ok(v) => {
+            *raw_motors_velocity = v;
+            0
+        }
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn orbita2d_get_board_state(uid: u32, state: &mut u8) -> i32 {
     match CONTROLLER.get_mut(&uid).unwrap().get_board_state() {
         Ok(s) => {

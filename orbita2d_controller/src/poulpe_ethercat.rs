@@ -5,7 +5,7 @@ use std::f64::consts::PI;
 use log::{debug, error, info, warn};
 
 use crate::{Orbita2dController, Orbita2dFeedback, Orbita2dMotorController};
-use motor_toolbox_rs::{Limit, MotorsController, Result, PID};
+use motor_toolbox_rs::{Limit, Result, PID};
 
 use poulpe_ethercat_grpc::client::PoulpeRemoteClient;
 
@@ -62,7 +62,7 @@ impl Orbita2dController {
         io.set_velocity_limit(id, [1.0; 2].to_vec());
         io.set_torque_limit(id, [1.0; 2].to_vec());
 
-        let mut poulpe_controller = Orbita2dPoulpeEthercatController { io, id };
+        let poulpe_controller = Orbita2dPoulpeEthercatController { io, id };
 
         info!(
             "Orbita2d PoulpeEthercatController:\n\t - url: {:?}\n\t - id: {:?}",
@@ -260,7 +260,7 @@ impl Orbita2dMotorController for Orbita2dPoulpeEthercatController {
         }
     }
 
-    fn set_board_state(&mut self, state: u8) -> Result<()> {
+    fn set_board_state(&mut self, _state: u8) -> Result<()> {
         Ok(())
     }
 }
