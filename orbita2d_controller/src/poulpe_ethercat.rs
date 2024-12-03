@@ -188,6 +188,32 @@ impl Orbita2dMotorController for Orbita2dPoulpeEthercatController {
         Ok(())
     }
 
+    // fn get_target_velocity(&mut self) -> Result<[f64; 2]> {
+    //     match self.io.get_target_velocity(self.id) {
+    //         Ok(vel) => Ok([vel[0] as f64, vel[1] as f64]),
+    //         Err(_) => Err("Error while getting target velocity".into()),
+    //     }
+    // }
+
+    fn set_target_velocity(&mut self, vel: [f64; 2]) -> Result<()> {
+        let target_velocity = vel.iter().map(|&x| x as f32).collect::<Vec<f32>>();
+        self.io.set_target_velocity(self.id, target_velocity);
+        Ok(())
+    }
+
+    // fn get_target_torque(&mut self) -> Result<[f64; 2]> {
+    //     match self.io.get_target_torque(self.id) {
+    //         Ok(vel) => Ok([vel[0] as f64, vel[1] as f64]),
+    //         Err(_) => Err("Error while getting target torque".into()),
+    //     }
+    // }
+
+    fn set_target_torque(&mut self, vel: [f64; 2]) -> Result<()> {
+        let target_torque = vel.iter().map(|&x| x as f32).collect::<Vec<f32>>();
+        self.io.set_target_torque(self.id, target_torque);
+        Ok(())
+    }
+
     fn set_target_position_fb(&mut self, target_position: [f64; 2]) -> Result<Orbita2dFeedback> {
         let target_position = target_position
             .iter()
@@ -209,6 +235,13 @@ impl Orbita2dMotorController for Orbita2dPoulpeEthercatController {
         match self.io.get_axis_sensors(self.id) {
             Ok(sensor) => Ok([sensor[0] as f64, sensor[1] as f64]),
             Err(_) => Err("Error while getting axis sensors".into()),
+        }
+    }
+
+    fn get_axis_sensor_zeros(&mut self) -> Result<[f64; 2]> {
+        match self.io.get_axis_sensor_zeros(self.id) {
+            Ok(sensor) => Ok([sensor[0] as f64, sensor[1] as f64]),
+            Err(_) => Err("Error while getting axis sensor zeros".into()),
         }
     }
 
@@ -262,6 +295,42 @@ impl Orbita2dMotorController for Orbita2dPoulpeEthercatController {
 
     fn set_board_state(&mut self, _state: u8) -> Result<()> {
         Ok(())
+    }
+
+    fn set_control_mode(&mut self, mode: [u8; 2]) -> Result<()> {
+        if mode[0] != mode[1] {
+            return Err("Error, invalid control mode".into());
+        }
+        self.io.set_mode_of_operation(self.id, mode[0] as u32);
+        Ok(())
+    }
+
+    fn get_control_mode(&mut self) -> Result<[u8; 2]> {
+        match self.io.get_mode_of_operation(self.id) {
+            Ok(mode) => Ok([mode as u8, mode as u8]), //It is in fact the same for each axis (TODO make it board level?)
+            Err(_) => Err("Error while getting mode of operation".into()),
+        }
+    }
+
+    fn get_error_codes(&mut self) -> Result<[i32; 2]> {
+        match self.io.get_error_codes(self.id) {
+            Ok(codes) => Ok([codes[0], codes[1]]),
+            Err(_) => Err("Error while getting error codes".into()),
+        }
+    }
+
+    fn get_motor_temperatures(&mut self) -> Result<[f64; 2]> {
+        match self.io.get_motor_temperatures(self.id) {
+            Ok(temp) => Ok([temp[0] as f64, temp[1] as f64]),
+            Err(_) => Err("Error while getting motor temperatures".into()),
+        }
+    }
+
+    fn get_board_temperatures(&mut self) -> Result<[f64; 2]> {
+        match self.io.get_board_temperatures(self.id) {
+            Ok(temp) => Ok([temp[0] as f64, temp[1] as f64]),
+            Err(_) => Err("Error while getting board temperatures".into()),
+        }
     }
 }
 

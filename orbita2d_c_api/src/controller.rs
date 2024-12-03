@@ -9,7 +9,7 @@ use std::{ffi::CStr, sync::Mutex};
 
 static UID: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
 static CONTROLLER: Lazy<SyncMap<u32, Orbita2dController>> = Lazy::new(SyncMap::new);
-use log::debug;
+// use log::debug;
 fn print_error(e: Box<dyn std::error::Error>) {
     // eprintln!("[ORBITA_2D] {:?}", e);
     log::debug!("[ORBITA_2D] Error: {:?}", e);
@@ -197,6 +197,56 @@ pub extern "C" fn orbita2d_set_target_orientation(uid: u32, pos: &[f64; 2]) -> u
 }
 
 #[no_mangle]
+pub extern "C" fn orbita2d_get_target_velocity(uid: u32, vel: &mut [f64; 2]) -> u32 {
+    match CONTROLLER.get_mut(&uid).unwrap().get_target_velocity() {
+        Ok(v) => {
+            *vel = v;
+            0
+        }
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn orbita2d_set_target_velocity(uid: u32, vel: &[f64; 2]) -> u32 {
+    match CONTROLLER.get_mut(&uid).unwrap().set_target_velocity(*vel) {
+        Ok(_) => 0,
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn orbita2d_get_target_torque(uid: u32, torque: &mut [f64; 2]) -> u32 {
+    match CONTROLLER.get_mut(&uid).unwrap().get_target_torque() {
+        Ok(t) => {
+            *torque = t;
+            0
+        }
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn orbita2d_set_target_torque(uid: u32, torque: &[f64; 2]) -> u32 {
+    match CONTROLLER.get_mut(&uid).unwrap().set_target_torque(*torque) {
+        Ok(_) => 0,
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn orbita2d_get_raw_motors_velocity_limit(
     uid: u32,
     raw_motors_velocity_limit: &mut [f64; 2],
@@ -373,6 +423,91 @@ pub extern "C" fn orbita2d_set_board_state(uid: u32, state: &u8) -> i32 {
             1
         }
     }
+}
+
+#[no_mangle]
+pub extern "C" fn orbita2d_get_error_codes(uid: u32, errors: &mut [i32; 2]) -> i32 {
+    match CONTROLLER.get_mut(&uid).unwrap().get_error_codes() {
+        Ok(c) => {
+            *errors = c;
+            0
+        }
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn orbita2d_get_motor_temperatures(uid: u32, temp: &mut [f64; 2]) -> i32 {
+    match CONTROLLER
+        .get_mut(&uid)
+        .unwrap()
+        .get_raw_motors_temperature()
+    {
+        Ok(t) => {
+            *temp = t;
+            0
+        }
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn orbita2d_get_board_temperatures(uid: u32, temp: &mut [f64; 2]) -> i32 {
+    match CONTROLLER
+        .get_mut(&uid)
+        .unwrap()
+        .get_raw_boards_temperature()
+    {
+        Ok(t) => {
+            *temp = t;
+            0
+        }
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn orbita2d_get_control_mode(uid: u32, mode: &mut u8) -> u32 {
+    match CONTROLLER.get_mut(&uid).unwrap().get_control_mode() {
+        Ok(m) => {
+            *mode = m[0];
+            0
+        }
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn orbita2d_set_control_mode(uid: u32, mode: &u8) -> u32 {
+    match CONTROLLER
+        .get_mut(&uid)
+        .unwrap()
+        .set_control_mode([*mode, *mode])
+    {
+        Ok(_) => 0,
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn orbita3d_emergency_stop(uid: u32) -> i32 {
+    CONTROLLER.get_mut(&uid).unwrap().emergency_stop();
+    0
 }
 
 fn get_available_uid() -> u32 {
