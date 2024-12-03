@@ -110,26 +110,46 @@ namespace orbita2d_system_hwi
     auto ret = CallbackReturn::SUCCESS;
 
     hw_states_torque_ = std::numeric_limits<double>::quiet_NaN();
+    loop_counter_read = 0;
+    loop_counter_write = 0;
 
     for (int i = 0; i < 2; i++)
     {
       hw_states_position_[i] = std::numeric_limits<double>::quiet_NaN();
       hw_states_velocity_[i] = std::numeric_limits<double>::quiet_NaN();
       hw_states_effort_[i] = std::numeric_limits<double>::quiet_NaN();
-      hw_states_temperature_[i] = std::numeric_limits<double>::quiet_NaN();
+
       hw_states_torque_limit_[i] = std::numeric_limits<double>::quiet_NaN();
       hw_states_speed_limit_[i] = std::numeric_limits<double>::quiet_NaN();
       hw_states_p_gain_[i] = std::numeric_limits<double>::quiet_NaN();
       hw_states_i_gain_[i] = std::numeric_limits<double>::quiet_NaN();
       hw_states_d_gain_[i] = std::numeric_limits<double>::quiet_NaN();
+
+      hw_states_motor_velocities_[i]=std::numeric_limits<double>::quiet_NaN();
+      hw_states_motor_currents_[i]=std::numeric_limits<double>::quiet_NaN();
+      hw_states_motor_temperatures_[i]=std::numeric_limits<double>::quiet_NaN();
+      hw_states_board_temperatures_[i]=std::numeric_limits<double>::quiet_NaN();
+
     }
+
+
+
+    bool initOk=false;
+    int nb_tries=1;
+
+    while(!initOk && nb_tries<5)
+    {
+      initOk=true;
+
 
     if (orbita2d_get_target_orientation(this->uid, &hw_commands_position_) != 0)
     {
       RCLCPP_ERROR(
           rclcpp::get_logger("Orbita2dSystem"),
           "Error getting target orientation");
-      ret = CallbackReturn::ERROR;
+      // ret = CallbackReturn::ERROR;
+      initOk=false;
+
     }
     bool torque_on = false;
     if (orbita2d_is_torque_on(this->uid, &torque_on) != 0)
@@ -137,7 +157,9 @@ namespace orbita2d_system_hwi
       RCLCPP_ERROR(
           rclcpp::get_logger("Orbita2dSystem"),
           "Error getting torque status");
-      ret = CallbackReturn::ERROR;
+      // ret = CallbackReturn::ERROR;
+      initOk=false;
+
     }
     hw_commands_torque_ = torque_on ? 1.0 : 0.0;
     hw_states_torque_ = torque_on ? 1.0 : 0.0;
@@ -151,7 +173,9 @@ namespace orbita2d_system_hwi
       RCLCPP_ERROR(
           rclcpp::get_logger("Orbita2dSystem"),
           "(%s) READ VELOCITY ERROR!", info_.name.c_str());
-      ret = CallbackReturn::ERROR;
+      // ret = CallbackReturn::ERROR;
+      initOk=false;
+
     }
 
     // Current torque
@@ -161,7 +185,9 @@ namespace orbita2d_system_hwi
       RCLCPP_ERROR(
           rclcpp::get_logger("Orbita2dSystem"),
           "(%s) READ CURRENT TORQUE ERROR!", info_.name.c_str());
-      ret = CallbackReturn::ERROR;
+      // ret = CallbackReturn::ERROR;
+      initOk=false;
+
     }
     // Torque limit
     if (orbita2d_get_raw_motors_torque_limit(this->uid, &hw_states_torque_limit_) != 0)
@@ -170,7 +196,9 @@ namespace orbita2d_system_hwi
       RCLCPP_ERROR(
           rclcpp::get_logger("Orbita2dSystem"),
           "(%s) READ TORQUE LIMIT ERROR!", info_.name.c_str());
-      ret = CallbackReturn::ERROR;
+      // ret = CallbackReturn::ERROR;
+      initOk=false;
+
     }
 
     // velocity limit
@@ -180,8 +208,62 @@ namespace orbita2d_system_hwi
       RCLCPP_ERROR(
           rclcpp::get_logger("Orbita2dSystem"),
           "(%s) READ SPEED LIMIT ERROR!", info_.name.c_str());
-      ret = CallbackReturn::ERROR;
+      // ret = CallbackReturn::ERROR;
+      initOk=false;
+
     }
+
+
+    // raw motors current
+    if (orbita2d_get_raw_motors_current(this->uid, &hw_states_motor_currents_) != 0)
+    {
+      RCLCPP_ERROR(
+          rclcpp::get_logger("Orbita2dSystem"),
+          "(%s) READ RAW MOTOR CURRENTS!", info_.name.c_str());
+      // ret= CallbackReturn::ERROR;
+            initOk=false;
+
+    }
+
+
+    // raw motors velocity
+    if (orbita2d_get_raw_motors_velocity(this->uid, &hw_states_motor_velocities_) != 0)
+    {
+      RCLCPP_ERROR(
+          rclcpp::get_logger("Orbita2dSystem"),
+          "(%s) READ RAW MOTOR VELOCITIES!", info_.name.c_str());
+      // ret= CallbackReturn::ERROR;
+            initOk=false;
+
+    }
+
+
+
+
+    // raw motors temperature
+    if (orbita2d_get_motor_temperatures(this->uid, &hw_states_motor_temperatures_) != 0)
+    {
+      RCLCPP_ERROR(
+          rclcpp::get_logger("Orbita2dSystem"),
+          "(%s) READ MOTOR TEPMERATURES !", info_.name.c_str());
+      // ret= CallbackReturn::ERROR;
+            initOk=false;
+
+    }
+
+
+
+    // boards temperature
+    if (orbita2d_get_board_temperatures(this->uid, &hw_states_board_temperatures_) != 0)
+    {
+      RCLCPP_ERROR(
+          rclcpp::get_logger("Orbita2dSystem"),
+          "(%s) READ BOARD TEPMERATURES !", info_.name.c_str());
+      // ret= CallbackReturn::ERROR;
+            initOk=false;
+
+    }
+
 
     // PID gains
     double pids[6];
@@ -191,7 +273,9 @@ namespace orbita2d_system_hwi
       RCLCPP_ERROR(
           rclcpp::get_logger("Orbita2dSystem"),
           "(%s) READ PID GAINS ERROR!", info_.name.c_str());
-      ret = CallbackReturn::ERROR;
+      // ret = CallbackReturn::ERROR;
+      initOk=false;
+
     }
     else
     {
@@ -225,6 +309,42 @@ namespace orbita2d_system_hwi
       hw_commands_i_gain_[i] = hw_states_i_gain_[i];
       hw_commands_d_gain_[i] = hw_states_d_gain_[i];
     }
+
+
+    hw_states_error_ = 0;
+    hw_commands_error_ = 0;
+    std::uint8_t errors = 0;
+    if (orbita2d_get_board_state(this->uid, &errors) != 0)
+    {
+      RCLCPP_ERROR(
+          rclcpp::get_logger("Orbita2dSystem"),
+          "(%s) READ BOARD STATE ERROR!", info_.name.c_str());
+      // ret= CallbackReturn::ERROR;
+            initOk=false;
+
+    }
+    hw_states_error_ = errors;
+
+
+        //wait
+    rclcpp::sleep_for(std::chrono::milliseconds(10));
+    if(!initOk && nb_tries<5)
+      RCLCPP_INFO_THROTTLE(
+          rclcpp::get_logger("Orbita3dSystem"),
+          clock_,
+          LOG_THROTTLE_DURATION,
+          "(%s) INIT FAILED! RETRY (nb_tries: %d)", info_.name.c_str(),nb_tries);
+
+    if(nb_tries==5)
+    {
+      RCLCPP_ERROR(
+          rclcpp::get_logger("Orbita2dSystem"),
+          "(%s) INIT FAILED! ABANDON!", info_.name.c_str());
+      return CallbackReturn::ERROR;
+    }
+    nb_tries++;
+    }
+
 
     this->last_timestamp_ = clock_.now();
 
@@ -279,11 +399,24 @@ namespace orbita2d_system_hwi
         RCLCPP_INFO(
             rclcpp::get_logger("Orbita2dSystem"),
             "export state interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str());
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            gpio.name, "errors", &hw_states_error_));
+
+        RCLCPP_INFO(
+            rclcpp::get_logger("Orbita2dSystem"),
+            "export state interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str());
       }
       else if (gpio.name.find("raw_motor") != std::string::npos)
       {
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            gpio.name, "temperature", &hw_states_temperature_[motor_index]));
+                                        gpio.name, "motor_temperature", &hw_states_motor_temperatures_[motor_index]));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+                                        gpio.name, "board_temperature", &hw_states_board_temperatures_[motor_index]));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+                                        gpio.name, "motor_velocities", &hw_states_motor_velocities_[motor_index]));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+                                        gpio.name, "motor_currents", &hw_states_motor_currents_[motor_index]));
+
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             gpio.name, "torque_limit", &hw_states_torque_limit_[motor_index]));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -332,6 +465,9 @@ namespace orbita2d_system_hwi
 
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
           joint.name, hardware_interface::HW_IF_POSITION, &hw_commands_position_[i]));
+      RCLCPP_INFO(
+          rclcpp::get_logger("Orbita2dSystem"),
+          "export command interface (%s) \"%s\"!", info_.name.c_str(), joint.name.c_str());
     }
 
     // motor index (not corresponding to the GPIO index)
@@ -378,6 +514,14 @@ namespace orbita2d_system_hwi
       }
     }
 
+    if (motor_index != 2)
+    {
+      RCLCPP_ERROR(
+          rclcpp::get_logger("Orbita2dSystem"),
+          "Orbita3d HWI: Number of motors not correct: expected 2 found %ld! Stopping operation!", motor_index);
+      std::abort();
+    }
+
     return command_interfaces;
   }
 
@@ -413,26 +557,26 @@ namespace orbita2d_system_hwi
     hw_states_torque_ = torque_on ? 1.0 : 0.0;
 
     // //Velocity
-    // if (orbita2d_get_current_velocity(this->uid, &hw_states_velocity_) != 0) {
+    if (orbita2d_get_current_velocity(this->uid, &hw_states_velocity_) != 0) {
 
-    //   // ret=hardware_interface::return_type::ERROR;
+      // ret=hardware_interface::return_type::ERROR;
 
-    //   RCLCPP_ERROR(
-    //     rclcpp::get_logger("Orbita2dSystem"),
-    //     "(%s) READ VELOCITY ERROR!", info_.name.c_str()
-    //     );
-    // }
+      RCLCPP_ERROR(
+        rclcpp::get_logger("Orbita2dSystem"),
+        "(%s) READ VELOCITY ERROR!", info_.name.c_str()
+        );
+    }
 
     // //Current torque
-    // if (orbita2d_get_current_torque(this->uid, &hw_states_effort_) != 0) {
+    if (orbita2d_get_current_torque(this->uid, &hw_states_effort_) != 0) {
 
-    //   // ret=hardware_interface::return_type::ERROR;
+      // ret=hardware_interface::return_type::ERROR;
 
-    //   RCLCPP_ERROR(
-    //     rclcpp::get_logger("Orbita2dSystem"),
-    //     "(%s) READ CURRENT TORQUE ERROR!", info_.name.c_str()
-    //     );
-    // }
+      RCLCPP_ERROR(
+        rclcpp::get_logger("Orbita2dSystem"),
+        "(%s) READ CURRENT TORQUE ERROR!", info_.name.c_str()
+        );
+    }
     // Torque limit
     if (orbita2d_get_raw_motors_torque_limit(this->uid, &hw_states_torque_limit_) != 0)
     {
@@ -455,6 +599,26 @@ namespace orbita2d_system_hwi
           "(%s) READ SPEED LIMIT ERROR!", info_.name.c_str());
     }
 
+
+    if (orbita2d_get_raw_motors_velocity(this->uid, &hw_states_motor_velocities_) != 0) {
+
+      RCLCPP_ERROR(
+        rclcpp::get_logger("Orbita2dSystem"),
+        "(%s) READ MOTOR VELOCITIES ERROR!", info_.name.c_str()
+        );
+    }
+
+
+    if (orbita2d_get_raw_motors_current(this->uid, &hw_states_motor_currents_) != 0) {
+
+      RCLCPP_ERROR(
+        rclcpp::get_logger("Orbita2dSystem"),
+        "(%s) READ MOTOR CURRENTS ERROR!", info_.name.c_str()
+        );
+    }
+
+
+
     // PID gains
     double pids[6];
     if (orbita2d_get_raw_motors_pid_gains(this->uid, &pids) != 0)
@@ -476,7 +640,46 @@ namespace orbita2d_system_hwi
       hw_states_d_gain_[1] = pids[5];
     }
 
-    // No temperature for now in Flipsky
+    uint8_t errors = 0;
+
+    if (loop_counter_read == 100)
+    {
+      if (orbita2d_get_board_state(this->uid, &errors) != 0)
+      {
+        RCLCPP_ERROR(
+            rclcpp::get_logger("Orbita2dSystem"),
+            "(%s) READ BOARD STATE ERROR!", info_.name.c_str());
+        // ret= CallbackReturn::ERROR;
+      }
+
+      if (orbita2d_get_motor_temperatures(this->uid, &hw_states_motor_temperatures_) != 0)
+      {
+        RCLCPP_ERROR(
+          rclcpp::get_logger("Orbita2dSystem"),
+          "(%s) READ MOTOR TEPMERATURES !", info_.name.c_str());
+        // ret= CallbackReturn::ERROR;
+      }
+
+      // boards temperature
+      if (orbita2d_get_board_temperatures(this->uid, &hw_states_board_temperatures_) != 0)
+      {
+        RCLCPP_ERROR(
+          rclcpp::get_logger("Orbita2dSystem"),
+          "(%s) READ BOARD TEPMERATURES !", info_.name.c_str());
+        // ret= CallbackReturn::ERROR;
+
+      }
+
+
+      loop_counter_read = 0;
+    }
+    else
+    {
+      hw_states_error_ = errors;
+      loop_counter_read++;
+    }
+
+
 
     return ret;
   }
@@ -542,46 +745,67 @@ namespace orbita2d_system_hwi
     }
 
     // speed limit
-    // TODO
 
-    // if(orbita2d_set_raw_motors_velocity_limit(this->uid, &hw_commands_speed_limit_) != 0)
-    // {
-    //   ret=hardware_interface::return_type::ERROR;
+    if(orbita2d_set_raw_motors_velocity_limit(this->uid, &hw_commands_speed_limit_) != 0)
+    {
+      ret=hardware_interface::return_type::ERROR;
 
-    //   RCLCPP_ERROR(
-    //     rclcpp::get_logger("Orbita2dSystem"),
-    //     "(%s) WRITE SPEED LIMIT ERROR!", info_.name.c_str()
-    //     );
-    // }
+      RCLCPP_ERROR(
+        rclcpp::get_logger("Orbita2dSystem"),
+        "(%s) WRITE SPEED LIMIT ERROR!", info_.name.c_str()
+        );
+    }
 
-    // //torque limit
-    // if(orbita2d_set_raw_motors_torque_limit(this->uid, &hw_commands_torque_limit_) != 0)
-    // {
-    //   ret=hardware_interface::return_type::ERROR;
+    //torque limit
+    if(orbita2d_set_raw_motors_torque_limit(this->uid, &hw_commands_torque_limit_) != 0)
+    {
+      ret=hardware_interface::return_type::ERROR;
 
-    //   RCLCPP_ERROR(
-    //     rclcpp::get_logger("Orbita2dSystem"),
-    //     "(%s) WRITE TORQUE LIMIT ERROR!", info_.name.c_str()
-    //     );
-    // }
+      RCLCPP_ERROR(
+        rclcpp::get_logger("Orbita2dSystem"),
+        "(%s) WRITE TORQUE LIMIT ERROR!", info_.name.c_str()
+        );
+    }
 
     // //pid gains
-    // double pids[6];
-    // pids[0] = hw_commands_p_gain_[0];
-    // pids[1] = hw_commands_i_gain_[0];
-    // pids[2] = hw_commands_d_gain_[0];
-    // pids[3] = hw_commands_p_gain_[1];
-    // pids[4] = hw_commands_i_gain_[1];
-    // pids[5] = hw_commands_d_gain_[1];
-    // if(orbita2d_set_raw_motors_pid_gains(this->uid, &pids) != 0)
-    // {
-    //   ret=hardware_interface::return_type::ERROR;
+    double pids[6];
+    pids[0] = hw_commands_p_gain_[0];
+    pids[1] = hw_commands_i_gain_[0];
+    pids[2] = hw_commands_d_gain_[0];
+    pids[3] = hw_commands_p_gain_[1];
+    pids[4] = hw_commands_i_gain_[1];
+    pids[5] = hw_commands_d_gain_[1];
+    if(orbita2d_set_raw_motors_pid_gains(this->uid, &pids) != 0)
+    {
+      ret=hardware_interface::return_type::ERROR;
 
-    //   RCLCPP_ERROR(
-    //     rclcpp::get_logger("Orbita2dSystem"),
-    //     "(%s) WRITE PID GAINS ERROR!", info_.name.c_str()
-    //     );
-    // }
+      RCLCPP_ERROR(
+        rclcpp::get_logger("Orbita2dSystem"),
+        "(%s) WRITE PID GAINS ERROR!", info_.name.c_str()
+        );
+    }
+
+
+    uint8_t errors = hw_commands_error_;
+
+    if (loop_counter_write == 100)
+    {
+      if (orbita2d_set_board_state(this->uid, &errors) != 0)
+      {
+        RCLCPP_ERROR_THROTTLE(
+            rclcpp::get_logger("Orbita2dSystem"),
+            clock_,
+            LOG_THROTTLE_DURATION,
+            "(%s) WRITE BOARD STATE ERROR!", info_.name.c_str());
+        // ret= CallbackReturn::ERROR;
+      }
+      loop_counter_write = 0;
+    }
+    else
+    {
+      loop_counter_write++;
+    }
+
 
     return ret;
   }
