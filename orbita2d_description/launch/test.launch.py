@@ -1,30 +1,21 @@
 import os
 
 import yaml
-from launch import LaunchContext, LaunchDescription
-from launch.actions import (
-    DeclareLaunchArgument,
-    IncludeLaunchDescription,
-    LogInfo,
-    OpaqueFunction,
-    RegisterEventHandler,
-    SetEnvironmentVariable,
-    TimerAction,
-)
-from launch.conditions import IfCondition
-from launch.event_handlers import OnExecutionComplete, OnProcessExit, OnProcessStart
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import (
-    Command,
-    FindExecutable,
-    LaunchConfiguration,
-    PathJoinSubstitution,
-    PythonExpression,
-)
 from launch_ros.actions import LifecycleNode, Node, SetUseSimTime
 from launch_ros.descriptions import ParameterValue
 from launch_ros.event_handlers import OnStateTransition
 from launch_ros.substitutions import FindPackageShare
+
+from launch import LaunchContext, LaunchDescription
+from launch.actions import (DeclareLaunchArgument, IncludeLaunchDescription,
+                            LogInfo, OpaqueFunction, RegisterEventHandler,
+                            SetEnvironmentVariable, TimerAction)
+from launch.conditions import IfCondition
+from launch.event_handlers import (OnExecutionComplete, OnProcessExit,
+                                   OnProcessStart)
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import (Command, FindExecutable, LaunchConfiguration,
+                                  PathJoinSubstitution, PythonExpression)
 
 
 def launch_setup(context, *args, **kwargs):
@@ -63,8 +54,8 @@ def launch_setup(context, *args, **kwargs):
                 )
             ),
             " ",
-            'config_file:="{}"'.format(config_file_py),
-            " ",
+            # 'config_file:="{}"'.format(config_file_py), #fixme
+            # " ",
         ]
     )  # To be cleaned on issue #92
     # print(robot_description_content.perform(context=context))

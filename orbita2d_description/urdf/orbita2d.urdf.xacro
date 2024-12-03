@@ -3,45 +3,48 @@
 
   <xacro:include filename="$(find pollen_generic_description)/urdf/inertial_primitives.urdf.xacro"/>
   <xacro:include filename="$(find pollen_generic_description)/urdf/materials.urdf.xacro"/>
-  <xacro:include filename="$(find orbita2d_description)/ros2_control/orbita2d.ros2_control.xacro"/>
 
 
-    <!-- <material name="orbita2dmetal"> -->
-    <!--     <color rgba="0.85 0.85 0.85 1.0"/> -->
-    <!-- </material> -->
-    <!-- <material name="orbita2dgrey"> -->
-    <!--     <color rgba="0.8 0.8 0.8 1.0"/> -->
-    <!-- </material> -->
 
   <xacro:macro name="joint2axis" params="joint">
     <xacro:if value="${joint == 'roll'}">
       <axis xyz="1 0 0"/>
     </xacro:if>
     <xacro:if value="${joint == 'pitch'}">
-      <axis xyz="0 0 1"/>
+      <axis xyz="0 1 0"/>
     </xacro:if>
     <xacro:if value="${joint == 'yaw'}">
-      <axis xyz="0 1 0"/>
+      <axis xyz="0 0 1"/>
     </xacro:if>
   </xacro:macro>
 
   <xacro:macro name="orbita2d" params="name parent length radius mass xyz rpy damping friction joint1 joint2 joint1_min_angle joint1_max_angle joint2_min_angle joint2_max_angle config_file">
 
+
     <!--
       Orbita 2 dof
 
-    link                      (joint)
+    link                         (joint)
 
-    ${parent}                 (${name}_joint1)
-      ${name}_first_link      (${name}_joint2)
-        ${name}_link          (${name}_ball_joint)
-          ${name}_ball_link
+    ${parent}                    (${name}_dummy_1) fixed
+      ${name}_dummy_link1        (${name}_dummy_2) fixed
+        ${name}_dummy_link2      (${name}_joint1) revolute
+          ${name}_first_link     (${name}_joint2) revolute
+      	    ${name}_ball_link    (${name}_dummy_out) fixed
+	      ${name}_fix_link
+
+
     -->
 
 
 
-    <!-- used to "place" the joint with the correct axis. For some reason rotation of the inertia patrix does not work... -->
+    <!-- used to "place" the joint with the correct axis. For some reason rotation of the inertia matrix does not work... -->
     <link name="${name}_dummy_link1">
+      <inertial>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <mass value="0.001"/>
+        <inertia ixx="1.0e-6" ixy="1.0e-8" ixz="1.0e-8" iyy="1.0e-6" iyz="1.0e-8" izz="1.0e-6"/>
+      </inertial>
     </link>
 
     <joint name="${name}_dummy_1" type="fixed">
@@ -51,10 +54,30 @@
     </joint>
 
     <link name="${name}_dummy_link2">
+      <inertial>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <mass value="0.001"/>
+        <inertia ixx="1.0e-6" ixy="1.0e-8" ixz="1.0e-8" iyy="1.0e-6" iyz="1.0e-8" izz="1.0e-6"/>
+      </inertial>
     </link>
 
+    <!-- used to rotatate the joint to respect the conventional axis -->
     <joint name="${name}_dummy_2" type="fixed">
+    <xacro:if value="${name == 'r_shoulder'}">
+      <origin xyz="0 0 0" rpy="-1.5707963267948966 0 0"/>
+    </xacro:if>
+    <xacro:if value="${name == 'l_shoulder'}">
       <origin xyz="0 0 0" rpy="1.5707963267948966 0 0"/>
+    </xacro:if>
+    <xacro:if value="${name == 'r_elbow'}">
+      <origin xyz="0 0 0" rpy="3.141592 0 1.5707963267948966"/>
+    </xacro:if>
+    <xacro:if value="${name == 'l_elbow'}">
+      <origin xyz="0 0 0" rpy="3.141592 0 -1.5707963267948966"/>
+    </xacro:if>
+
+
+      <!-- <origin xyz="0 0 0" rpy="0 0 0"/> -->
       <parent link="${name}_dummy_link1"/>
       <child link="${name}_dummy_link2"/>
     </joint>
@@ -64,13 +87,34 @@
 
     <link name="${name}_first_link">
       <visual>
-      	<origin xyz="0 0 0" rpy="0 0 0"/>
+      	<!-- <origin xyz="0 0 0" rpy="0 0 0"/> -->
+    <xacro:if value="${name == 'r_shoulder'}">
+      <origin xyz="0 0 0" rpy="1.5707963267948966 0 0"/>
+    </xacro:if>
+    <xacro:if value="${name == 'l_shoulder'}">
+      <origin xyz="0 0 0" rpy="-1.5707963267948966 0 0"/>
+    </xacro:if>
+    <xacro:if value="${name == 'r_elbow'}">
+      <origin xyz="0 0 0" rpy="3.141592 0 -1.5707963267948966"/>
+    </xacro:if>
+    <xacro:if value="${name == 'l_elbow'}">
+      <origin xyz="0 0 0" rpy="3.141592 0 1.5707963267948966"/>
+    </xacro:if>
+
+
       	<geometry>
-	  <mesh filename="package://orbita2d_description/meshes/2D_sphere_visual.dae" />
-	  <!-- <mesh filename="package://orbita2d_description/meshes/Orbita2D_Link.dae" /> -->
+	  <!-- <mesh filename="file://$(find arm_description)/meshes/Orbita2D_ball.dae" /> -->
+	  <mesh filename="file://$(find orbita2d_description)/meshes/2D_sphere_visual.dae" />
       	</geometry>
 
       </visual>
+
+	<!-- <collision> -->
+	<!--   <geometry> -->
+	<!--     <sphere radius="0.0425"/> -->
+	<!--   </geometry> -->
+	<!-- </collision> -->
+
 
       <inertial>
       	<!-- <origin xyz="0.0 0 0" rpy="1.5707963267948966 0 0"/> -->  <!-- rotation does not work? -->
@@ -89,42 +133,82 @@
       <!-- <parent link="${parent}"/> -->
       <parent link="${name}_dummy_link2"/>
       <child link="${name}_first_link"/>
+      <!-- axis1 -->
       <xacro:joint2axis joint="${joint1}"/>
+      <!-- <axis xyz="0 0 -1"/> -->
+
       <limit lower="${joint1_min_angle}" upper="${joint1_max_angle}" effort="1000.0" velocity="100.0"/>
-      <safety_controller k_velocity="500" k_position="500" soft_lower_limit="-3.1415" soft_upper_limit="3.1415" />
+      <safety_controller k_velocity="500" k_position="500" soft_lower_limit="-3.141592" soft_upper_limit="3.1415" />
       <dynamics damping="${damping}" friction="${friction}"/>
     </joint>
 
 
 
-    <!-- Used to get back to the correct orientation -->
-    <link name="${name}_dummy_link3">
-    </link>
+    <!-- <!-\- Used to get back to the correct orientation -\-> -->
+    <!-- <link name="${name}_dummy_link3"> -->
+    <!-- </link> -->
 
-    <joint name="${name}_dummy_3" type="fixed">
-      <origin xyz="0 0 0" rpy="-1.5707963267948966 0 0"/>
-      <parent link="${name}_first_link"/>
-      <child link="${name}_dummy_link3"/>
-    </joint>
+    <!-- <joint name="${name}_dummy_3" type="fixed"> -->
+    <!--   <!-\- <origin xyz="0 0 0" rpy="-1.5707963267948966 0 0"/> -\-> -->
+    <!--   <origin xyz="0 0 0" rpy="3.141592653589793 0 0"/> -->
+    <!--   <parent link="${name}_first_link"/> -->
+    <!--   <child link="${name}_dummy_link3"/> -->
+    <!-- </joint> -->
 
 
 
     <!-- Output link -->
     <link name="${name}_ball_link">
+      <inertial>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <mass value="0.001"/>
+        <inertia ixx="1.0e-6" ixy="1.0e-8" ixz="1.0e-8" iyy="1.0e-6" iyz="1.0e-8" izz="1.0e-6"/>
+      </inertial>
     </link>
 
 
     <joint name="${name}_${joint2}" type="revolute">
       <origin xyz="0 0 0" rpy=" 0 0 0"/>
-      <parent link="${name}_dummy_link3"/>
+      <parent link="${name}_first_link"/>
       <child link="${name}_ball_link"/>
+      <!-- axis2 -->
       <xacro:joint2axis joint="${joint2}"/>
+      <!-- <axis xyz="1 0 0"/> -->
+
       <limit lower="${joint2_min_angle}" upper="${joint2_max_angle}" effort="1000.0" velocity="100.0"/>
       <safety_controller k_velocity="500" k_position="500" soft_lower_limit="-3.1415" soft_upper_limit="3.1415" />
       <dynamics damping="${damping}" friction="${friction}"/>
     </joint>
 
 
+    <link name="${name}_fix_link">
+      <inertial>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <mass value="0.001"/>
+        <inertia ixx="1.0e-6" ixy="1.0e-8" ixz="1.0e-8" iyy="1.0e-6" iyz="1.0e-8" izz="1.0e-6"/>
+      </inertial>
+    </link>
+
+    <!-- used to rotate the joint to respect the conventional axis -->
+    <joint name="${name}_dummy_out" type="fixed">
+    <xacro:if value="${name == 'r_shoulder'}">
+      <origin xyz="0 0 0" rpy="1.5707963267948966 0 0"/>
+    </xacro:if>
+    <xacro:if value="${name == 'l_shoulder'}">
+      <origin xyz="0 0 0" rpy="1.5707963267948966 0 0"/>
+    </xacro:if>
+    <xacro:if value="${name == 'r_elbow'}">
+      <origin xyz="0 0 0" rpy="3.141592 0 1.5707963267948966"/>
+    </xacro:if>
+    <xacro:if value="${name == 'l_elbow'}">
+      <origin xyz="0 0 0" rpy="3.141592 0 1.5707963267948966"/>
+    </xacro:if>
+
+
+      <!-- <origin xyz="0 0 0" rpy="0 0 0"/> -->
+      <parent link="${name}_ball_link"/>
+      <child link="${name}_fix_link"/>
+    </joint>
 
 
     <xacro:orbita2d_control
@@ -132,7 +216,6 @@
       joint1="${joint1}" joint2="${joint2}"
       config_file="${config_file}"
     />
-
 
 
   </xacro:macro>
