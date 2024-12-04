@@ -181,6 +181,18 @@ impl Orbita2dMotorController for FakeMotors {
     fn set_board_state(&mut self, _state: u8) -> crate::Result<()> {
         Ok(())
     }
+
+    fn get_motor_temperatures(&mut self) -> crate::Result<[f64; 2]> {
+        Ok([f64::NAN; 2])
+    }
+
+    fn get_board_temperatures(&mut self) -> crate::Result<[f64; 2]> {
+        Ok([f64::NAN; 2])
+    }
+
+    fn emergency_stop(&mut self) {
+        self.torque_on = [false; 2];
+    }
 }
 
 #[cfg(test)]

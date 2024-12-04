@@ -5,8 +5,8 @@ use motor_toolbox_rs::PID;
 use once_cell::sync::Lazy;
 use orbita2d_controller::Orbita2dController;
 
+use env_logger;
 use std::{ffi::CStr, sync::Mutex};
-
 static UID: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
 static CONTROLLER: Lazy<SyncMap<u32, Orbita2dController>> = Lazy::new(SyncMap::new);
 // use log::debug;

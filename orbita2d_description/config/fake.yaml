@@ -1,4 +1,14 @@
 !FakeMotors
-  inverted_axes:
+    orientation_limits:
+    - {min: -1.0, max: 1.0}
+    - {min: -1.0, max: 1.0}
+
+    inverted_axes:
       - false
       - false
+    motors_ratio:
+      - 1.0
+      - 1.0
+    motors_offset:
+      - 0.0
+      - 0.0
