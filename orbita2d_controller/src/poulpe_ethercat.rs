@@ -61,11 +61,9 @@ impl Orbita2dController {
         // set the initial velocity and torque limit to 100%
         io.set_velocity_limit(id, [1.0; 2].to_vec());
         io.set_torque_limit(id, [1.0; 2].to_vec());
-
-        if !io.is_on(id as u16).unwrap() {
-            //We can only change the mode if torque=off, then we ensure we are ProfilePositionMode
-            io.set_mode_of_operation(id as u16, 1); //0=NoMode, 1=ProfilePositionMode, 3=ProfileVelocityMode, 4=ProfileTorqueMode
-        }
+        
+        //We can only change the mode if torque=off, then we ensure we are ProfilePositionMode
+        io.set_mode_of_operation(id as u16, 1); //0=NoMode, 1=ProfilePositionMode, 3=ProfileVelocityMode, 4=ProfileTorqueMode
 
         let poulpe_controller = Orbita2dPoulpeEthercatController { io, id };
 
