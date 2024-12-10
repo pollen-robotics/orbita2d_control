@@ -17,7 +17,7 @@
 //!
 //! ## Communication
 //! - [x] Flipsky Serial communication
-//! - [ ] EtherCAT communication
+//! - [x] EtherCAT communication
 //!
 //! ## Usage
 //! ```no_run
@@ -47,7 +47,7 @@ pub use flipsky_serial::FlipskyConfig;
 use orbita2d_kinematics::Orbita2dKinematicsModel;
 
 pub use motor_toolbox_rs::Limit;
-use motor_toolbox_rs::{FakeMotorsController, MotorsController, Result, PID};
+use motor_toolbox_rs::{Result, PID};
 
 /// Result generic wrapper using `std::error::Error` trait
 // pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -511,9 +511,42 @@ impl Orbita2dController {
         self.inner.set_pid_gains(pid_gains)
     }
 
+    /// Get the current reading (mA) of each raw motor [motor_a, motor_b]
+    /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
+    pub fn get_raw_motors_current(&mut self) -> Result<[f64; 2]> {
+        debug!(target: &self.log_target(), "get_raw_motors_current");
+        self.inner.get_current_torque()
+    }
+
+    /// Get the velocity (rad/s) of each raw motor [motor_a, motor_b]
+    /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
+    pub fn get_raw_motors_velocity(&mut self) -> Result<[f64; 2]> {
+        debug!(target: &self.log_target(), "get_raw_motors_velocity");
+        self.inner.get_current_velocity()
+    }
+
+    /// Get the temperature (°C) of each raw motor [motor_a, motor_b]
+    pub fn get_raw_motors_temperature(&mut self) -> Result<[f64; 2]> {
+        debug!(target: &self.log_target(), "get_raw_motors_temperature");
+        self.inner.get_motor_temperatures()
+    }
+
+    /// Get the temperature (°C) of each H-bridge [motor_a, motor_b]
+    pub fn get_raw_boards_temperature(&mut self) -> Result<[f64; 2]> {
+        debug!(target: &self.log_target(), "get_raw_boards_temperature");
+        self.inner.get_board_temperatures()
+    }
+
+    /// Get absolute axis sensors (ring/center)
     pub fn get_axis_sensors(&mut self) -> Result<[f64; 2]> {
         debug!(target: &self.log_target(), "get_axis_sensors");
         self.inner.get_axis_sensors()
+    }
+
+    /// Get absolute axis sensor zeros (ring/center)
+    pub fn get_axis_sensor_zeros(&mut self) -> Result<[f64; 2]> {
+        debug!(target: &self.log_target(), "get_axis_sensor_zeros");
+        self.inner.get_axis_sensor_zeros()
     }
 
     /// Get the BoardState code
@@ -526,6 +559,49 @@ impl Orbita2dController {
     pub fn set_board_state(&mut self, state: u8) -> Result<()> {
         debug!(target: &self.log_target(), "set_board_state: {:?}", state);
         self.inner.set_board_state(state)
+    }
+
+    /// Set the current target torque of the motors (in Nm)
+    pub fn set_target_torque(&mut self, _torque: [f64; 2]) -> Result<()> {
+        debug!(target: &self.log_target(), "set_target_torque: {:?}", _torque);
+        self.inner.set_target_torque(_torque)
+    }
+    /// Get the current target torque of the motors (in Nm)
+    pub fn get_target_torque(&mut self) -> Result<[f64; 2]> {
+        debug!(target: &self.log_target(), "get_target_torque");
+        self.inner.get_target_torque()
+    }
+    /// Set the current target velocity of the motors (in rad/s)
+    pub fn set_target_velocity(&mut self, _velocity: [f64; 2]) -> Result<()> {
+        debug!(target: &self.log_target(), "set_target_velocity: {:?}", _velocity);
+        self.inner.set_target_velocity(_velocity)
+    }
+    /// Get the current target velocity of the motors (in rad/s)
+    pub fn get_target_velocity(&mut self) -> Result<[f64; 2]> {
+        debug!(target: &self.log_target(), "get_target_velocity");
+        self.inner.get_target_velocity()
+    }
+
+    /// Set the current control mode
+    pub fn set_control_mode(&mut self, mode: [u8; 2]) -> Result<()> {
+        debug!(target: &self.log_target(), "set_control_mode: {:?}", mode);
+        self.inner.set_control_mode(mode)
+    }
+    /// Get the current control mode
+    pub fn get_control_mode(&mut self) -> Result<[u8; 2]> {
+        debug!(target: &self.log_target(), "get_control_mode");
+        self.inner.get_control_mode()
+    }
+    /// Get the errors
+    pub fn get_error_codes(&mut self) -> Result<[i32; 2]> {
+        debug!(target: &self.log_target(), "get_error_codes");
+        self.inner.get_error_codes()
+    }
+
+    /// Triggers an emergency stop
+    pub fn emergency_stop(&mut self) {
+        debug!(target: &self.log_target(), "emergency_stop");
+        self.inner.emergency_stop()
     }
 
     fn log_target(&self) -> String {
@@ -549,9 +625,13 @@ pub trait Orbita2dMotorController {
     fn get_current_position(&mut self) -> Result<[f64; 2]>;
     /// Read the Ring/Center sensors
     fn get_axis_sensors(&mut self) -> Result<[f64; 2]>;
+    /// Read the zeros of Ring/Center sensors
+    fn get_axis_sensor_zeros(&mut self) -> Result<[f64; 2]> {
+        Err("get_axis_sensor_zeros not implemented".into())
+    }
     /// Read the current velocity (in radians/s) of each motor [motor_a, motor_b]
     fn get_current_velocity(&mut self) -> Result<[f64; 2]>;
-    /// Read the current torque (in Nm) of each motor [motor_a, motor_b]
+    /// Read the current torque (in fact, the current in mA) of each motor [motor_a, motor_b]
     fn get_current_torque(&mut self) -> Result<[f64; 2]>;
     /// Read the target position (in radians) of each motor [motor_a, motor_b]
     fn get_target_position(&mut self) -> Result<[f64; 2]>;
@@ -559,6 +639,24 @@ pub trait Orbita2dMotorController {
     fn set_target_position(&mut self, target_position: [f64; 2]) -> Result<()>;
     /// Set the target position (in radians) for each motor [motor_a, motor_b] and returns the feedback [position, velocity, torque]
     fn set_target_position_fb(&mut self, target_position: [f64; 2]) -> Result<Orbita2dFeedback>;
+
+    /// Set the current target torque of the motors (in Nm)
+    fn set_target_torque(&mut self, _torque: [f64; 2]) -> Result<()> {
+        Err("set_target_torque not implemented".into())
+    }
+    /// Get the current target torque of the motors (in Nm)
+    fn get_target_torque(&mut self) -> Result<[f64; 2]> {
+        Err("get_target_torque not implemented".into())
+    }
+    /// Set the current target velocity of the motors (in rad/s)
+    fn set_target_velocity(&mut self, _velocity: [f64; 2]) -> Result<()> {
+        Err("set_target_velocity not implemented".into())
+    }
+    /// Get the current target velocity of the motors (in rad/s)
+    fn get_target_velocity(&mut self) -> Result<[f64; 2]> {
+        Err("get_target_velocity not implemented".into())
+    }
+
     /// Get the velocity limit (in radians/s) of each motor [motor_a, motor_b]
     fn get_velocity_limit(&mut self) -> Result<[f64; 2]>;
     /// Set the velocity limit (in radians/s) for each motor [motor_a, motor_b]
@@ -575,6 +673,32 @@ pub trait Orbita2dMotorController {
     fn get_board_state(&mut self) -> Result<u8>;
     /// Set the BoardState
     fn set_board_state(&mut self, state: u8) -> Result<()>;
+    /// Get the motor temperatures (°C)
+    fn get_motor_temperatures(&mut self) -> Result<[f64; 2]> {
+        Err("get_motors_temperature not implemented yet".into())
+    }
+    /// Get the board temperature (H-bridges in °C)
+    fn get_board_temperatures(&mut self) -> Result<[f64; 2]> {
+        Err("get_motors_temperature not implemented yet".into())
+    }
+    /// Set the control mode
+    fn set_control_mode(&mut self, _mode: [u8; 2]) -> Result<()> {
+        Err("set_control_mode not implemented".into())
+    }
+    /// Get the control mode
+    fn get_control_mode(&mut self) -> Result<[u8; 2]> {
+        Err("get_control_mode not implemented".into())
+    }
+
+    /// Get the motors error codes
+    fn get_error_codes(&mut self) -> Result<[i32; 2]> {
+        Err("get_error_codes not implemented".into())
+    }
+
+    /// Triggers an emergency stop
+    fn emergency_stop(&mut self) {
+        log::error!("EMERGENCY STOP NOT IMPLEMENTED!");
+    }
 }
 
 #[cfg(test)]

@@ -41,6 +41,14 @@ uint32_t orbita2d_get_target_orientation(uint32_t uid, double (*pos)[2]);
 
 uint32_t orbita2d_set_target_orientation(uint32_t uid, const double (*pos)[2]);
 
+uint32_t orbita2d_get_target_velocity(uint32_t uid, double (*vel)[2]);
+
+uint32_t orbita2d_set_target_velocity(uint32_t uid, const double (*vel)[2]);
+
+uint32_t orbita2d_get_target_torque(uint32_t uid, double (*torque)[2]);
+
+uint32_t orbita2d_set_target_torque(uint32_t uid, const double (*torque)[2]);
+
 uint32_t orbita2d_get_raw_motors_velocity_limit(uint32_t uid,
                                                 double (*raw_motors_velocity_limit)[2]);
 
@@ -55,6 +63,26 @@ uint32_t orbita2d_set_raw_motors_torque_limit(uint32_t uid,
 uint32_t orbita2d_get_raw_motors_pid_gains(uint32_t uid, double (*pids)[6]);
 
 uint32_t orbita2d_set_raw_motors_pid_gains(uint32_t uid, const double (*pids)[6]);
+
+uint32_t orbita2d_get_raw_motors_current(uint32_t uid, double (*raw_motors_current)[2]);
+
+uint32_t orbita2d_get_raw_motors_velocity(uint32_t uid, double (*raw_motors_velocity)[2]);
+
+int32_t orbita2d_get_board_state(uint32_t uid, uint8_t *state);
+
+int32_t orbita2d_set_board_state(uint32_t uid, const uint8_t *state);
+
+int32_t orbita2d_get_error_codes(uint32_t uid, int32_t (*errors)[2]);
+
+int32_t orbita2d_get_motor_temperatures(uint32_t uid, double (*temp)[2]);
+
+int32_t orbita2d_get_board_temperatures(uint32_t uid, double (*temp)[2]);
+
+uint32_t orbita2d_get_control_mode(uint32_t uid, uint8_t *mode);
+
+uint32_t orbita2d_set_control_mode(uint32_t uid, const uint8_t *mode);
+
+int32_t orbita3d_emergency_stop(uint32_t uid);
 
 int32_t orbita2d_forward_position(double ratio_a,
                                   double ratio_b,

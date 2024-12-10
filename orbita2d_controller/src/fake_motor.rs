@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{Orbita2dController, Orbita2dFeedback, Orbita2dMotorController};
-use motor_toolbox_rs::{Limit, Result, PID};
-
+use motor_toolbox_rs::{Limit, PID};
+#[allow(dead_code)]
 /// Fake motors implementation, only used for testing
 struct FakeMotors {
     torque_on: [bool; 2],
@@ -180,6 +180,18 @@ impl Orbita2dMotorController for FakeMotors {
     }
     fn set_board_state(&mut self, _state: u8) -> crate::Result<()> {
         Ok(())
+    }
+
+    fn get_motor_temperatures(&mut self) -> crate::Result<[f64; 2]> {
+        Ok([f64::NAN; 2])
+    }
+
+    fn get_board_temperatures(&mut self) -> crate::Result<[f64; 2]> {
+        Ok([f64::NAN; 2])
+    }
+
+    fn emergency_stop(&mut self) {
+        self.torque_on = [false; 2];
     }
 }
 

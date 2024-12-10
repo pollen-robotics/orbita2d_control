@@ -33,19 +33,29 @@ private:
   double hw_states_torque_;
   double hw_commands_torque_;
 
+  double hw_states_error_;
+  double hw_commands_error_;
+
   double hw_states_position_[2];
   double hw_states_velocity_[2];
   double hw_states_effort_[2];
   double hw_commands_position_[2];
 
-  double hw_states_temperature_[2];
+
   double hw_states_torque_limit_[2];
   double hw_states_speed_limit_[2];
+  double hw_states_motor_velocities_[2];
+  double hw_states_motor_currents_[2];
+  double hw_states_motor_temperatures_[2];
+  double hw_states_board_temperatures_[2];
+
   double hw_states_p_gain_[2];
   double hw_states_i_gain_[2];
   double hw_states_d_gain_[2];
+
   double hw_commands_speed_limit_[2];
   double hw_commands_torque_limit_[2];
+
   double hw_commands_p_gain_[2];
   double hw_commands_i_gain_[2];
   double hw_commands_d_gain_[2];
@@ -56,6 +66,9 @@ private:
   rclcpp::Time current_timestamp;  // Avoid initialization on each read
 
   uint32_t uid;
+  uint32_t loop_counter_read;
+  uint32_t loop_counter_write;
+
 };
 
 }
