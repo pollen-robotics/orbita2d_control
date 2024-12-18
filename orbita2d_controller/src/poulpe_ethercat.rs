@@ -17,7 +17,9 @@ pub struct PoulpeEthercatConfig {
     /// url of the ethercat master grpc serverS
     pub url: String,
     /// Actuator id
-    pub id: u8,
+    pub id: Option<u16>,
+    /// Actuator name
+    pub name: Option<String>,
     /// Motors offset [motor_a, motor_b]
     pub motors_offset: [f64; 2],
     /// Motors ratio [motor_a, motor_b]
@@ -33,19 +35,71 @@ pub struct PoulpeEthercatConfig {
 /// Orbita ethercat controller
 struct Orbita2dPoulpeEthercatController {
     io: PoulpeRemoteClient,
-    id: u16,
+    /// Actuator id
+    pub id: u16
 }
 
 impl Orbita2dController {
     pub fn with_poulpe_ethercat(
         url: &str,
-        id: u16,
+        id: Option<u16>,
+        name: Option<String>,
         motors_offset: [f64; 2],
         motors_ratio: [f64; 2],
         inverted_axes: [bool; 2],
         orientation_limits: Option<[Limit; 2]>,
         firmware_zero: Option<bool>,
     ) -> Result<Self> {
+        let update_time =  Duration::from_secs_f32(0.002);
+
+        let mut io = match (id, name) {
+            (_, Some(name)) => {
+                log::info!("Connecting to the slave with name: {}", name);
+                let client = match PoulpeRemoteClient::connect_with_name(
+                    url.parse()?,
+                    vec![name],
+                    update_time,
+                ) {
+                    Ok(client) => client,
+                    Err(e) => {
+                        error!(
+                            "Error while connecting to Orbita2dController: {:?}",
+                            e
+                        );
+                        return Err("Error while connecting to Orbita2dController".into());
+                    }
+                };
+                client
+            },
+            (Some(id), None) => {
+                log::info!("Connecting to the slave with id: {}", id);
+                let client = match PoulpeRemoteClient::connect(
+                    url.parse()?,
+                    vec![id as u16],
+                    update_time,
+                ) {
+                    Ok(client) => client,
+                    Err(e) => {
+                        error!(
+                            "Error while connecting to Orbita2dController: {:?}",
+                            e
+                        );
+                        return Err("Error while connecting to Orbita2dController".into());
+                    }
+                };
+                client
+            },
+            _ => {
+                log::error!("Invalid config file, make sure to provide either the id or the name!");
+                return Err("Invalid config file".into());
+            }
+        };
+
+        let id = io.ids[0];
+        let name = io.names[0].clone();
+        log::info!("Orbita2d Client created for Slave {} (id: {}), sampling time: {:}ms", name, id, update_time.as_millis());
+
+
         let mut io = match PoulpeRemoteClient::connect(
             url.parse()?,
             vec![id],
