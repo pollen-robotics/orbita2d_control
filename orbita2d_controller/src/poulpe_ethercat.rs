@@ -253,7 +253,7 @@ impl Orbita2dMotorController for Orbita2dPoulpeEthercatController {
         match self.io.get_axis_sensors(self.id) {
             Ok(mut sensor) => {
                 // substract the sensor zero and the axis offset
-                // FIXME: inverted axis?
+
                 for (i, s) in sensor.iter_mut().enumerate() {
                     if !self.axis_sensor_zeros[i].is_none() {
                         *s -= self.axis_sensor_zeros[i].unwrap() as f32;
