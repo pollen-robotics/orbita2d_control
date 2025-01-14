@@ -34,6 +34,8 @@ pub struct PoulpeEthercatConfig {
 struct Orbita2dPoulpeEthercatController {
     io: PoulpeRemoteClient,
     id: u16,
+    axis_sensor_zeros: [Option<f64>; 2],
+    raw_motor_offsets: [Option<f64>; 2],
 }
 
 impl Orbita2dController {
@@ -61,15 +63,28 @@ impl Orbita2dController {
         // set the initial velocity and torque limit to 100%
         io.set_velocity_limit(id, [1.0; 2].to_vec());
         io.set_torque_limit(id, [1.0; 2].to_vec());
-        
+
         //We can only change the mode if torque=off, then we ensure we are ProfilePositionMode
         io.set_mode_of_operation(id as u16, 1); //0=NoMode, 1=ProfilePositionMode, 3=ProfileVelocityMode, 4=ProfileTorqueMode
 
-        let poulpe_controller = Orbita2dPoulpeEthercatController { io, id };
+        let mut poulpe_controller = Orbita2dPoulpeEthercatController {
+            io,
+            id,
+            axis_sensor_zeros: [None; 2],
+            raw_motor_offsets: [None; 2],
+        };
+
+        //backup the raw motors offset from the file
+        poulpe_controller.raw_motor_offsets = [Some(motors_offset[0]), Some(motors_offset[1])];
+
+        // Read the axis sensor zeros once and save them
+        let zeros = poulpe_controller.get_axis_sensor_zeros()?;
+        poulpe_controller.axis_sensor_zeros = [Some(zeros[0]), Some(zeros[1])];
 
         info!(
-            "Orbita2d PoulpeEthercatController:\n\t - url: {:?}\n\t - id: {:?}",
-            url, id
+            "Orbita2d PoulpeEthercatController:\n\t - url: {:?}\n\t - id: {:?} - zeros: {:?} - raw_motor_offsets: {:?}
+",
+            url, id, zeros, motors_offset
         );
 
         let mut controller = Self::new(
@@ -236,7 +251,20 @@ impl Orbita2dMotorController for Orbita2dPoulpeEthercatController {
 
     fn get_axis_sensors(&mut self) -> Result<[f64; 2]> {
         match self.io.get_axis_sensors(self.id) {
-            Ok(sensor) => Ok([sensor[0] as f64, sensor[1] as f64]),
+            Ok(mut sensor) => {
+                // substract the sensor zero and the axis offset
+                // FIXME: inverted axis?
+                for (i, s) in sensor.iter_mut().enumerate() {
+                    if !self.axis_sensor_zeros[i].is_none() {
+                        *s -= self.axis_sensor_zeros[i].unwrap() as f32;
+                    }
+                    if !self.raw_motor_offsets[i].is_none() {
+                        *s -= self.raw_motor_offsets[i].unwrap() as f32;
+                    }
+                    *s = wrap_to_pi(*s as f64) as f32;
+                }
+                Ok([sensor[0] as f64, sensor[1] as f64])
+            }
             Err(_) => Err("Error while getting axis sensors".into()),
         }
     }
@@ -405,7 +433,7 @@ fn find_additional_motor_offsets(
     // making a full turn at the init
 
     // instead of this simple solution we will do it in multiple steps:
-    // first calcualte the current position of the orbita2d's axis (with zeros offsets removed in firmeware)
+    // first calcualte the current position of the orbita2d's axis (with zeros offsets removed in firmware)
     let current_position = controller.inner.get_current_position()?;
     let current_axis_position = controller
         .kinematics
