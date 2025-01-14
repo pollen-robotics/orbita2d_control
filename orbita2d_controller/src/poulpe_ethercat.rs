@@ -87,18 +87,6 @@ impl Orbita2dController {
             raw_motor_offsets: [None; 2],
         };
 
-        // wait for the connection to be established
-        let mut trials = 200; // 2s
-        while poulpe_controller.io.get_state(poulpe_controller.id).is_err() {
-            thread::sleep(Duration::from_millis(10));
-            if trials == 0 {
-                log::error!("Error: Timeout while connecting to the PoulpeRemoteClient with id {}", poulpe_controller.id);
-                return Err("Error: Timeout while connecting to the PoulpeRemoteClient".into());
-            }
-            trials -= 1;
-        }
-        log::info!("Connected to PoulpeRemoteClient with id {}", poulpe_controller.id);
-
         //backup the raw motors offset from the file
         poulpe_controller.raw_motor_offsets = [Some(motors_offset[0]), Some(motors_offset[1])];
 
