@@ -48,6 +48,8 @@ private:
   double hw_states_motor_currents_[2];
   double hw_states_motor_temperatures_[2];
   double hw_states_board_temperatures_[2];
+  double hw_states_axis_sensors_[2];
+
 
   double hw_states_p_gain_[2];
   double hw_states_i_gain_[2];
