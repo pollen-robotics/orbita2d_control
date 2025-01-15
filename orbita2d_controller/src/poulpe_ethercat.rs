@@ -65,12 +65,12 @@ impl Orbita2dController {
         while io.get_state(id).is_err() {
             thread::sleep(Duration::from_millis(100));
             if trials == 0 {
-                log::error!("Error: Timeout while connecting to the PoulpeRemoteClient with id {}", id);
-                return Err("Error: Timeout while connecting to the PoulpeRemoteClient".into());
+                log::error!("Error: Timeout while connecting to the Orbita2d PoulpeRemoteClient with id {}", id);
+                return Err("Error: Timeout while connecting to the Orbita2d  PoulpeRemoteClient".into());
             }
             trials -= 1;
         }
-        log::info!("Connected to PoulpeRemoteClient with id {}", id);
+        log::info!("Connected to Orbita2d  PoulpeRemoteClient with id {}", id);
 
 
         // set the initial velocity and torque limit to 100%
