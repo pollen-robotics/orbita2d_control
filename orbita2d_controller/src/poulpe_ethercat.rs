@@ -63,7 +63,7 @@ impl Orbita2dController {
         // wait for the connection to be established
         let mut trials = 20; // 2s
         while io.get_state(id).is_err() {
-            thread::sleep(Duration::from_millis(10));
+            thread::sleep(Duration::from_millis(100));
             if trials == 0 {
                 log::error!("Error: Timeout while connecting to the PoulpeRemoteClient with id {}", id);
                 return Err("Error: Timeout while connecting to the PoulpeRemoteClient".into());
