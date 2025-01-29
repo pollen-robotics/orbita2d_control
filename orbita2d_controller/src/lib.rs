@@ -218,7 +218,8 @@ impl Orbita2dController {
             ),
             Orbita2dConfig::PoulpeEthercat(config) => Self::with_poulpe_ethercat(
                 &config.url,
-                config.id as u16,
+                config.id,
+                config.name,
                 config.motors_offset,
                 config.motors_ratio,
                 config.inverted_axes,
