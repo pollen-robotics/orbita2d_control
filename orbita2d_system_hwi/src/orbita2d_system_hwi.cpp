@@ -129,6 +129,7 @@ namespace orbita2d_system_hwi
       hw_states_motor_currents_[i]=std::numeric_limits<double>::quiet_NaN();
       hw_states_motor_temperatures_[i]=std::numeric_limits<double>::quiet_NaN();
       hw_states_board_temperatures_[i]=std::numeric_limits<double>::quiet_NaN();
+      hw_states_axis_sensors_[i]=std::numeric_limits<double>::quiet_NaN();
 
     }
 
@@ -265,6 +266,21 @@ namespace orbita2d_system_hwi
     }
 
 
+
+
+
+    // axis absolute sensors
+    if (orbita2d_get_axis_sensors(this->uid, &hw_states_axis_sensors_) != 0)
+    {
+      RCLCPP_ERROR(
+          rclcpp::get_logger("Orbita2dSystem"),
+          "(%s) READ AXIS SENSORS !", info_.name.c_str());
+      // ret= CallbackReturn::ERROR;
+            initOk=false;
+
+    }
+
+
     // PID gains
     double pids[6];
     if (orbita2d_get_raw_motors_pid_gains(this->uid, &pids) != 0)
@@ -381,6 +397,11 @@ namespace orbita2d_system_hwi
           joint.name, hardware_interface::HW_IF_VELOCITY, &hw_states_velocity_[i]));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
           joint.name, hardware_interface::HW_IF_EFFORT, &hw_states_effort_[i]));
+
+      // Temporary location for axis sensors in gpios (it will be used as the standard axis hardware_interface::HW_IF_POSITION)
+      state_interfaces.emplace_back(hardware_interface::StateInterface(
+					joint.name, "axis_sensor", &hw_states_axis_sensors_[i]));
+
     }
 
     // motor index (not corresponding to the GPIO index)
@@ -427,6 +448,11 @@ namespace orbita2d_system_hwi
             gpio.name, "i_gain", &hw_states_i_gain_[motor_index]));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             gpio.name, "d_gain", &hw_states_d_gain_[motor_index]));
+
+	// // Temporary location for axis sensors in gpios (it will be used as the standard axis hardware_interface::HW_IF_POSITION)
+        // state_interfaces.emplace_back(hardware_interface::StateInterface(
+        //     gpio.name, "axis_sensor", &hw_states_axis_sensors_[motor_index]));
+
 
         // next motor
         motor_index++;
@@ -617,6 +643,16 @@ namespace orbita2d_system_hwi
         );
     }
 
+
+    // Axis sensors
+
+    if (orbita2d_get_axis_sensors(this->uid, &hw_states_axis_sensors_) != 0) {
+
+      RCLCPP_ERROR(
+        rclcpp::get_logger("Orbita2dSystem"),
+        "(%s) READ AXIS SENSORS ERROR!", info_.name.c_str()
+        );
+    }
 
 
     // PID gains

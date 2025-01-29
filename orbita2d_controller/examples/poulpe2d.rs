@@ -10,7 +10,7 @@ use clap::Parser;
 struct Args {
     /// tty
     // #[arg(default_value = "config/dxl_poulpe2d.yaml")]
-    #[arg( default_value = "config/ethercat_poulpe.yaml")]
+    #[arg(default_value = "config/ethercat_poulpe.yaml")]
     configfile: String,
 }
 
@@ -54,7 +54,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     thread::sleep(Duration::from_millis(10));
     let pid = controller.get_raw_motors_pid_gains()?;
     log::info!("Pid: {:?}", pid);
-
 
     // set velocity and torque limits
     let res = controller.set_raw_motors_velocity_limit([1.0, 1.0]);
@@ -101,12 +100,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         // let target=conversion::rotation_matrix_to_quaternion(target_yaw_mat);
 
         let fb = controller.set_target_orientation_fb([s, 0.0]);
+        let axis = controller.get_axis_sensors();
         match fb {
             Ok(fb) => {
                 log::info!("Feedback: {:?}", fb);
                 println!(
-                    "{:?} {:?} {:?} {:?}",
-                    t as f64, s, fb.orientation[0], fb.orientation[1]
+                    "{:?} {:?} {:?} {:?} {:?} {:?}",
+                    t as f64, s, fb.orientation[0], fb.orientation[1], axis[0], axis[1]
                 );
             }
             Err(e) => log::error!("Error: {}", e),
