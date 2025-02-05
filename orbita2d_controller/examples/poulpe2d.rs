@@ -99,18 +99,16 @@ fn main() -> Result<(), Box<dyn Error>> {
         // let target_yaw_mat=conversion::intrinsic_roll_pitch_yaw_to_matrix(0.0, 0.0, s);
         // let target=conversion::rotation_matrix_to_quaternion(target_yaw_mat);
 
-        let fb = controller.set_target_orientation_fb([s, 0.0]);
-        let axis = controller.get_axis_sensors();
-        match fb {
-            Ok(fb) => {
-                log::info!("Feedback: {:?}", fb);
-                println!(
-                    "{:?} {:?} {:?} {:?} {:?} {:?}",
-                    t as f64, s, fb.orientation[0], fb.orientation[1], axis[0], axis[1]
-                );
-            }
-            Err(e) => log::error!("Error: {}", e),
-        }
+        let fb = controller.set_target_orientation_fb([s, 0.0]).unwrap();
+        let axis = controller.get_axis_sensors().unwrap();
+        
+        log::info!("Feedback: {:?}", fb);
+        log::info!("Axis: {:?}", axis);
+        println!(
+            "{:?} {:?} {:?} {:?} {:?} {:?}",
+            t as f64, s, fb.orientation[0], fb.orientation[1], axis[0], axis[1]
+        );
+        
 
         thread::sleep(Duration::from_millis(1));
     }
