@@ -100,21 +100,7 @@ impl Orbita2dController {
 
         let id = io.ids[0];
         let name = io.names[0].clone();
-        log::info!("Orbita2d Client created for Slave {} (id: {}), sampling time: {:}ms", name, id, update_time.as_millis());
 
-
-        let mut io = match PoulpeRemoteClient::connect(
-            url.parse()?,
-            vec![id],
-            Duration::from_secs_f32(0.002),
-        ) {
-            Ok(io) => io,
-            Err(e) => {
-                error!("Error while connecting to the PoulpeRemoteClient: {:?}", e);
-                return Err("Error while connecting to the PoulpeRemoteClient".into());
-            }
-        };
-        
         // wait for the connection to be established
         let mut trials = 20; // 2s
         while io.get_state(id).is_err() {
@@ -125,7 +111,7 @@ impl Orbita2dController {
             }
             trials -= 1;
         }
-        log::info!("Connected to Orbita2d  PoulpeRemoteClient with id {}", id);
+        log::info!("Connected Orbita2d Client created for Slave {} (id: {}), sampling time: {:}ms", name, id, update_time.as_millis());
 
 
         // set the initial velocity and torque limit to 100%
