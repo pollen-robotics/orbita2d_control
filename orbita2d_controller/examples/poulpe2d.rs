@@ -101,14 +101,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         let fb = controller.set_target_orientation_fb([s, 0.0]).unwrap();
         let axis = controller.get_axis_sensors().unwrap();
-        
+
         log::info!("Feedback: {:?}", fb);
         log::info!("Axis: {:?}", axis);
         println!(
             "{:?} {:?} {:?} {:?} {:?} {:?}",
             t as f64, s, fb.orientation[0], fb.orientation[1], axis[0], axis[1]
         );
-        
 
         thread::sleep(Duration::from_millis(1));
     }
