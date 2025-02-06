@@ -39,7 +39,6 @@ struct Orbita2dPoulpeEthercatController {
     id: u16,
     axis_sensor_zeros: [Option<f64>; 2],
     raw_motor_offsets: [Option<f64>; 2],
-
 }
 
 impl Orbita2dController {
@@ -53,7 +52,7 @@ impl Orbita2dController {
         orientation_limits: Option<[Limit; 2]>,
         firmware_zero: Option<bool>,
     ) -> Result<Self> {
-        let update_time =  Duration::from_secs_f32(0.002);
+        let update_time = Duration::from_secs_f32(0.002);
 
         let mut io = match (id, name) {
             (_, Some(name)) => {
@@ -65,33 +64,24 @@ impl Orbita2dController {
                 ) {
                     Ok(client) => client,
                     Err(e) => {
-                        error!(
-                            "Error while connecting to Orbita2dController: {:?}",
-                            e
-                        );
+                        error!("Error while connecting to Orbita2dController: {:?}", e);
                         return Err("Error while connecting to Orbita2dController".into());
                     }
                 };
                 client
-            },
+            }
             (Some(id), None) => {
                 log::info!("Connecting to the slave with id: {}", id);
-                let client = match PoulpeRemoteClient::connect(
-                    url.parse()?,
-                    vec![id as u16],
-                    update_time,
-                ) {
-                    Ok(client) => client,
-                    Err(e) => {
-                        error!(
-                            "Error while connecting to Orbita2dController: {:?}",
-                            e
-                        );
-                        return Err("Error while connecting to Orbita2dController".into());
-                    }
-                };
+                let client =
+                    match PoulpeRemoteClient::connect(url.parse()?, vec![id as u16], update_time) {
+                        Ok(client) => client,
+                        Err(e) => {
+                            error!("Error while connecting to Orbita2dController: {:?}", e);
+                            return Err("Error while connecting to Orbita2dController".into());
+                        }
+                    };
                 client
-            },
+            }
             _ => {
                 log::error!("Invalid config file, make sure to provide either the id or the name!");
                 return Err("Invalid config file".into());
@@ -106,13 +96,22 @@ impl Orbita2dController {
         while io.get_state(id).is_err() {
             thread::sleep(Duration::from_millis(100));
             if trials == 0 {
-                log::error!("Error: Timeout while connecting to the Orbita2d PoulpeRemoteClient with id {}", id);
-                return Err("Error: Timeout while connecting to the Orbita2d  PoulpeRemoteClient".into());
+                log::error!(
+                    "Error: Timeout while connecting to the Orbita2d PoulpeRemoteClient with id {}",
+                    id
+                );
+                return Err(
+                    "Error: Timeout while connecting to the Orbita2d  PoulpeRemoteClient".into(),
+                );
             }
             trials -= 1;
         }
-        log::info!("Connected Orbita2d Client created for Slave {} (id: {}), sampling time: {:}ms", name, id, update_time.as_millis());
-
+        log::info!(
+            "Connected Orbita2d Client created for Slave {} (id: {}), sampling time: {:}ms",
+            name,
+            id,
+            update_time.as_millis()
+        );
 
         // set the initial velocity and torque limit to 100%
         io.set_velocity_limit(id, [1.0; 2].to_vec());
@@ -630,7 +629,7 @@ mod tests {
 
         if let Orbita2dConfig::PoulpeEthercat(config) = config {
             assert_eq!(config.url, "http://url.com");
-            assert_eq!(config.id, 42);
+            assert_eq!(config.id, Some(42));
             assert_eq!(config.motors_offset, [0.0, 0.0]);
             assert_eq!(config.motors_ratio, [1.0, 1.0]);
             assert!(config.firmware_zero.is_none());
@@ -665,7 +664,7 @@ mod tests {
 
         if let Orbita2dConfig::PoulpeEthercat(config) = config {
             assert_eq!(config.url, "http://url.com");
-            assert_eq!(config.id, 42);
+            assert_eq!(config.id, Some(42));
             assert_eq!(config.motors_offset, [0.0, 0.0]);
             assert_eq!(config.motors_ratio, [1.0, 1.0]);
             assert_eq!(config.firmware_zero, Some(false));
@@ -681,7 +680,7 @@ mod tests {
 
         if let Orbita2dConfig::PoulpeEthercat(config) = config {
             assert_eq!(config.url, "http://127.0.0.1:50098");
-            assert_eq!(config.id, 1);
+            assert_eq!(config.id, Some(1));
             assert_eq!(config.motors_offset, [0.0, 0.0]);
             assert_eq!(config.motors_ratio, [1.0, 1.0]);
             assert!(config.orientation_limits.is_none());
