@@ -11,6 +11,9 @@ def get_fake_controller():
                 inverted_axes:
                     - false
                     - false
+                orientation_limits:
+                    - {min: -3.14159265, max: 3.14159265}
+                    - {min: -3.14159265, max: 3.14159265}
                 """
         )
         f.seek(0)
