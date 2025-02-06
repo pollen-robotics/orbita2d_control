@@ -1,4 +1,4 @@
-#![feature(file_create_new)]
+// #![feature(file_create_new)]
 use orbita2d_controller::Orbita2dController;
 
 use serde::Deserialize;
@@ -10,8 +10,6 @@ use std::{error::Error, thread, time::Duration};
 // use log::Level;
 
 use clap::Parser;
-
-use rerun;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -31,6 +29,7 @@ struct Args {
 
 #[derive(Debug, Deserialize)]
 // #[serde(rename_all = "PascalCase")]
+#[allow(non_snake_case)]
 struct Input {
     timestamp: f64,
     torque_on: bool,

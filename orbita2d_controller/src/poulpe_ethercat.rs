@@ -42,6 +42,7 @@ struct Orbita2dPoulpeEthercatController {
 }
 
 impl Orbita2dController {
+    #[allow(clippy::too_many_arguments)]
     pub fn with_poulpe_ethercat(
         url: &str,
         id: Option<u16>,
@@ -57,30 +58,23 @@ impl Orbita2dController {
         let mut io = match (id, name) {
             (_, Some(name)) => {
                 log::info!("Connecting to the slave with name: {}", name);
-                let client = match PoulpeRemoteClient::connect_with_name(
-                    url.parse()?,
-                    vec![name],
-                    update_time,
-                ) {
+                match PoulpeRemoteClient::connect_with_name(url.parse()?, vec![name], update_time) {
                     Ok(client) => client,
                     Err(e) => {
                         error!("Error while connecting to Orbita2dController: {:?}", e);
                         return Err("Error while connecting to Orbita2dController".into());
                     }
-                };
-                client
+                }
             }
             (Some(id), None) => {
                 log::info!("Connecting to the slave with id: {}", id);
-                let client =
-                    match PoulpeRemoteClient::connect(url.parse()?, vec![id as u16], update_time) {
-                        Ok(client) => client,
-                        Err(e) => {
-                            error!("Error while connecting to Orbita2dController: {:?}", e);
-                            return Err("Error while connecting to Orbita2dController".into());
-                        }
-                    };
-                client
+                match PoulpeRemoteClient::connect(url.parse()?, vec![id], update_time) {
+                    Ok(client) => client,
+                    Err(e) => {
+                        error!("Error while connecting to Orbita2dController: {:?}", e);
+                        return Err("Error while connecting to Orbita2dController".into());
+                    }
+                }
             }
             _ => {
                 log::error!("Invalid config file, make sure to provide either the id or the name!");
@@ -308,10 +302,10 @@ impl Orbita2dMotorController for Orbita2dPoulpeEthercatController {
                 // substract the sensor zero and the axis offset
 
                 for (i, s) in sensor.iter_mut().enumerate() {
-                    if !self.axis_sensor_zeros[i].is_none() {
+                    if self.axis_sensor_zeros[i].is_some() {
                         *s -= self.axis_sensor_zeros[i].unwrap() as f32;
                     }
-                    if !self.raw_motor_offsets[i].is_none() {
+                    if self.raw_motor_offsets[i].is_some() {
                         *s -= self.raw_motor_offsets[i].unwrap() as f32;
                     }
                     *s = wrap_to_pi(*s as f64) as f32;
