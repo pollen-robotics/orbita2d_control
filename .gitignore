@@ -13,6 +13,9 @@ Cargo.lock
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
 
+#emacs stuff
+*.~undo-tree~
+
 # Python
 __pycache__/
 orbita2d_c_api/python/orbita2d/_orbita2d
