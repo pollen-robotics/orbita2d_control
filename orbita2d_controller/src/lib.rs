@@ -80,6 +80,7 @@ pub struct Orbita2dController {
     // Expressed in the "corrected" Orbita2d reference frame
     // Meaning after offset and inverted axes correction
     orientation_limits: Option<[Limit; 2]>,
+    motor_gearbox_params: Option<MotorGearboxConfig>,
 }
 
 // #[derive(Debug, Deserialize, Serialize)]
@@ -107,6 +108,17 @@ pub enum Orbita2dConfig {
     Flipsky(FlipskyConfig),
     Poulpe(PoulpeConfig),
     PoulpeEthercat(PoulpeEthercatConfig),
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+/// Motor/gearbox characteristics
+pub struct MotorGearboxConfig {
+    /// motor and gearbox characteristics for current/torque conversion
+    pub motor_gearbox_ratio: f64,
+    pub motor_nominal_current: f64,
+    pub motor_nominal_torque: f64,
+    pub motor_efficiency: f64,
+    pub motor_gearbox_efficiency: f64,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -150,6 +162,7 @@ impl Orbita2dController {
         motors_offset: [f64; 2],
         inverted_axes: [bool; 2],
         orientation_limits: Option<[Limit; 2]>,
+        motor_gearbox_params: Option<MotorGearboxConfig>,
     ) -> Self {
         Self {
             inner: motors_controller,
@@ -157,6 +170,7 @@ impl Orbita2dController {
             motors_offset,
             inverted_axes,
             orientation_limits,
+            motor_gearbox_params,
         }
     }
 
@@ -225,6 +239,8 @@ impl Orbita2dController {
                 config.inverted_axes,
                 config.orientation_limits,
                 config.firmware_zero,
+                config.motor_gearbox_params,
+                config.default_mode,
             ),
         }
     }
@@ -565,7 +581,25 @@ impl Orbita2dController {
     /// Set the current target torque of the motors (in Nm)
     pub fn set_target_torque(&mut self, _torque: [f64; 2]) -> Result<()> {
         debug!(target: &self.log_target(), "set_target_torque: {:?}", _torque);
-        self.inner.set_target_torque(_torque)
+
+        let mut target_torque = _torque;
+        // apply the axis inversion
+
+        for i in 0..3 {
+            if self.inverted_axes[i] {
+                target_torque[i] = -target_torque[i];
+            }
+        }
+        // calculate the torque kinematics
+
+        let mut theta_torque = self.kinematics.compute_input_torque(target_torque.into());
+        // aplly the reduction
+        let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
+        for i in 0..3 {
+            theta_torque[i] /= red[i];
+        }
+
+        self.inner.set_target_torque(theta_torque)
     }
     /// Get the current target torque of the motors (in Nm)
     pub fn get_target_torque(&mut self) -> Result<[f64; 2]> {
@@ -608,6 +642,21 @@ impl Orbita2dController {
     fn log_target(&self) -> String {
         let name = self.inner.name();
         format!("Orbita2d_controller: {name}")
+    }
+
+    pub fn torque_current_ratio(&mut self) -> Option<f64> {
+        if self.motor_gearbox_params.is_none() {
+            None
+        } else {
+            let params = self.motor_gearbox_params.as_ref().unwrap();
+            Some(
+                params.motor_nominal_torque
+                    * params.motor_efficiency
+                    * params.motor_gearbox_efficiency
+                    / params.motor_nominal_current
+                    * params.motor_gearbox_ratio,
+            )
+        }
     }
 }
 
@@ -656,6 +705,11 @@ pub trait Orbita2dMotorController {
     /// Get the current target velocity of the motors (in rad/s)
     fn get_target_velocity(&mut self) -> Result<[f64; 2]> {
         Err("get_target_velocity not implemented".into())
+    }
+
+    /// Get the current to Nm ratio
+    fn torque_current_ratio(&mut self) -> Option<f64> {
+        None
     }
 
     /// Get the velocity limit (in radians/s) of each motor [motor_a, motor_b]

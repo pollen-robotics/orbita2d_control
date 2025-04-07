@@ -4,7 +4,7 @@ use std::f64::consts::PI;
 
 use log::{debug, error, info, warn};
 
-use crate::{Orbita2dController, Orbita2dFeedback, Orbita2dMotorController};
+use crate::{MotorGearboxConfig, Orbita2dController, Orbita2dFeedback, Orbita2dMotorController};
 use motor_toolbox_rs::{Limit, Result, PID};
 
 use poulpe_ethercat_grpc::client::PoulpeRemoteClient;
@@ -30,6 +30,9 @@ pub struct PoulpeEthercatConfig {
     pub orientation_limits: Option<[Limit; 2]>,
     /// Hardware zeros already set in the firmware
     pub firmware_zero: Option<bool>,
+
+    pub motor_gearbox_params: Option<MotorGearboxConfig>,
+    pub default_mode: Option<u8>,
 }
 
 /// Orbita ethercat controller
@@ -39,7 +42,8 @@ struct Orbita2dPoulpeEthercatController {
     id: u16,
     axis_sensor_zeros: [Option<f64>; 2],
     raw_motor_offsets: [Option<f64>; 2],
-
+    // motor_gearbox_params: Option<MotorGearboxConfig>,
+    // motors_ratio: [f64; 2],
 }
 
 impl Orbita2dController {
@@ -52,8 +56,10 @@ impl Orbita2dController {
         inverted_axes: [bool; 2],
         orientation_limits: Option<[Limit; 2]>,
         firmware_zero: Option<bool>,
+        motor_gearbox_params: Option<MotorGearboxConfig>,
+        default_mode: Option<u8>,
     ) -> Result<Self> {
-        let update_time =  Duration::from_secs_f32(0.002);
+        let update_time = Duration::from_secs_f32(0.002);
 
         let mut io = match (id, name) {
             (_, Some(name)) => {
@@ -65,33 +71,24 @@ impl Orbita2dController {
                 ) {
                     Ok(client) => client,
                     Err(e) => {
-                        error!(
-                            "Error while connecting to Orbita2dController: {:?}",
-                            e
-                        );
+                        error!("Error while connecting to Orbita2dController: {:?}", e);
                         return Err("Error while connecting to Orbita2dController".into());
                     }
                 };
                 client
-            },
+            }
             (Some(id), None) => {
                 log::info!("Connecting to the slave with id: {}", id);
-                let client = match PoulpeRemoteClient::connect(
-                    url.parse()?,
-                    vec![id as u16],
-                    update_time,
-                ) {
-                    Ok(client) => client,
-                    Err(e) => {
-                        error!(
-                            "Error while connecting to Orbita2dController: {:?}",
-                            e
-                        );
-                        return Err("Error while connecting to Orbita2dController".into());
-                    }
-                };
+                let client =
+                    match PoulpeRemoteClient::connect(url.parse()?, vec![id as u16], update_time) {
+                        Ok(client) => client,
+                        Err(e) => {
+                            error!("Error while connecting to Orbita2dController: {:?}", e);
+                            return Err("Error while connecting to Orbita2dController".into());
+                        }
+                    };
                 client
-            },
+            }
             _ => {
                 log::error!("Invalid config file, make sure to provide either the id or the name!");
                 return Err("Invalid config file".into());
@@ -106,20 +103,39 @@ impl Orbita2dController {
         while io.get_state(id).is_err() {
             thread::sleep(Duration::from_millis(100));
             if trials == 0 {
-                log::error!("Error: Timeout while connecting to the Orbita2d PoulpeRemoteClient with id {}", id);
-                return Err("Error: Timeout while connecting to the Orbita2d  PoulpeRemoteClient".into());
+                log::error!(
+                    "Error: Timeout while connecting to the Orbita2d PoulpeRemoteClient with id {}",
+                    id
+                );
+                return Err(
+                    "Error: Timeout while connecting to the Orbita2d  PoulpeRemoteClient".into(),
+                );
             }
             trials -= 1;
         }
-        log::info!("Connected Orbita2d Client created for Slave {} (id: {}), sampling time: {:}ms", name, id, update_time.as_millis());
-
+        log::info!(
+            "Connected Orbita2d Client created for Slave {} (id: {}), sampling time: {:}ms",
+            name,
+            id,
+            update_time.as_millis()
+        );
 
         // set the initial velocity and torque limit to 100%
         io.set_velocity_limit(id, [1.0; 2].to_vec());
         io.set_torque_limit(id, [1.0; 2].to_vec());
 
         //We can only change the mode if torque=off, then we ensure we are ProfilePositionMode
-        io.set_mode_of_operation(id as u16, 1); //0=NoMode, 1=ProfilePositionMode, 3=ProfileVelocityMode, 4=ProfileTorqueMode
+        // io.set_mode_of_operation(id as u16, 1); //0=NoMode, 1=ProfilePositionMode, 3=ProfileVelocityMode, 4=ProfileTorqueMode
+        if let Some(mode) = default_mode {
+            if mode == 0 || mode == 1 || mode == 2 || mode == 3 {
+                io.set_mode_of_operation(id as u16, mode.into()); //0=NoMode, 1=ProfilePositionMode, 3=ProfileVelocityMode, 4=ProfileTorqueMode
+            } else {
+                io.set_mode_of_operation(id as u16, 1); //0=NoMode, 1=ProfilePositionMode, 3=ProfileVelocityMode, 4=ProfileTorqueMode
+            }
+        } else {
+            //We can only change the mode if torque=off, then we ensure we are ProfilePositionMode
+            io.set_mode_of_operation(id as u16, 1); //0=NoMode, 1=ProfilePositionMode, 3=ProfileVelocityMode, 4=ProfileTorqueMode
+        }
 
         let mut poulpe_controller = Orbita2dPoulpeEthercatController {
             io,
@@ -147,6 +163,7 @@ impl Orbita2dController {
             motors_offset,
             inverted_axes,
             orientation_limits,
+            motor_gearbox_params,
         );
 
         let mut trials = 0;

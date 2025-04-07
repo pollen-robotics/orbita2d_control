@@ -114,6 +114,7 @@ impl Orbita2dController {
                 motors_offset,
                 inverted_axes,
                 orientation_limits,
+                None,
             ),
             false => Self::new(
                 Box::new(serial_controller),
@@ -121,6 +122,7 @@ impl Orbita2dController {
                 motors_offset,
                 inverted_axes,
                 orientation_limits,
+                None,
             ),
         })
     }
