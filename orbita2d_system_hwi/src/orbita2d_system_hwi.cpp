@@ -898,7 +898,7 @@ namespace orbita2d_system_hwi
     if (hw_commands_raw_torque_limit_[0] != prev_hw_commands_raw_torque_limit_[0] ||
         hw_commands_raw_torque_limit_[1] != prev_hw_commands_raw_torque_limit_[1])
     {
-	if(orbita2d_set_raw_torque_limit(this->uid, &hw_commands_raw_torque_limit_) != 0)
+	if(orbita2d_set_raw_motors_torque_limit(this->uid, &hw_commands_raw_torque_limit_) != 0)
 	{
 	    ret=hardware_interface::return_type::ERROR;
 
