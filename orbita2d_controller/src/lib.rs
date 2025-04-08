@@ -117,6 +117,7 @@ pub struct MotorGearboxConfig {
     pub motor_gearbox_ratio: f64,
     pub motor_nominal_current: f64,
     pub motor_nominal_torque: f64,
+    pub motor_nominal_velocity: f64,
     pub motor_efficiency: f64,
     pub motor_gearbox_efficiency: f64,
 }
@@ -340,7 +341,7 @@ impl Orbita2dController {
         let oriented_torque = self.kinematics.compute_output_torque(torque);
         debug!(target: &self.log_target(), "get_current_torque (with kinematics): {:?}", oriented_torque);
 
-        let oriented_torque = [
+        let mut oriented_torque = [
             if self.inverted_axes[0] {
                 -oriented_torque[0]
             } else {
@@ -354,7 +355,17 @@ impl Orbita2dController {
         ];
         debug!(target: &self.log_target(), "get_current_torque (with inverted axes): {:?}", oriented_torque);
 
-        Ok(oriented_torque)
+        // If parameters are known, convert to Nm
+        if let Some(ratio) = self.inner.torque_current_ratio() {
+            oriented_torque.iter_mut().for_each(|t| *t *= ratio);
+            debug!(target: &self.log_target(), "get_current_torque (with torque/current conversion): {:?}", oriented_torque);
+
+            Ok(oriented_torque)
+        } else {
+            Ok(oriented_torque)
+        }
+
+        // Ok(oriented_torque)
     }
 
     /// Get the desired orientation [ring, center] (in radians)
@@ -515,6 +526,141 @@ impl Orbita2dController {
         debug!(target: &self.log_target(), "set_raw_motors_torque_limit: {:?}", torque_limit);
         self.inner.set_torque_limit(torque_limit)
     }
+
+    /// Set the torque limit of the axes (in Nm)
+    pub fn set_torque_limit(&mut self, limit: [f64; 2]) -> Result<()> {
+        // apply the axis inversion
+        // for i in 0..2 {
+        //     if self.inverted_axes[i] {
+        //         target_torque[i] = -target_torque[i];
+        //     }
+        // }
+        // calculate the torque kinematics
+
+        let mut theta_torque = self.kinematics.compute_input_torque(limit.into());
+        // apply the reduction
+        let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
+        for i in 0..2 {
+            theta_torque[i] /= red[i];
+        }
+
+        // If parameters are known, convert to from Nm to mA
+        if let Some(ratio) = self.inner.torque_current_ratio() {
+            theta_torque.iter_mut().for_each(|t| *t /= ratio);
+        }
+        // Convert the mA into the %
+        if let Some(nominal_current) = self.inner.nominal_current() {
+            theta_torque
+                .iter_mut()
+                .for_each(|t| *t /= nominal_current * 1000.0);
+        }
+
+        self.inner.set_target_torque(theta_torque)
+    }
+
+    /// Get the torque limit of the axes (in Nm)
+    pub fn get_torque_limit(&mut self) -> Result<[f64; 2]> {
+        let mut input_torque_limit = self.inner.get_torque_limit()?; //in %
+
+        // concert % into mA
+        if let Some(nominal_current) = self.inner.nominal_current() {
+            input_torque_limit
+                .iter_mut()
+                .for_each(|t| *t *= nominal_current * 1000.0);
+        }
+        // If parameters are known, convert mA to Nm
+        if let Some(ratio) = self.inner.torque_current_ratio() {
+            input_torque_limit.iter_mut().for_each(|t| *t *= ratio);
+        }
+
+        // apply the reduction. Here?
+        let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
+        for i in 0..2 {
+            input_torque_limit[i] *= red[i];
+        }
+
+        let torque_limit = self.kinematics.compute_output_torque(input_torque_limit);
+
+        // apply axis inversion
+        // TODO: the inversion is applied to the angle-axis representation of the torque
+        // although it is not the best way to do it, it is the only way to do it with the current implementation
+        // we should decide which representation to invert and do it consistently
+        // let inverted_axes = self.inner.output_inverted_axes();
+        // for i in 0..3 {
+        //     if let Some(inverted) = inverted_axes[i] {
+        //         if inverted {
+        //             torque[i] = -torque[i];
+        //         }
+        //     }
+        // }
+
+        Ok(torque_limit.into())
+    }
+
+    /// Get the velocity limit of the axes (in radians/s)
+    pub fn get_velocity_limit(&mut self) -> Result<[f64; 2]> {
+        let mut input_velocity_limit = self.inner.get_velocity_limit()?; // in %
+
+        // Convert the % into the rad/s
+        if let Some(nominal_velocity) = self.inner.nominal_velocity() {
+            input_velocity_limit
+                .iter_mut()
+                .for_each(|t| *t *= nominal_velocity);
+        }
+        let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
+        for i in 0..2 {
+            input_velocity_limit[i] /= red[i];
+        }
+
+        let vel = self
+            .kinematics
+            .compute_output_velocity(input_velocity_limit);
+
+        // apply axis inversion
+        // TODO: the inversion is applied to the angle-axis representation of the torque
+        // although it is not the best way to do it, it is the only way to do it with the current implementation
+        // we should decide which representation to invert and do it consistently
+        // let inverted_axes = self.inner.output_inverted_axes();
+        // for i in 0..2 {
+        //     if let Some(inverted) = inverted_axes[i] {
+        //         if inverted {
+        //             vel[i] = -vel[i];
+        //         }
+        //     }
+        // }
+
+        Ok(vel.into())
+    }
+
+    /// Get the velocity limit of the axes (in radians/s)
+    pub fn set_velocity_limit(&mut self, limit: [f64; 2]) -> Result<()> {
+        // apply the axis inversion
+        // let inverted_axes = self.inner.output_inverted_axes();
+        // for i in 0..3 {
+        //     if let Some(inverted) = inverted_axes[i] {
+        //         if inverted {
+        //             target_limit[i] = -target_limit[i];
+        //         }
+        //     }
+        // }
+
+        // input velocity - velocity of the motors
+        let mut theta_limit = self.kinematics.compute_input_velocity(limit.into());
+
+        // apply the reduction
+        let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
+        for i in 0..2 {
+            theta_limit[i] *= red[i];
+        }
+
+        // Convert the rad/s into %
+        if let Some(nominal_velocity) = self.inner.nominal_velocity() {
+            theta_limit.iter_mut().for_each(|t| *t /= nominal_velocity);
+        }
+
+        self.inner.set_velocity_limit(theta_limit)
+    }
+
     /// Get the PID gains of each raw motor [motor_a, motor_b]
     /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
     pub fn get_raw_motors_pid_gains(&mut self) -> Result<[PID; 2]> {
@@ -584,8 +730,7 @@ impl Orbita2dController {
 
         let mut target_torque = _torque;
         // apply the axis inversion
-
-        for i in 0..3 {
+        for i in 0..2 {
             if self.inverted_axes[i] {
                 target_torque[i] = -target_torque[i];
             }
@@ -593,10 +738,15 @@ impl Orbita2dController {
         // calculate the torque kinematics
 
         let mut theta_torque = self.kinematics.compute_input_torque(target_torque.into());
-        // aplly the reduction
+        // apply the reduction
         let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
-        for i in 0..3 {
+        for i in 0..2 {
             theta_torque[i] /= red[i];
+        }
+
+        // If parameters are known, convert to from Nm to mA
+        if let Some(ratio) = self.inner.torque_current_ratio() {
+            theta_torque.iter_mut().for_each(|t| *t /= ratio);
         }
 
         self.inner.set_target_torque(theta_torque)
@@ -709,6 +859,16 @@ pub trait Orbita2dMotorController {
 
     /// Get the current to Nm ratio
     fn torque_current_ratio(&mut self) -> Option<f64> {
+        None
+    }
+
+    /// The nominal current (should be the max current allowed in the Firmware) in A
+    fn nominal_current(&self) -> Option<f64> {
+        None
+    }
+
+    /// The nominal velocity (should be the max velocity allowed in the Firmware) in rad/s
+    fn nominal_velocity(&self) -> Option<f64> {
         None
     }
 

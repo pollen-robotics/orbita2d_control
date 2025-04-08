@@ -55,10 +55,18 @@ uint32_t orbita2d_get_raw_motors_velocity_limit(uint32_t uid,
 uint32_t orbita2d_set_raw_motors_velocity_limit(uint32_t uid,
                                                 const double (*raw_motors_velocity_limit)[2]);
 
+uint32_t orbita2d_get_velocity_limit(uint32_t uid, double (*velocity_limit)[2]);
+
+uint32_t orbita2d_set_velocity_limit(uint32_t uid, const double (*velocity_limit)[2]);
+
 uint32_t orbita2d_get_raw_motors_torque_limit(uint32_t uid, double (*raw_motors_torque_limit)[2]);
 
 uint32_t orbita2d_set_raw_motors_torque_limit(uint32_t uid,
                                               const double (*raw_motors_torque_limit)[2]);
+
+uint32_t orbita2d_get_torque_limit(uint32_t uid, double (*torque_limit)[2]);
+
+uint32_t orbita2d_set_torque_limit(uint32_t uid, const double (*torque_limit)[2]);
 
 uint32_t orbita2d_get_raw_motors_pid_gains(uint32_t uid, double (*pids)[6]);
 

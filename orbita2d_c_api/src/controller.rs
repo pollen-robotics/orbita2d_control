@@ -286,6 +286,35 @@ pub extern "C" fn orbita2d_set_raw_motors_velocity_limit(
 }
 
 #[no_mangle]
+pub extern "C" fn orbita2d_get_velocity_limit(uid: u32, velocity_limit: &mut [f64; 2]) -> u32 {
+    match CONTROLLER.get_mut(&uid).unwrap().get_velocity_limit() {
+        Ok(v) => {
+            *velocity_limit = v;
+            0
+        }
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn orbita2d_set_velocity_limit(uid: u32, velocity_limit: &[f64; 2]) -> u32 {
+    match CONTROLLER
+        .get_mut(&uid)
+        .unwrap()
+        .set_velocity_limit(*velocity_limit)
+    {
+        Ok(_) => 0,
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn orbita2d_get_raw_motors_torque_limit(
     uid: u32,
     raw_motors_torque_limit: &mut [f64; 2],
@@ -315,6 +344,35 @@ pub extern "C" fn orbita2d_set_raw_motors_torque_limit(
         .get_mut(&uid)
         .unwrap()
         .set_raw_motors_torque_limit(*raw_motors_torque_limit)
+    {
+        Ok(_) => 0,
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn orbita2d_get_torque_limit(uid: u32, torque_limit: &mut [f64; 2]) -> u32 {
+    match CONTROLLER.get_mut(&uid).unwrap().get_torque_limit() {
+        Ok(v) => {
+            *torque_limit = v;
+            0
+        }
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn orbita2d_set_torque_limit(uid: u32, torque_limit: &[f64; 2]) -> u32 {
+    match CONTROLLER
+        .get_mut(&uid)
+        .unwrap()
+        .set_torque_limit(*torque_limit)
     {
         Ok(_) => 0,
         Err(e) => {
