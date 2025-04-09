@@ -36,10 +36,16 @@ private:
   double hw_states_error_;
   double hw_commands_error_;
 
+
+  double hw_states_control_mode_;
+  double hw_commands_control_mode_;
+
   double hw_states_position_[2];
   double hw_states_velocity_[2];
   double hw_states_effort_[2];
   double hw_commands_position_[2];
+  double hw_commands_velocity_[2];
+  double hw_commands_effort_[2];
 
 
   double hw_states_torque_limit_[2];

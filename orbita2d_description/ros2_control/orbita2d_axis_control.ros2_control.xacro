@@ -17,5 +17,15 @@
       <command_interface name="effort"/>
 
     </joint>
+
+    <gpio name="${name}">
+      <state_interface name="speed_limit"/>
+      <command_interface name="speed_limit"/>
+
+      <state_interface name="torque_limit"/>
+      <command_interface name="torque_limit"/>
+    </gpio>
+
+
   </xacro:macro>
 </robot>

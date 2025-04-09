@@ -47,7 +47,7 @@ namespace orbita2d_system_hwi
       return CallbackReturn::ERROR;
     }
 
-    long unsigned int nb_gpios_expected = 3; // actuator + raw_motor_1 + raw_motor_2
+    long unsigned int nb_gpios_expected = 5; // actuator +(2 axis)+ raw_motor_1 + raw_motor_2
     if (info.gpios.size() != nb_gpios_expected)
     {
       RCLCPP_ERROR(rclcpp::get_logger("Orbita2dSystem"),
@@ -110,6 +110,7 @@ namespace orbita2d_system_hwi
     auto ret = CallbackReturn::SUCCESS;
 
     hw_states_torque_ = std::numeric_limits<double>::quiet_NaN();
+    hw_states_control_mode_ = std::numeric_limits<double>::quiet_NaN();
     loop_counter_read = 0;
     loop_counter_write = 0;
 
@@ -341,6 +342,8 @@ namespace orbita2d_system_hwi
     for (int i = 0; i < 2; i++)
     {
       hw_commands_position_[i] = hw_states_position_[i];
+      hw_commands_velocity_[i] = 0.0;
+      hw_commands_effort_[i] = 0.0;
 
       hw_commands_torque_limit_[i] = hw_states_torque_limit_[i];
       hw_commands_speed_limit_[i] = hw_states_speed_limit_[i];
@@ -375,6 +378,33 @@ namespace orbita2d_system_hwi
 
         //wait
     rclcpp::sleep_for(std::chrono::milliseconds(10));
+
+
+    // control mode
+    uint8_t mode=0;
+    if (orbita2d_get_control_mode(this->uid, &mode) != 0)
+    {
+
+      RCLCPP_ERROR(
+          rclcpp::get_logger("Orbita2dSystem"),
+          "(%s) READ CONTROL MODE ERROR!", info_.name.c_str());
+      // ret= CallbackReturn::ERROR;
+            initOk=false;
+    }
+    hw_states_control_mode_=mode;
+    if(hw_states_control_mode_==0 || hw_states_control_mode_==1||hw_states_control_mode_==2||hw_states_control_mode_==3)
+      hw_commands_control_mode_ = hw_states_control_mode_;
+    else{
+      RCLCPP_ERROR(
+          rclcpp::get_logger("Orbita2dSystem"),
+          "(%s) READ CONTROL MODE ERROR! BAD CONTROL MODE: %d", info_.name.c_str(),(uint8_t)hw_states_control_mode_);
+      // ret= CallbackReturn::ERROR;
+            initOk=false;
+    }
+    rclcpp::sleep_for(std::chrono::milliseconds(10));
+
+
+
     if(!initOk && nb_tries<5)
       RCLCPP_INFO_THROTTLE(
           rclcpp::get_logger("Orbita3dSystem"),
@@ -421,6 +451,9 @@ namespace orbita2d_system_hwi
     for (std::size_t i = 0; i < 2; i++)
     {
       auto joint = info_.joints[i];
+      // RCLCPP_WARN(rclcpp::get_logger("Orbita2dSystem"),
+      //             "JOINT (%s) \"%s\"!", info_.name.c_str(),
+      //             joint.name.c_str());
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
           joint.name, hardware_interface::HW_IF_POSITION, &hw_states_position_[i]));
@@ -433,6 +466,22 @@ namespace orbita2d_system_hwi
       state_interfaces.emplace_back(hardware_interface::StateInterface(
 					joint.name, "axis_sensor", &hw_states_axis_sensors_[i]));
 
+
+      RCLCPP_INFO(rclcpp::get_logger("Orbita2dSystem"),
+		  "export speed_limit state interface (%s) \"%s\"!",
+		  info_.name.c_str(), joint.name.c_str());
+
+      state_interfaces.emplace_back(hardware_interface::StateInterface(
+					joint.name, "torque_limit", &hw_states_torque_limit_[i]));
+      RCLCPP_INFO(rclcpp::get_logger("Orbita2dSystem"),
+                        "export torque_limit state interface (%s) \"%s\"!",
+		  info_.name.c_str(), joint.name.c_str());
+
+      state_interfaces.emplace_back(hardware_interface::StateInterface(
+					joint.name, "speed_limit", &hw_states_speed_limit_[i]));
+
+
+
     }
 
     // motor index (not corresponding to the GPIO index)
@@ -442,6 +491,9 @@ namespace orbita2d_system_hwi
     for (std::size_t i = 0; i < info_.gpios.size(); i++)
     {
       auto gpio = info_.gpios[i];
+      // RCLCPP_WARN(rclcpp::get_logger("Orbita2dSystem"),
+      //             "GPIO (%s) \"%s\"!", info_.name.c_str(),
+      //             gpio.name.c_str());
 
       if (gpio.name == info_.name.c_str())
       {
@@ -454,9 +506,15 @@ namespace orbita2d_system_hwi
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             gpio.name, "errors", &hw_states_error_));
 
-        RCLCPP_INFO(
-            rclcpp::get_logger("Orbita2dSystem"),
-            "export state interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("Orbita2dSystem"),
+                    "export state interface (%s) \"%s\"!", info_.name.c_str(),
+                    gpio.name.c_str());
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            gpio.name, "control_mode", &hw_states_control_mode_));
+
+        RCLCPP_INFO(rclcpp::get_logger("Orbita2dSystem"),
+                    "export state interface (%s) \"%s\"!", info_.name.c_str(),
+                    gpio.name.c_str());
       }
       else if (gpio.name.find("raw_motor") != std::string::npos)
       {
@@ -469,15 +527,15 @@ namespace orbita2d_system_hwi
         state_interfaces.emplace_back(hardware_interface::StateInterface(
                                         gpio.name, "motor_currents", &hw_states_motor_currents_[motor_index]));
 
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            gpio.name, "torque_limit", &hw_states_torque_limit_[motor_index]));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            gpio.name, "speed_limit", &hw_states_speed_limit_[motor_index]));
+        // state_interfaces.emplace_back(hardware_interface::StateInterface(
+        //     gpio.name, "torque_limit", &hw_states_torque_limit_[motor_index]));
+        // state_interfaces.emplace_back(hardware_interface::StateInterface(
+        //     gpio.name, "speed_limit", &hw_states_speed_limit_[motor_index]));
 
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            gpio.name, "raw_torque_limit", &hw_states_raw_torque_limit_[motor_index]));
+            gpio.name, "torque_limit", &hw_states_raw_torque_limit_[motor_index]));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            gpio.name, "raw_speed_limit", &hw_states_raw_speed_limit_[motor_index]));
+            gpio.name, "speed_limit", &hw_states_raw_speed_limit_[motor_index]));
 
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             gpio.name, "p_gain", &hw_states_p_gain_[motor_index]));
@@ -497,12 +555,21 @@ namespace orbita2d_system_hwi
         RCLCPP_INFO(
             rclcpp::get_logger("Orbita2dSystem"),
             "export state interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str());
-      }
-      else
-      {
-        RCLCPP_WARN(
-            rclcpp::get_logger("Orbita2dSystem"),
-            "Unkwon state interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str());
+      } else {
+	  bool ok=false;
+	  for (std::size_t i = 0; i < 2; i++)
+	  {
+            auto joint = info_.joints[i];
+            if (gpio.name == joint.name) //To account for the axis level speed and torque limit
+	    {
+              ok = true;
+	      break;
+	    }
+          }
+	  if(!ok)
+	      RCLCPP_WARN(
+		  rclcpp::get_logger("Orbita2dSystem"),
+		  "Unkwon state interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str());
       }
     }
 
@@ -528,9 +595,60 @@ namespace orbita2d_system_hwi
 
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
           joint.name, hardware_interface::HW_IF_POSITION, &hw_commands_position_[i]));
-      RCLCPP_INFO(
-          rclcpp::get_logger("Orbita2dSystem"),
-          "export command interface (%s) \"%s\"!", info_.name.c_str(), joint.name.c_str());
+      RCLCPP_INFO(rclcpp::get_logger("Orbita2dSystem"),
+                  "export command interface (%s) \"%s\"!", info_.name.c_str(),
+                  joint.name.c_str());
+      command_interfaces.emplace_back(hardware_interface::CommandInterface(
+          joint.name, hardware_interface::HW_IF_VELOCITY, &hw_commands_velocity_[i]));
+      RCLCPP_INFO(rclcpp::get_logger("Orbita2dSystem"),
+                  "export command interface (%s) \"%s\"!", info_.name.c_str(),
+                  joint.name.c_str());
+      command_interfaces.emplace_back(hardware_interface::CommandInterface(
+          joint.name, hardware_interface::HW_IF_EFFORT, &hw_commands_effort_[i]));
+      RCLCPP_INFO(rclcpp::get_logger("Orbita2dSystem"),
+                  "export command interface (%s) \"%s\"!", info_.name.c_str(),
+                  joint.name.c_str());
+
+
+
+      command_interfaces.emplace_back(hardware_interface::CommandInterface(
+					  joint.name, "speed_limit", &hw_commands_speed_limit_[i]));
+
+      RCLCPP_INFO(rclcpp::get_logger("Orbita2dSystem"),
+		  "export speed_limit command interface (%s) \"%s\"!", info_.name.c_str(),
+		  joint.name.c_str());
+      command_interfaces.emplace_back(
+	  hardware_interface::CommandInterface(
+	      joint.name, "torque_limit",
+	      &hw_commands_torque_limit_[i]));
+      RCLCPP_INFO(rclcpp::get_logger("Orbita2dSystem"),
+			  "export torque_limit command interface (%s) \"%s\"!", info_.name.c_str(),
+                  joint.name.c_str());
+
+      // for (std::size_t j = 0; j < info_.gpios.size(); j++)
+      // {
+      // 	  auto gpio = info_.gpios[j];
+
+      // 	  if(gpio.name == joint.name)
+      // 	  {
+
+      // 	      command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      // 						  gpio.name, "speed_limit", &hw_commands_speed_limit_[i]));
+
+      // 	      RCLCPP_INFO(rclcpp::get_logger("Orbita2dSystem"),
+      //             "export speed_limit command interface (%s) \"%s\"!", info_.name.c_str(),
+      //             joint.name.c_str());
+      //         command_interfaces.emplace_back(
+      //             hardware_interface::CommandInterface(
+      //                 gpio.name, "torque_limit",
+      //                 &hw_commands_torque_limit_[i]));
+      // 	      RCLCPP_INFO(rclcpp::get_logger("Orbita2dSystem"),
+      //             "export torque_limit command interface (%s) \"%s\"!", info_.name.c_str(),
+      //             joint.name.c_str());
+
+      // 	  }
+      // }
+
     }
 
     // motor index (not corresponding to the GPIO index)
@@ -545,22 +663,40 @@ namespace orbita2d_system_hwi
       {
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
             info_.name.c_str(), "torque", &hw_commands_torque_));
-        RCLCPP_INFO(
-            rclcpp::get_logger("Orbita2dSystem"),
-            "export command interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str());
-      }
-      else if (gpio.name.find("raw_motor") != std::string::npos)
-      {
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            gpio.name, "speed_limit", &hw_commands_speed_limit_[motor_index]));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            gpio.name, "torque_limit",
-            &hw_commands_torque_limit_[motor_index]));
+        RCLCPP_INFO(rclcpp::get_logger("Orbita2dSystem"),
+                    "export command interface (%s) \"%s\"!", info_.name.c_str(),
+                    gpio.name.c_str());
 
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            gpio.name, "raw_speed_limit", &hw_commands_raw_speed_limit_[motor_index]));
+            gpio.name, "control_mode", &hw_commands_control_mode_));
+
+        RCLCPP_INFO(rclcpp::get_logger("Orbita2dSystem"),
+                    "export command interface (%s) \"%s\"!", info_.name.c_str(),
+                    gpio.name.c_str());
+      }
+
+      // else if (gpio.name == )
+      // {
+
+      // command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      // 					  gpio.name, "speed_limit", &hw_commands_speed_limit_[motor_index]));
+      // command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      // 					  gpio.name, "torque_limit",
+      // 					  &hw_commands_torque_limit_[motor_index]));
+
+      //   }
+      else if (gpio.name.find("raw_motor") != std::string::npos)
+      {
+        // command_interfaces.emplace_back(hardware_interface::CommandInterface(
+        //     gpio.name, "speed_limit", &hw_commands_speed_limit_[motor_index]));
+        // command_interfaces.emplace_back(hardware_interface::CommandInterface(
+        //     gpio.name, "torque_limit",
+        //     &hw_commands_torque_limit_[motor_index]));
+
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            gpio.name, "raw_torque_limit", &hw_commands_raw_torque_limit_[motor_index]));
+            gpio.name, "speed_limit", &hw_commands_raw_speed_limit_[motor_index]));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            gpio.name, "torque_limit", &hw_commands_raw_torque_limit_[motor_index]));
 
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
             gpio.name, "p_gain", &hw_commands_p_gain_[motor_index]));
@@ -575,12 +711,23 @@ namespace orbita2d_system_hwi
         RCLCPP_INFO(
             rclcpp::get_logger("Orbita2dSystem"),
             "export command interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str());
-      }
-      else
-      {
-        RCLCPP_WARN(
-            rclcpp::get_logger("Orbita2dSystem"),
-            "Unkown command interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str());
+      } else {
+	  bool ok=false;
+	  for (std::size_t i = 0; i < 2; i++)
+	  {
+            auto joint = info_.joints[i];
+            if (gpio.name == joint.name) //To account for the axis level speed and torque limit
+	    {
+              ok = true;
+	      break;
+	    }
+          }
+	  if(!ok)
+	      RCLCPP_WARN(
+		  rclcpp::get_logger("Orbita2dSystem"),
+		  "Unkwon command interface (%s) \"%s\"!", info_.name.c_str(), gpio.name.c_str());
+
+
       }
     }
 
@@ -625,6 +772,22 @@ namespace orbita2d_system_hwi
           "(%s) Error getting torque status!", info_.name.c_str());
     }
     hw_states_torque_ = torque_on ? 1.0 : 0.0;
+
+
+
+    // control mode
+    uint8_t mode=0;
+    if (orbita2d_get_control_mode(this->uid, &mode) != 0)
+    {
+
+      RCLCPP_ERROR(
+          rclcpp::get_logger("Orbita2dSystem"),
+          "(%s) READ CONTROL MODE ERROR!", info_.name.c_str());
+
+    }
+    hw_states_control_mode_=mode;
+
+
 
     // //Velocity
     if (orbita2d_get_current_velocity(this->uid, &hw_states_velocity_) != 0) {
@@ -803,6 +966,24 @@ namespace orbita2d_system_hwi
       hw_commands_position_[1] = hw_states_position_[1];
     }
 
+      if (hw_states_torque_ == 0) {
+	  //Only allowed when torque is off
+	  if(hw_commands_control_mode_ != hw_states_control_mode_ && (hw_commands_control_mode_==0 || hw_commands_control_mode_==1||hw_commands_control_mode_==2||hw_commands_control_mode_==3))
+	  {
+
+            // control mode
+	      uint8_t mode=(uint8_t)hw_commands_control_mode_;
+	      if (orbita2d_set_control_mode(this->uid, &mode) != 0)
+	      {
+
+		  RCLCPP_ERROR(
+		      rclcpp::get_logger("Orbita2dSystem"),
+			  "(%s) WRITE CONTROL MODE ERROR!", info_.name.c_str());
+
+	      }
+	  }
+      }
+
     if (orbita2d_set_target_orientation(this->uid, &hw_commands_position_) != 0)
     {
       // ret=hardware_interface::return_type::ERROR;
@@ -844,6 +1025,7 @@ namespace orbita2d_system_hwi
             "(%s) WRITE TORQUE ERROR!", info_.name.c_str());
       }
     }
+
 
     // speed limit
     if (hw_commands_raw_speed_limit_[0] != prev_hw_commands_raw_speed_limit_[0] ||
@@ -910,6 +1092,41 @@ namespace orbita2d_system_hwi
 	prev_hw_commands_raw_torque_limit_[0] = hw_commands_raw_torque_limit_[0];
         prev_hw_commands_raw_torque_limit_[1] = hw_commands_raw_torque_limit_[1];
     }
+
+
+
+    // TARGET VELOCITY
+    if(hw_commands_velocity_[0]!=0.0 || hw_commands_velocity_[1]!=0.0  ){
+      if (orbita2d_set_target_velocity(this->uid,
+                                       &hw_commands_velocity_) != 0)
+      {
+
+      RCLCPP_ERROR_THROTTLE(
+          rclcpp::get_logger("Orbita2dSystem"),
+          clock_,
+          LOG_THROTTLE_DURATION,
+          "(%s) WRITE TARGET VELOCITY ERROR!", info_.name.c_str());
+
+      }
+    }
+
+    // TARGET TORQUE
+    if(hw_commands_effort_[0]!=0.0 || hw_commands_effort_[1]!=0.0  ){
+      if (orbita2d_set_target_torque(this->uid,
+                                       &hw_commands_effort_) != 0)
+      {
+
+      RCLCPP_ERROR_THROTTLE(
+          rclcpp::get_logger("Orbita2dSystem"),
+          clock_,
+          LOG_THROTTLE_DURATION,
+          "(%s) WRITE TARGET TORQUE ERROR!", info_.name.c_str());
+
+      }
+    }
+
+
+
 
     // //pid gains
     double pids[6];
