@@ -1,13 +1,17 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:include filename="$(find orbita2d_description)/ros2_control/orbita2d_actuator_control.ros2_control.xacro"/>
-  <xacro:include filename="$(find orbita2d_description)/ros2_control/orbita2d_axis_control.ros2_control.xacro"/>
-  <xacro:include filename="$(find orbita2d_description)/ros2_control/orbita2d_raw_motor_control.ros2_control.xacro"/>
+  <xacro:include
+    filename="$(find orbita2d_description)/ros2_control/orbita2d_actuator_control.ros2_control.xacro" />
+  <xacro:include
+    filename="$(find orbita2d_description)/ros2_control/orbita2d_axis_control.ros2_control.xacro" />
+  <xacro:include
+    filename="$(find orbita2d_description)/ros2_control/orbita2d_raw_motor_control.ros2_control.xacro" />
 
   <xacro:macro name="orbita2d_control" params="name joint1 joint2 config_file ">
 
     <ros2_control name="${name}" type="system">
       <hardware>
+
         <!-- Use real hardware. -->
         <xacro:unless value="$(arg use_fake_hardware)">
           <plugin>orbita2d_system_hwi/Orbita2dSystem</plugin>
@@ -19,26 +23,30 @@
           <xacro:if value="$(arg use_gazebo)">
             <plugin>gazebo_ros2_control/GazeboSystem</plugin>
           </xacro:if>
-
-          <!-- Use fake components. -->
+          <!-- Else, when gazebo is not enabled -->
           <xacro:unless value="$(arg use_gazebo)">
-	    <!-- Standard ROS fake system -->
-            <!-- <plugin>fake_components/GenericSystem</plugin> -->
-
-	    <!-- Pollen controller fake system -->
-	    <plugin>orbita2d_system_hwi/Orbita2dSystem</plugin>
-	    <param name="config_file">${config_file}</param>
+            <!-- If mujoco mode is enabled -->
+            <xacro:if value="$(arg use_mujoco)">
+              <plugin>mujoco_ros2_control/MujocoSystem</plugin>
+            </xacro:if>
+            <!-- If neither gazebo nor mujoco are enabled -->
+            <xacro:unless value="$(arg use_mujoco)">
+              <!-- Pollen controller fake system -->
+              <plugin>orbita2d_system_hwi/Orbita2dSystem</plugin>
+              <param name="config_file">${config_file}</param>
+            </xacro:unless>
           </xacro:unless>
         </xacro:if>
+
       </hardware>
 
-      <xacro:orbita2d_actuator_control name="${name}"/>
+      <xacro:orbita2d_actuator_control name="${name}" />
 
-      <xacro:orbita2d_axis_control name="${name}_${joint1}"/>
-      <xacro:orbita2d_axis_control name="${name}_${joint2}"/>
+      <xacro:orbita2d_axis_control name="${name}_${joint1}" />
+      <xacro:orbita2d_axis_control name="${name}_${joint2}" />
 
-      <xacro:orbita2d_raw_motor_control name="${name}_raw_motor_1"/>
-      <xacro:orbita2d_raw_motor_control name="${name}_raw_motor_2"/>
+      <xacro:orbita2d_raw_motor_control name="${name}_raw_motor_1" />
+      <xacro:orbita2d_raw_motor_control name="${name}_raw_motor_2" />
 
     </ros2_control>
 
