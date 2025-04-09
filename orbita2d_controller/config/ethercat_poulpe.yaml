@@ -13,3 +13,12 @@ inverted_axes:
   - false
   - false
 orientation_limits: null
+motor_gearbox_params:
+  motor_gearbox_ratio: 35.0307692308 #ec45
+  motor_nominal_current: 3.96 #A
+  motor_max_current: 6.0 #A
+  motor_nominal_torque: 0.167 #Nm
+  motor_nominal_velocity: 10.0 #rad/s
+  motor_max_velocity: 10.0 #rad/s
+  motor_efficiency: 0.84
+  motor_gearbox_efficiency: 0.93

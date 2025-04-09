@@ -116,8 +116,10 @@ pub struct MotorGearboxConfig {
     /// motor and gearbox characteristics for current/torque conversion
     pub motor_gearbox_ratio: f64,
     pub motor_nominal_current: f64,
+    pub motor_max_current: f64,
     pub motor_nominal_torque: f64,
     pub motor_nominal_velocity: f64,
+    pub motor_max_velocity: f64,
     pub motor_efficiency: f64,
     pub motor_gearbox_efficiency: f64,
 }
@@ -537,7 +539,7 @@ impl Orbita2dController {
         // }
         // calculate the torque kinematics
 
-        let mut theta_torque = self.kinematics.compute_input_torque(limit.into());
+        let mut theta_torque = self.kinematics.compute_input_torque(limit);
         // apply the reduction
         let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
         for i in 0..2 {
@@ -549,10 +551,10 @@ impl Orbita2dController {
             theta_torque.iter_mut().for_each(|t| *t /= ratio);
         }
         // Convert the mA into the %
-        if let Some(nominal_current) = self.inner.nominal_current() {
+        if let Some(max_current) = self.inner.max_current() {
             theta_torque
                 .iter_mut()
-                .for_each(|t| *t /= nominal_current * 1000.0);
+                .for_each(|t| *t /= max_current * 1000.0);
         }
 
         self.inner.set_target_torque(theta_torque)
@@ -563,10 +565,10 @@ impl Orbita2dController {
         let mut input_torque_limit = self.inner.get_torque_limit()?; //in %
 
         // concert % into mA
-        if let Some(nominal_current) = self.inner.nominal_current() {
+        if let Some(max_current) = self.inner.max_current() {
             input_torque_limit
                 .iter_mut()
-                .for_each(|t| *t *= nominal_current * 1000.0);
+                .for_each(|t| *t *= max_current * 1000.0);
         }
         // If parameters are known, convert mA to Nm
         if let Some(ratio) = self.inner.torque_current_ratio() {
@@ -602,10 +604,10 @@ impl Orbita2dController {
         let mut input_velocity_limit = self.inner.get_velocity_limit()?; // in %
 
         // Convert the % into the rad/s
-        if let Some(nominal_velocity) = self.inner.nominal_velocity() {
+        if let Some(max_velocity) = self.inner.max_velocity() {
             input_velocity_limit
                 .iter_mut()
-                .for_each(|t| *t *= nominal_velocity);
+                .for_each(|t| *t *= max_velocity);
         }
         let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
         for i in 0..2 {
@@ -654,8 +656,8 @@ impl Orbita2dController {
         }
 
         // Convert the rad/s into %
-        if let Some(nominal_velocity) = self.inner.nominal_velocity() {
-            theta_limit.iter_mut().for_each(|t| *t /= nominal_velocity);
+        if let Some(max_velocity) = self.inner.max_velocity() {
+            theta_limit.iter_mut().for_each(|t| *t /= max_velocity);
         }
 
         self.inner.set_velocity_limit(theta_limit)
@@ -794,6 +796,24 @@ impl Orbita2dController {
         format!("Orbita2d_controller: {name}")
     }
 
+    pub fn max_current(&mut self) -> Option<f64> {
+        if self.motor_gearbox_params.is_none() {
+            None
+        } else {
+            let params = self.motor_gearbox_params.as_ref().unwrap();
+            Some(params.motor_max_current)
+        }
+    }
+
+    pub fn max_velocity(&mut self) -> Option<f64> {
+        if self.motor_gearbox_params.is_none() {
+            None
+        } else {
+            let params = self.motor_gearbox_params.as_ref().unwrap();
+            Some(params.motor_max_velocity)
+        }
+    }
+
     pub fn torque_current_ratio(&mut self) -> Option<f64> {
         if self.motor_gearbox_params.is_none() {
             None
@@ -862,13 +882,13 @@ pub trait Orbita2dMotorController {
         None
     }
 
-    /// The nominal current (should be the max current allowed in the Firmware) in A
-    fn nominal_current(&self) -> Option<f64> {
+    /// The max current (should be the max current allowed in the Firmware) in A
+    fn max_current(&self) -> Option<f64> {
         None
     }
 
-    /// The nominal velocity (should be the max velocity allowed in the Firmware) in rad/s
-    fn nominal_velocity(&self) -> Option<f64> {
+    /// The max velocity (should be the max velocity allowed in the Firmware) in rad/s
+    fn max_velocity(&self) -> Option<f64> {
         None
     }
 
