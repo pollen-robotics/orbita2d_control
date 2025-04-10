@@ -337,7 +337,7 @@ impl Orbita2dController {
     }
     /// Read the current torque [ring, center] (in Nm)
     pub fn get_current_torque(&mut self) -> Result<[f64; 2]> {
-        let torque = self.inner.get_current_torque()?;
+        let torque = self.inner.get_current_torque()?; //mA
         debug!(target: &self.log_target(), "get_current_torque: {:?}", torque);
 
         let oriented_torque = self.kinematics.compute_output_torque(torque);
@@ -357,9 +357,11 @@ impl Orbita2dController {
         ];
         debug!(target: &self.log_target(), "get_current_torque (with inverted axes): {:?}", oriented_torque);
 
-        // If parameters are known, convert to Nm
+        // If parameters are known, convert mA to Nm
         if let Some(ratio) = self.inner.torque_current_ratio() {
-            oriented_torque.iter_mut().for_each(|t| *t *= ratio);
+            oriented_torque
+                .iter_mut()
+                .for_each(|t| *t = *t * ratio / 1000.0);
             debug!(target: &self.log_target(), "get_current_torque (with torque/current conversion): {:?}", oriented_torque);
 
             Ok(oriented_torque)
@@ -548,13 +550,15 @@ impl Orbita2dController {
 
         // If parameters are known, convert to from Nm to mA
         if let Some(ratio) = self.inner.torque_current_ratio() {
-            theta_torque.iter_mut().for_each(|t| *t /= ratio);
+            theta_torque
+                .iter_mut()
+                .for_each(|t| *t = *t / ratio * 1000.0);
         }
         // Convert the mA into the %
         if let Some(max_current) = self.inner.max_current() {
             theta_torque
                 .iter_mut()
-                .for_each(|t| *t /= max_current * 1000.0);
+                .for_each(|t| *t = *t / (max_current * 1000.0));
         }
 
         self.inner.set_target_torque(theta_torque)
@@ -739,7 +743,7 @@ impl Orbita2dController {
         }
         // calculate the torque kinematics
 
-        let mut theta_torque = self.kinematics.compute_input_torque(target_torque.into());
+        let mut theta_torque = self.kinematics.compute_input_torque(target_torque);
         // apply the reduction
         let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
         for i in 0..2 {
@@ -748,7 +752,9 @@ impl Orbita2dController {
 
         // If parameters are known, convert to from Nm to mA
         if let Some(ratio) = self.inner.torque_current_ratio() {
-            theta_torque.iter_mut().for_each(|t| *t /= ratio);
+            theta_torque
+                .iter_mut()
+                .for_each(|t| *t = *t / ratio * 1000.0);
         }
 
         self.inner.set_target_torque(theta_torque)
