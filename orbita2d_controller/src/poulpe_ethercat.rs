@@ -42,7 +42,7 @@ struct Orbita2dPoulpeEthercatController {
     id: u16,
     axis_sensor_zeros: [Option<f64>; 2],
     raw_motor_offsets: [Option<f64>; 2],
-    // motor_gearbox_params: Option<MotorGearboxConfig>,
+    motor_gearbox_params: Option<MotorGearboxConfig>,
     // motors_ratio: [f64; 2],
 }
 
@@ -142,6 +142,7 @@ impl Orbita2dController {
             id,
             axis_sensor_zeros: [None; 2],
             raw_motor_offsets: [None; 2],
+            motor_gearbox_params,
         };
 
         //backup the raw motors offset from the file
@@ -152,9 +153,8 @@ impl Orbita2dController {
         poulpe_controller.axis_sensor_zeros = [Some(zeros[0]), Some(zeros[1])];
 
         info!(
-            "Orbita2d PoulpeEthercatController:\n\t - url: {:?}\n\t - id: {:?} - zeros: {:?} - raw_motor_offsets: {:?}
-",
-            url, id, zeros, motors_offset
+            "Orbita2d PoulpeEthercatController:\n\t - url: {:?}\n\t - id: {:?} - zeros: {:?} - raw_motor_offsets: {:?} - motor_params: {:?}",
+            url, id, zeros, motors_offset,motor_gearbox_params
         );
 
         let mut controller = Self::new(
@@ -432,6 +432,21 @@ impl Orbita2dMotorController for Orbita2dPoulpeEthercatController {
         match self.io.get_board_temperatures(self.id) {
             Ok(temp) => Ok([temp[0] as f64, temp[1] as f64]),
             Err(_) => Err("Error while getting board temperatures".into()),
+        }
+    }
+
+    fn torque_current_ratio(&mut self) -> Option<f64> {
+        if self.motor_gearbox_params.is_none() {
+            None
+        } else {
+            let params = self.motor_gearbox_params.as_ref().unwrap();
+            Some(
+                params.motor_nominal_torque
+                    * params.motor_efficiency
+                    * params.motor_gearbox_efficiency
+                    / params.motor_nominal_current
+                    * params.motor_gearbox_ratio,
+            )
         }
     }
 }

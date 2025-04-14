@@ -110,7 +110,7 @@ pub enum Orbita2dConfig {
     PoulpeEthercat(PoulpeEthercatConfig),
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Copy, Clone)]
 /// Motor/gearbox characteristics
 pub struct MotorGearboxConfig {
     /// motor and gearbox characteristics for current/torque conversion
@@ -335,29 +335,34 @@ impl Orbita2dController {
     }
     /// Read the current torque [ring, center] (in Nm)
     pub fn get_current_torque(&mut self) -> Result<[f64; 2]> {
+        //mA
         let torque = self.inner.get_current_torque()?;
-        debug!(target: &self.log_target(), "get_current_torque: {:?}", torque);
-
-        let oriented_torque = self.kinematics.compute_output_torque(torque);
+        debug!(target: &self.log_target(), "get_current_torque: {:?} (mA)", torque);
+        // calculate the torque kinematics
+        let mut oriented_torque = self.kinematics.compute_output_torque(torque);
         debug!(target: &self.log_target(), "get_current_torque (with kinematics): {:?}", oriented_torque);
 
-        let mut oriented_torque = [
-            if self.inverted_axes[0] {
-                -oriented_torque[0]
-            } else {
-                oriented_torque[0]
-            },
-            if self.inverted_axes[1] {
-                -oriented_torque[1]
-            } else {
-                oriented_torque[1]
-            },
-        ];
+        // apply the axis inversion
+        for i in 0..2 {
+            if self.inverted_axes[i] {
+                oriented_torque[i] = -oriented_torque[i];
+            }
+        }
+
         debug!(target: &self.log_target(), "get_current_torque (with inverted axes): {:?}", oriented_torque);
+
+        // apply the reduction
+        let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
+        for i in 0..2 {
+            oriented_torque[i] *= red[i];
+        }
+        debug!(target: &self.log_target(), "get_current_torque (with reduction axes): {:?}", oriented_torque);
 
         // If parameters are known, convert to Nm
         if let Some(ratio) = self.inner.torque_current_ratio() {
-            oriented_torque.iter_mut().for_each(|t| *t *= ratio);
+            oriented_torque
+                .iter_mut()
+                .for_each(|t| *t *= ratio / 1000.0);
             debug!(target: &self.log_target(), "get_current_torque (with torque/current conversion): {:?}", oriented_torque);
 
             Ok(oriented_torque)
@@ -555,7 +560,7 @@ impl Orbita2dController {
                 .for_each(|t| *t /= nominal_current * 1000.0);
         }
 
-        self.inner.set_target_torque(theta_torque)
+        self.inner.set_torque_limit(theta_torque)
     }
 
     /// Get the torque limit of the axes (in Nm)
@@ -746,7 +751,9 @@ impl Orbita2dController {
 
         // If parameters are known, convert to from Nm to mA
         if let Some(ratio) = self.inner.torque_current_ratio() {
-            theta_torque.iter_mut().for_each(|t| *t /= ratio);
+            theta_torque
+                .iter_mut()
+                .for_each(|t| *t = *t / ratio * 1000.0);
         }
 
         self.inner.set_target_torque(theta_torque)
@@ -794,11 +801,18 @@ impl Orbita2dController {
         format!("Orbita2d_controller: {name}")
     }
 
-    pub fn torque_current_ratio(&mut self) -> Option<f64> {
+    // pub fn torque_current_ratio(&mut self) -> Option<f64> {
+    //     debug!(target: &self.log_target(), "torque_current_ratio");
+    //     self.inner.torque_current_ratio()
+    // }
+
+    fn torque_current_ratio(&mut self) -> Option<f64> {
         if self.motor_gearbox_params.is_none() {
+            debug!(target: &self.log_target(), "torque_current_ratio: None ");
             None
         } else {
             let params = self.motor_gearbox_params.as_ref().unwrap();
+            debug!(target: &self.log_target(), "torque_current_ratio: Ok ");
             Some(
                 params.motor_nominal_torque
                     * params.motor_efficiency
