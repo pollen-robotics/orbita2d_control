@@ -17,7 +17,9 @@ struct FakeMotors {
 
     velocity_limit: [f64; 2],
     torque_limit: [f64; 2],
+
     pid_gains: [PID; 2],
+    control_mode: [u8; 2],
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -42,6 +44,7 @@ impl Default for FakeMotors {
             orientation_limits: None,
             velocity_limit: [f64::INFINITY, f64::INFINITY],
             torque_limit: [f64::INFINITY, f64::INFINITY],
+
             pid_gains: [
                 PID {
                     p: f64::NAN,
@@ -54,6 +57,7 @@ impl Default for FakeMotors {
                     d: f64::NAN,
                 },
             ],
+            control_mode: [1, 1],
         }
     }
 }
@@ -120,6 +124,12 @@ impl Orbita2dMotorController for FakeMotors {
         Ok(self.target_position)
     }
 
+    fn set_target_velocity(&mut self, _velocity: [f64; 2]) -> motor_toolbox_rs::Result<()> {
+        Ok(())
+    }
+    fn set_target_torque(&mut self, _torque: [f64; 2]) -> motor_toolbox_rs::Result<()> {
+        Ok(())
+    }
     fn set_target_position(&mut self, target_position: [f64; 2]) -> crate::Result<()> {
         self.target_position = target_position;
 
@@ -193,6 +203,14 @@ impl Orbita2dMotorController for FakeMotors {
 
     fn emergency_stop(&mut self) {
         self.torque_on = [false; 2];
+    }
+
+    fn get_control_mode(&mut self) -> crate::Result<[u8; 2]> {
+        Ok(self.control_mode)
+    }
+    fn set_control_mode(&mut self, mode: [u8; 2]) -> crate::Result<()> {
+        self.control_mode = mode;
+        Ok(())
     }
 }
 
