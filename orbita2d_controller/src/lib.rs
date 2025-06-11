@@ -769,8 +769,25 @@ impl Orbita2dController {
     }
     /// Set the current target velocity of the motors (in rad/s)
     pub fn set_target_velocity(&mut self, _velocity: [f64; 2]) -> Result<()> {
-        debug!(target: &self.log_target(), "set_target_velocity: {:?}", _velocity);
-        self.inner.set_target_velocity(_velocity)
+
+        // apply axis inversion
+        let out_vel = [
+            if self.inverted_axes[0] {
+                -_velocity[0]
+            } else {
+                _velocity[0]
+            },
+            if self.inverted_axes[1] {
+                -_velocity[1]
+            } else {
+                _velocity[1]
+            },
+        ];
+
+        let input_velocity = self.kinematics.compute_input_velocity(out_vel);
+        debug!(target: &self.log_target(), "set_target_velocity (with kinematics): {:?}", input_velocity);
+
+        self.inner.set_target_velocity(input_velocity)
     }
     /// Get the current target velocity of the motors (in rad/s)
     pub fn get_target_velocity(&mut self) -> Result<[f64; 2]> {

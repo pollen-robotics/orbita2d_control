@@ -290,6 +290,65 @@ class Orbita2dController:
         arr[0][5] = pid[1][2]
         check_error(lib.orbita2d_set_raw_motors_pid_gains(self.uid, arr))
 
+    def get_raw_motor_velocity(self) -> (float, float):
+        """Return the velocity of the motors (in rads/s).
+
+        Be careful, this is not the velocity of the ring and the center but of the motor directly!
+        """
+        velocity = ffi.new("double(*)[2]")
+        check_error(lib.orbita2d_get_raw_motors_velocity(self.uid, velocity))
+        return velocity[0][0], velocity[0][1]
+    
+    def get_raw_motor_torque(self) -> (float, float):
+        """Return the torque of the motors (in milliamps).
+
+        Be careful, this is not the torque of the ring and the center but of the motor directly!
+        """
+        torque = ffi.new("double(*)[2]")
+        check_error(lib.orbita2d_get_raw_motors_current(self.uid, torque))
+        return torque[0][0], torque[0][1]
+
+
+    def set_target_velocity(self, target: (float, float)):
+        """
+        Set the target velocity of the ring and the center (in rads/s).
+        """
+        arr = ffi.new("double(*)[2]", target)
+        arr[0][0] = target[0]
+        arr[0][1] = target[1]
+        check_error(lib.orbita2d_set_target_velocity(self.uid, arr))
+    
+    def set_target_torque(self, target: (float, float)):
+        """
+        Set the target torque of the ring and the center (in N.m).
+        """
+        arr = ffi.new("double(*)[2]", target)
+        arr[0][0] = target[0]
+        arr[0][1] = target[1]
+        check_error(lib.orbita2d_set_target_torque(self.uid, arr))
+    
+
+
+    def set_control_mode(self, mode: int):
+        """
+        Set the control mode of the controller.
+        1: Position
+        3: Velocity
+        4: Torque
+        """
+        m = ffi.new("uint8_t *", mode)
+        check_error(lib.orbita2d_set_control_mode(self.uid, m))
+
+    def get_control_mode(self) -> int:
+        """
+        Get the control mode of the controller.
+        1: Position
+        3: Velocity
+        4: Torque
+        """
+        mode = ffi.new("uint8_t *")
+        check_error(lib.orbita2d_get_control_mode(self.uid, mode))
+        return mode[0]
 
 def check_error(error_code: int):
     if error_code != 0:
