@@ -706,12 +706,11 @@ namespace orbita2d_system_hwi
 
       }
 
-
+      hw_states_error_ = errors;
       loop_counter_read = 0;
     }
     else
     {
-      hw_states_error_ = errors;
       loop_counter_read++;
     }
 
