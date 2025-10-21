@@ -655,6 +655,13 @@ impl Orbita2dController {
         self.inner.get_current_velocity()
     }
 
+    /// Get the position (rad) of each raw motor [motor_a, motor_b]
+    /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
+    pub fn get_raw_motors_position(&mut self) -> Result<[f64; 2]> {
+        debug!(target: &self.log_target(), "get_raw_motors_position");
+        self.inner.get_current_position()
+    }
+
     /// Get the temperature (°C) of each raw motor [motor_a, motor_b]
     pub fn get_raw_motors_temperature(&mut self) -> Result<[f64; 2]> {
         debug!(target: &self.log_target(), "get_raw_motors_temperature");
