@@ -353,13 +353,6 @@ impl Orbita2dController {
 
         debug!(target: &self.log_target(), "get_current_torque (with inverted axes): {:?}", oriented_torque);
 
-        // apply the reduction
-        let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
-        for i in 0..2 {
-            oriented_torque[i] *= red[i];
-        }
-        debug!(target: &self.log_target(), "get_current_torque (with reduction axes): {:?}", oriented_torque);
-
         // If parameters are known, convert to Nm
         if let Some(ratio) = self.inner.torque_current_ratio() {
             oriented_torque
@@ -536,20 +529,15 @@ impl Orbita2dController {
 
     /// Set the torque limit of the axes (in Nm)
     pub fn set_torque_limit(&mut self, limit: [f64; 2]) -> Result<()> {
+        let mut torque_limit = limit;
         // apply the axis inversion
-        // for i in 0..2 {
-        //     if self.inverted_axes[i] {
-        //         target_torque[i] = -target_torque[i];
-        //     }
-        // }
-        // calculate the torque kinematics
-
-        let mut theta_torque = self.kinematics.compute_input_torque(limit);
-        // apply the reduction
-        let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
         for i in 0..2 {
-            theta_torque[i] /= red[i];
+            if self.inverted_axes[i] {
+                torque_limit[i] = -torque_limit[i];
+            }
         }
+        // calculate the torque kinematics
+        let mut theta_torque = self.kinematics.compute_input_torque(torque_limit);
 
         // If parameters are known, convert to from Nm to mA
         if let Some(ratio) = self.inner.torque_current_ratio() {
@@ -581,27 +569,14 @@ impl Orbita2dController {
         if let Some(ratio) = self.inner.torque_current_ratio() {
             input_torque_limit.iter_mut().for_each(|t| *t *= ratio);
         }
-
-        // apply the reduction. Here?
-        let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
+        let mut torque_limit = self.kinematics.compute_output_torque(input_torque_limit);
+        
+        // apply the axis inversion
         for i in 0..2 {
-            input_torque_limit[i] *= red[i];
+            if self.inverted_axes[i] {
+                torque_limit[i] = -torque_limit[i];
+            }
         }
-
-        let torque_limit = self.kinematics.compute_output_torque(input_torque_limit);
-
-        // apply axis inversion
-        // TODO: the inversion is applied to the angle-axis representation of the torque
-        // although it is not the best way to do it, it is the only way to do it with the current implementation
-        // we should decide which representation to invert and do it consistently
-        // let inverted_axes = self.inner.output_inverted_axes();
-        // for i in 0..3 {
-        //     if let Some(inverted) = inverted_axes[i] {
-        //         if inverted {
-        //             torque[i] = -torque[i];
-        //         }
-        //     }
-        // }
 
         Ok(torque_limit.into())
     }
@@ -616,51 +591,34 @@ impl Orbita2dController {
                 .iter_mut()
                 .for_each(|t| *t *= max_velocity);
         }
-        let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
-        for i in 0..2 {
-            input_velocity_limit[i] /= red[i];
-        }
 
-        let vel = self
+        let mut vel = self
             .kinematics
             .compute_output_velocity(input_velocity_limit);
 
         // apply axis inversion
-        // TODO: the inversion is applied to the angle-axis representation of the torque
-        // although it is not the best way to do it, it is the only way to do it with the current implementation
-        // we should decide which representation to invert and do it consistently
-        // let inverted_axes = self.inner.output_inverted_axes();
-        // for i in 0..2 {
-        //     if let Some(inverted) = inverted_axes[i] {
-        //         if inverted {
-        //             vel[i] = -vel[i];
-        //         }
-        //     }
-        // }
+        for i in 0..2 {
+            if self.inverted_axes[i] {
+                vel[i] = -vel[i];
+            }
+        }
 
         Ok(vel.into())
     }
 
     /// Get the velocity limit of the axes (in radians/s)
-    pub fn set_velocity_limit(&mut self, limit: [f64; 2]) -> Result<()> {
+    pub fn set_velocity_limit(&mut self, _limit: [f64; 2]) -> Result<()> {
+        
+        let mut limit = _limit;
         // apply the axis inversion
-        // let inverted_axes = self.inner.output_inverted_axes();
-        // for i in 0..3 {
-        //     if let Some(inverted) = inverted_axes[i] {
-        //         if inverted {
-        //             target_limit[i] = -target_limit[i];
-        //         }
-        //     }
-        // }
+        for i in 0..2 {
+            if self.inverted_axes[i] {
+                limit[i] = -limit[i];
+            }
+        }
 
         // input velocity - velocity of the motors
         let mut theta_limit = self.kinematics.compute_input_velocity(limit.into());
-
-        // apply the reduction
-        let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
-        for i in 0..2 {
-            theta_limit[i] *= red[i];
-        }
 
         // Convert the rad/s into %
         if let Some(max_velocity) = self.inner.max_velocity() {
@@ -695,6 +653,13 @@ impl Orbita2dController {
     pub fn get_raw_motors_velocity(&mut self) -> Result<[f64; 2]> {
         debug!(target: &self.log_target(), "get_raw_motors_velocity");
         self.inner.get_current_velocity()
+    }
+
+    /// Get the position (rad) of each raw motor [motor_a, motor_b]
+    /// caution: this is the raw value used by the motors used inside the actuator, not a limit in orbita2d orientation!
+    pub fn get_raw_motors_position(&mut self) -> Result<[f64; 2]> {
+        debug!(target: &self.log_target(), "get_raw_motors_position");
+        self.inner.get_current_position()
     }
 
     /// Get the temperature (°C) of each raw motor [motor_a, motor_b]
@@ -745,13 +710,7 @@ impl Orbita2dController {
             }
         }
         // calculate the torque kinematics
-
         let mut theta_torque = self.kinematics.compute_input_torque(target_torque);
-        // apply the reduction
-        let red = [self.kinematics.ratio_a, self.kinematics.ratio_b];
-        for i in 0..2 {
-            theta_torque[i] /= red[i];
-        }
 
         // If parameters are known, convert to from Nm to mA
         if let Some(ratio) = self.inner.torque_current_ratio() {
@@ -759,7 +718,7 @@ impl Orbita2dController {
                 .iter_mut()
                 .for_each(|t| *t = *t / ratio * 1000.0);
         }
-
+        // apply the current to the motors in mA
         self.inner.set_target_torque(theta_torque)
     }
     /// Get the current target torque of the motors (in Nm)
@@ -769,8 +728,18 @@ impl Orbita2dController {
     }
     /// Set the current target velocity of the motors (in rad/s)
     pub fn set_target_velocity(&mut self, _velocity: [f64; 2]) -> Result<()> {
-        debug!(target: &self.log_target(), "set_target_velocity: {:?}", _velocity);
-        self.inner.set_target_velocity(_velocity)
+
+        let mut out_vel = _velocity;
+        // apply the axis inversion
+        for i in 0..2 {
+            if self.inverted_axes[i] {
+                out_vel[i] = -out_vel[i];
+            }
+        }
+        let input_velocity = self.kinematics.compute_input_velocity(out_vel);
+        debug!(target: &self.log_target(), "set_target_velocity (with kinematics): {:?}", input_velocity);
+
+        self.inner.set_target_velocity(input_velocity)
     }
     /// Get the current target velocity of the motors (in rad/s)
     pub fn get_target_velocity(&mut self) -> Result<[f64; 2]> {

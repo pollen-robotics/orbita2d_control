@@ -11,8 +11,8 @@ static UID: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
 static CONTROLLER: Lazy<SyncMap<u32, Orbita2dController>> = Lazy::new(SyncMap::new);
 // use log::debug;
 fn print_error(e: Box<dyn std::error::Error>) {
-    // eprintln!("[ORBITA_2D] {:?}", e);
-    log::debug!("[ORBITA_2D] Error: {:?}", e);
+    eprintln!("[ORBITA_2D] {:?}", e);
+    // log::debug!("[ORBITA_2D] Error: {:?}", e);
 }
 
 #[no_mangle]
@@ -449,6 +449,23 @@ pub extern "C" fn orbita2d_get_raw_motors_velocity(
     match CONTROLLER.get_mut(&uid).unwrap().get_raw_motors_velocity() {
         Ok(v) => {
             *raw_motors_velocity = v;
+            0
+        }
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn orbita2d_get_raw_motors_position(
+    uid: u32,
+    raw_motors_position: &mut [f64; 2],
+) -> u32 {
+    match CONTROLLER.get_mut(&uid).unwrap().get_raw_motors_position() {
+        Ok(p) => {
+            *raw_motors_position = p;
             0
         }
         Err(e) => {

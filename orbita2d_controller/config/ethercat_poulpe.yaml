@@ -1,8 +1,8 @@
 !PoulpeEthercat
 url: http://127.0.0.1:50098
-id: 0
+# name: "LeftShoulderOrbita2d" # Use the name if available (optional but recomended)
+id: 0 # if no name the id is used if available (optional, but one has to be defined)
 firmware_zero: true
-# name: "LeftShoulderOrbita2d"
 motors_offset:
   - 0.0
   - 0.0
