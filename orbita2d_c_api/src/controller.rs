@@ -401,6 +401,23 @@ pub extern "C" fn orbita2d_get_raw_motors_velocity(
 }
 
 #[no_mangle]
+pub extern "C" fn orbita2d_get_raw_motors_position(
+    uid: u32,
+    raw_motors_position: &mut [f64; 2],
+) -> u32 {
+    match CONTROLLER.get_mut(&uid).unwrap().get_raw_motors_position() {
+        Ok(p) => {
+            *raw_motors_position = p;
+            0
+        }
+        Err(e) => {
+            print_error(e);
+            1
+        }
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn orbita2d_get_axis_sensors(uid: u32, axis_sensors: &mut [f64; 2]) -> u32 {
     match CONTROLLER.get_mut(&uid).unwrap().get_axis_sensors() {
         Ok(s) => {
